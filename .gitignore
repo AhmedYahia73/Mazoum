@@ -1,0 +1,27 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+_copy.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+# Ignore environment files
+.env
+_copy.env
+.env.local
+
+# Ignore vendor and node modules
+/vendor/
+/node_modules/
+/tests/
+
+# Ignore IDE/editor config files
+*.idea/
+*.vscode/
+*.sublime-workspace

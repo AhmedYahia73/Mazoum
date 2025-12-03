@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Http\Request;
+use App\Http\Requests\Desgins as modelRequest;
+use App\Http\Controllers\Controller;
+use App\Models\Desgins as Model;
+use Response;
+
+class DesginsController extends Controller
+{
+
+    private $view = 'admin.desgins.';
+    private $redirect = 'admin/desgins';
+
+
+    public function get_lang()
+    {
+        $lang = session()->get('admin_lang');
+
+        if($lang == 'en' && $lang != null) {
+            return $lang;
+        } else {
+            return 'ar';
+        }
+    }
+
+    public function show_pdf($id) {
+
+        // $Item = Model::findOrFail($id);
+
+        // $path = $Item->file; // path للملف على السيرفر
+
+        // if(!file_exists($path)){
+        //     return response()->json(['error' => 'File not found'], 404);
+        // }
+
+        // return response()->file($path, [
+        //     'Content-Type' => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="file.pdf"',
+        // ]);
+        $Item = Model::findOrFail($id);
+
+        $filename = 'file';
+
+        $path = $Item->file;
+
+        return response()->json([
+            "path_pdf" => url($path)
+        ]);
+
+    }
+
+    public function index()
+    {
+        $lang = $this->get_lang();
+
+        if($lang == null) {
+            $lang = 'ar';app()->setLocale('ar');session()->put('admin_lang','ar');
+        }
+
+        $Item = Model::get(['id','en_name','ar_name', 'file', 'type']);
+
+        return response()->json([
+            "Items" => $Item
+        ]);
+    }
+
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+         return view($this->view . 'create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(modelRequest $request)
+    {
+
+        $Item = Model::create($this->gteInput($request,null));
+        return response()->json([
+            "success" => 'You add data sucess'
+        ]);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $Item = Model::findOrFail($id);
+        return response()->json([
+            "Item" => $Item
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $Item = Model::findOrFail($id);
+        return response()->json([
+            "Item" => $Item
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(modelRequest $request, $id)
+    {
+        $Item = Model::findOrFail($id);
+        $Item->update($this->gteInput($request,$Item));
+
+        return response()->json([
+            "success" => 'You update data sucess'
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $Item = Model::findOrFail($id);
+        $Item->delete();
+        return response()->json([
+            "success" => 'You delete data sucess'
+        ]);
+    }
+
+
+    private function gteInput($request,$modelClass) {
+
+        $input = $request->only([
+            'en_name','ar_name'
+        ]);
+
+        $path = 'images';
+
+        if($request->file('file') != null) {
+
+            $extension = $request->file('file')->extension();
+            $filename = uniqid() . '.' . $extension;
+            $request->file('file')->move($path, $filename);
+
+            $input['file'] = $filename;
+
+            if($extension != 'pdf') {
+                $input['type'] = 'image';
+            } else {
+                $input['type'] = 'pdf';
+            }
+
+        }
+
+        return  $input;
+    }
+
+
+}

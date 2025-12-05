@@ -567,14 +567,63 @@ class EventsController extends Controller
         $mobiles = EventUsers::
         where('event_id',$id)
         ->pluck('mobile')->toArray();
-
         $mobiles_arr = [];
 
         foreach($mobiles as $phone) {
             $mobiles_arr[] = ltrim($phone,"+");
         }
+        $apologize_msgs = EventMessages::
+        whereHas('event',function($event) {
+            $event->whereIn('is_open',['yes','current']);
+        })
+        ->whereIn('mobile',$mobiles_arr)
+        ->count();
+        $invitees = EventUsers::
+        where('event_id',$Item->id)
+        ->sum('users_count');
+        $qr = EventUsers::
+        where('event_id',$Item->id)
+        ->where('scan','yes')
+        ->sum('scan_count');
+        $confirm_attend = EventUsers::
+        where('event_id',$Item->id)
+        ->where('is_accepted','yes')
+        ->sum('users_count');
+        $apologize = EventUsers::
+        where('event_id',$Item->id)
+        ->where('status','not-attend')
+        ->sum('users_count');
+        $waiting = EventUsers::
+        where('event_id',$Item->id)
+        ->where('status','hold')
+        ->where('is_new_sent',0)
+        ->whereNull('is_sent')
+        ->sum('users_count');
+        $not_confirm = EventUsers::
+        where('event_id',$Item->id)
+        ->whereIn('status', ['sent'])
+        ->whereNull('is_accepted')
+        ->whereNull('is_refused')
+        ->where(function($query) { 
+            $query->where('is_new_sent',1)->orWhereNotNull('is_sent'); 
+        })
+        ->sum('users_count');
+        $send_Qr = EventUsers::
+        where('event_id',$Item->id)
+        ->where('qr_sent','yes')
+        ->sum('users_count'); 
+        $not_attend = EventUsers::
+        where('event_id',$Item->id)
+        ->where('status','attend')
+        ->whereNull('scan')
+        ->whereNull('is_refused')
+        ->sum('users_count');
+        $confirm_web_users = EventUserActions::
+        where('event_id',$Item->id)
+        ->where('action','accept_event')
+        ->count();   
 
-        $messages_count = CongratulationMessages::
+        $congratulation_msgs = CongratulationMessages::
         whereHas('event',function($event) { 
             $event->whereIn('is_open',['yes','current']); 
         })
@@ -584,7 +633,17 @@ class EventsController extends Controller
         return response()->json([
             "Item" => $Item,
             "mobiles_arr" => $mobiles_arr,
-            "messages_count" => $messages_count,
+            "congratulation_msgs" => $congratulation_msgs,
+            "apologize_msgs" => $apologize_msgs,
+            "invitees" => $invitees,
+            "qr" => $qr,
+            "confirm_attend" => $confirm_attend,
+            "apologize" => $apologize,
+            "waiting" => $waiting,
+            "not_confirm" => $not_confirm,
+            "send_Qr" => $send_Qr,
+            "not_attend" => $not_attend,
+            "confirm_web_users" => $confirm_web_users,
         ]);
     }
 

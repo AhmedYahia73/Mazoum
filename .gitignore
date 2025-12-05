@@ -3,6 +3,7 @@
 /public/storage
 /storage/*.key
 /vendor
+/routes/guest.php
 .env
 _copy.env
 .env.backup

@@ -30,7 +30,7 @@ class Desgins extends FormRequest
                 return [
                     'en_name' => 'required',
                     'ar_name' => 'required',
-                    'file'    => 'required|mimes:pdf,jpg,png,jpeg',
+                    'file'    => 'required',
                 ];
 
             case 'PUT':
@@ -38,7 +38,7 @@ class Desgins extends FormRequest
                 return [
                     'en_name' => 'required',
                     'ar_name' => 'required',
-                    'file'    => 'nullable|mimes:pdf,jpg,png,jpeg',
+                    'file'    => 'nullable',
                 ];
 
             default:

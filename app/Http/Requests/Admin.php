@@ -16,6 +16,8 @@ class Admin extends FormRequest
 
     public function rules()
     {
+        
+        $id = $this->route('manager'); 
         switch ($this->method()) {
             case 'GET':
             case 'DELETE':
@@ -32,9 +34,9 @@ class Admin extends FormRequest
             case 'PUT':
             case 'PATCH':
                 return [
-                    'name'     => ['required', Rule::unique('admin', 'name')->ignore($this->id)],
-                    'mobile'   => ['required', 'numeric', Rule::unique('admin', 'mobile')->ignore($this->id)],
-                    'email'    => ['required', 'email', Rule::unique('admin', 'email')->ignore($this->id)],
+                    'name'     => ['required', Rule::unique('admin', 'name')->ignore($id)],
+                    'mobile'   => ['required', 'numeric', Rule::unique('admin', 'mobile')->ignore($id)],
+                    'email'    => ['required', 'email', Rule::unique('admin', 'email')->ignore($id)],
                     'password' => 'nullable',
                 ];
         }

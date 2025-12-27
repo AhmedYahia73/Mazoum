@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Desgins as Model;
 use Response;
 
+use Illuminate\Support\Facades\Validator;
+
 class DesginsController extends Controller
 {
 
@@ -128,8 +130,18 @@ class DesginsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(modelRequest $request, $id)
+    public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'en_name' => 'required',
+            'ar_name' => 'required',
+            'file'    => 'nullable',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
         $Item = Model::findOrFail($id);
         $Item->update($this->gteInput($request,$Item));
 

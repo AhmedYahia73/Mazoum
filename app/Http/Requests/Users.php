@@ -21,6 +21,7 @@ class Users extends FormRequest
 
     public function rules()
     {
+        $id = $this->route('user'); 
         switch ($this->method()) {
 
             case 'GET':
@@ -36,7 +37,6 @@ class Users extends FormRequest
 
             case 'PUT':
             case 'PATCH':
-                $id = $this->get('id');
                 return [
                     'name'        => 'required',
                     'mobile'      => "required|numeric|unique:users,mobile,$id",

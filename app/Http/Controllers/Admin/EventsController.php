@@ -410,6 +410,14 @@ class EventsController extends Controller
      */
     public function store(modelRequest $request)
     {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:pdf,jpg,png,jpeg',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
 
         $Item = Model::withTrashed()->create($this->gteInput($request, null));
 

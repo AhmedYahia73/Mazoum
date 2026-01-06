@@ -27,7 +27,7 @@ class Events extends FormRequest
                 'country_code' => 'required',
                 'title' => 'required|string',
                 'address' => 'required|string',
-                'file' => 'required|mimes:pdf,jpg,png,jpeg',
+                'file' => 'sometimes|mimes:pdf,jpg,png,jpeg',
                 'showing_qr' => 'required',
                 'user_id' => 'required|exists:users,id',
                 'date' => 'required|date|date_format:Y-m-d',

@@ -1045,18 +1045,14 @@ class EventUersController extends Controller
 
   	///////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
   	// send_event_users
     public function send_event_users(Request $request)
     {
        $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array', 
-            'users.*.name' => 'required',
-            'users.*.mobile' => 'nullable|numeric',
+            'users.*.id' => 'required|exists:event_users,id',
+            'users.*.users_count' => 'required|numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

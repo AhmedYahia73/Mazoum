@@ -525,12 +525,12 @@
                 cancelButtonText: "لا",
                 closeOnConfirm: true,
                 closeOnCancel: true
-              },
-              function (isConfirm) {
+            },
+            function (isConfirm) {
                 if (isConfirm) {
                   $('#all_users').attr('action', '{{ url("admin/send_event_users") }}').submit();
                 }
-              });
+            });
         }
 
 

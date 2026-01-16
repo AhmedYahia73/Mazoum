@@ -718,7 +718,91 @@ class EventsController extends Controller
 
     public function my_package($id)
     {
-        $Item = Model::withTrashed()->findOrFail($id);
+        
+        // "reservation_date": null,
+        
+        $Item = Model::
+        with("user.order")
+        ->withTrashed()->findOrFail($id);
+        $arr = [ 
+            "id"=> $Item->id,
+            "title"=> $Item->title,
+            "image"=> $Item->image,
+            "file"=> $Item->file,
+            "country"=> $Item->country,
+            "country_code"=> $Item->country_code,
+            "location"=> $Item->location,
+            "lat"=> $Item->lat,
+            "long"=> $Item->long,
+            "address"=> $Item->address,
+            "showing_qr"=> $Item->showing_qr,
+            "date"=> $Item->date,
+            "time"=> $Item->time,
+            "add_by"=> $Item->add_by,
+            "user_id"=> $Item->user_id,
+            "assistant_id"=> $Item->assistant_id,
+            "gender"=> $Item->gender,
+            "have_reminder"=> $Item->have_reminder,
+            "can_replay_messages"=> $Item->can_replay_messages,
+            "sent_remember"=> $Item->sent_remember,
+            "first_name"=> $Item->first_name,
+            "last_name"=> $Item->last_name,
+            "is_open"=> $Item->is_open,
+            "enable_resend_again"=> $Item->enable_resend_again,
+            "sending_type"=> $Item->sending_type,
+            "phone"=> $Item?->user?->mobile_code . $Item?->user?->mobile,
+            "invitation_count"=> $Item?->user?->order?->users_count,
+            "reservation_date"=> $Item?->user?->order?->start_subscription_date,
+            "package_price"=> $Item?->user?->order?->total,
+            "payment_type"=> $Item?->user?->order?->payment_type,
+            "is_paid"=> $Item?->user?->order?->is_paid,
+            "employee_gender"=> $Item?->user?->employee_gender == 'male' ? 'رجل' : 'مرأة',
+            "color"=> $Item->color,
+            "video"=> $Item->video,
+            "created_at"=> $Item->created_at,
+            "updated_at"=> $Item->updated_at,
+            "deleted_at"=> $Item->id
+        ];
+
+        return response()->json([
+            "Item" => $arr
+        ]);
+    }
+
+    public function update_my_package(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'package_price' => 'required|numeric',
+            'payment_type' => 'required|numeric',
+            'is_paid' => 'required|numeric',
+            'invitation_count' => 'required|numeric',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        $Item = Model::
+        where("id", $id)
+        ->first()?->user ?? null;
+        if(empty($Item)){
+            return response()->json([
+                "errors" => 'User not found'
+            ], 400);
+        }
+        $order = $Item->order;
+        if(empty($order)){
+            return response()->json([
+                "errors" => 'User is not subscriber'
+            ], 400);
+        }
+        $order->update([
+            "total" => $request->package_price,
+            "payment_type" => $request->payment_type,
+            "is_paid" => $request->is_paid,
+            "users_count" => $request->invitation_count,
+        ]);
 
         return response()->json([
             "Item" => $Item
@@ -859,5 +943,35 @@ class EventsController extends Controller
         return  $input;
     }
 
+    public function delete_event($id){
+        $event = Model::
+        where("id", $id)
+        ->first();
+        if(empty($event)){
+            return response()->json([
+                "errors" => "event empty"
+            ], 400);
+        }
+        EventUsers::
+        where("event_id", $event->id)
+        ->delete();
+        //'','', 
+        $this->delete_image($event->image);
+        $this->delete_image($event->video);
+        $this->delete_image($event->file);
+        $event->delete();
+        
+        return response()->json([
+            "success" => "You delete event success"
+        ], 400);
+    }
+    
 
+    public function delete_image($image){
+        try { 
+            File::delete($imagePath); 
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
 }

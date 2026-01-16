@@ -86,9 +86,9 @@ Route::post('web_desgins/{id}', 'WebDesginsController@update');
 Route::get('web_desgins/destroy/{id}', 'WebDesginsController@destroy');
 Route::get('web_desgins/show-pdf/{id}', 'WebDesginsController@show_pdf');
 
-
-// Events
+// Events 
 Route::post('events/update_location', 'EventsController@update_location');
+Route::delete('events/delete_event/{id}', 'EventsController@delete_event');
 Route::get('events/assistant_lists', 'EventsController@assistant_lists');
 Route::get('events/users_lists', 'EventsController@users_lists');
 Route::resource('events', 'EventsController', [
@@ -132,6 +132,7 @@ Route::get('events/{id}/event-location', 'EventsController@event_location');
 Route::get('events/{id}/enter-event', 'EventsController@enter_event');
 Route::get('events/{id}/scanner', 'EventsController@scanner');
 Route::get('events/{id}/my-package', 'EventsController@my_package');
+Route::get('events/{id}/update_my_package', 'EventsController@update_my_package');
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 

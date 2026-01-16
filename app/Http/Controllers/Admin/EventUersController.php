@@ -419,7 +419,7 @@ class EventUersController extends Controller
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required',
-          	'file2'  => 'nullable|image',
+          	'file2'  => 'nullable',
             'date' => 'required',
             'time' => 'required',
         ]); 
@@ -479,7 +479,7 @@ class EventUersController extends Controller
 
                         if($user_event != null) {
 
-                            $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+                            $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
 
                             $user_name = $user_event->name;
 

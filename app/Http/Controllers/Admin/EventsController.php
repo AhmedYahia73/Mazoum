@@ -772,9 +772,9 @@ class EventsController extends Controller
     public function update_my_package(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'package_price' => 'required|numeric',
-            'payment_type' => 'required|numeric',
-            'is_paid' => 'required|numeric',
+            'package_price' => 'required',
+            'payment_type' => 'required|in:key_net,cash',
+            'is_paid' => 'required|in:paid,not_paid',
             'invitation_count' => 'required|numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error

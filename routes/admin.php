@@ -132,7 +132,7 @@ Route::get('events/{id}/event-location', 'EventsController@event_location');
 Route::get('events/{id}/enter-event', 'EventsController@enter_event');
 Route::get('events/{id}/scanner', 'EventsController@scanner');
 Route::get('events/{id}/my-package', 'EventsController@my_package');
-Route::get('events/{id}/update_my_package', 'EventsController@update_my_package');
+Route::put('events/{id}/update_my_package', 'EventsController@update_my_package');
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 

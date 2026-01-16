@@ -280,6 +280,17 @@ class EventUersController extends Controller
     public function update_user_mobile(Request $request)
     {
 
+       $validator = Validator::make($request->all(), [ 
+        	'event_user_id' => 'required|exists:event_users,id',
+            'mobile' => 'required',
+            'users_count' => 'required|numeric',
+            'name' => 'required',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
         $request->validate([
             'event_user_id' => 'required',
             'mobile' => 'required|numeric',
@@ -1936,6 +1947,7 @@ class EventUersController extends Controller
                         ->orWhere('mobile', 'like', "%$search%");
                 });
             })
+            ->with("reply:id,name,mobile,message,type,message_id")
             ->paginate(15);
 
 			$title = 'رسائل التهنئة';
@@ -1953,6 +1965,7 @@ class EventUersController extends Controller
                         ->orWhere('mobile', 'like', "%$search%");
                 });
             })
+            ->with("reply:id,name,mobile,message,type,message_id")
             ->paginate(15);
 
           	$title = 'كل الرسائل';
@@ -2193,11 +2206,9 @@ class EventUersController extends Controller
             ]);
         }
 
-
         return response()->json([
             'success' => 'تم ارسال الرساله بنجاح', 
-        ]); 
-
+        ]);
     }
 
 

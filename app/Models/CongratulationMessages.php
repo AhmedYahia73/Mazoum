@@ -15,6 +15,10 @@ class CongratulationMessages extends Model
         'event_id' ,'event_user_id', 'name' , 'mobile', 'message' , 'type', 'message_id'
     ];
   
+    public function reply(){
+        return $this->hasMany('App\Models\CongratulationMessages', 'message_id');
+    }
+
   	public function event()
     {
         return $this->belongsTo('App\Models\Events', 'event_id');

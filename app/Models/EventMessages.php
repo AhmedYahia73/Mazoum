@@ -14,7 +14,10 @@ class EventMessages extends Model
     protected $fillable = [
         'event_id' ,'event_user_id', 'name' , 'mobile', 'message' , 'type' , 'message_id'
     ];
-  
+   
+    public function reply(){
+        return $this->hasMany('App\Models\EventMessages', 'message_id');
+    }
   
   	public function event()
     {

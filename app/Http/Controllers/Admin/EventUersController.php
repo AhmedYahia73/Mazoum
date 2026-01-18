@@ -586,7 +586,7 @@ class EventUersController extends Controller
        $validator = Validator::make($request->all(), [
             'sending_type' => 'required|in:old_send,new_send',
             'message' => 'required',
-            'file'  => 'nullable|image',
+            'file'  => 'nullable',
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required',

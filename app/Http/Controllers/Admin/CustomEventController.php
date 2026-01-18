@@ -597,7 +597,9 @@ class CustomEventController extends Controller
     public function save_event_family(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'event_users.*.id' => 'required|exists:custom_event,id',
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'event_users' => 'required',
+            'event_users.*.id' => 'required|exists:event_users,id',
             'event_users.*.name' => 'required',
             'event_users.*.mobile' => 'nullable|numeric',
         ]); 

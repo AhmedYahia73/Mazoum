@@ -30,7 +30,7 @@ class CustomEvent extends FormRequest
                     'date'    => 'required|date|date_format:Y-m-d',
                     'time'    => 'required',
 
-                    'image'   => 'required|image',
+                    'image'   => 'required',
                 ];
 
             case 'PUT':
@@ -43,7 +43,7 @@ class CustomEvent extends FormRequest
                     'date'    => 'required|date|date_format:Y-m-d',
                     'time'    => 'required',
 
-                    'image'   => 'nullable|image',
+                    'image'   => 'nullable',
                 ];
 
             default:

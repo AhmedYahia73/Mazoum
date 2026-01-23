@@ -126,6 +126,7 @@ Route::get('un-close-event/{id}', 'EventsController@un_close_event');
 
 Route::get('events/{id}/event-visitors', 'EventsController@event_visitors');
 Route::get('events/{id}/send-events', 'EventsController@send_events');
+Route::get('events/{id}/all_send_events', 'EventsController@all_send_events');
 Route::get('events/{id}/event-report', 'EventsController@event_report');
 Route::get('events/{id}/event-users', 'EventsController@event_users');
 Route::get('events/{id}/event-location', 'EventsController@event_location');
@@ -341,6 +342,7 @@ Route::get('custom_events/{id}/send-events', 'CustomEventController@send_events'
 Route::get('custom_events/{id}/users', 'CustomEventController@users');
 Route::get('custom_events/{id}/event-report', 'CustomEventController@event_report');
 Route::get('custom_events/{id}/event-users', 'CustomEventController@event_users');
+Route::get('custom_events/{id}/all_event_users', 'CustomEventController@all_event_users');
 Route::get('custom_events/{id}/enter-event', 'CustomEventController@enter_event');
 
 Route::post('new-send-custom-event-invitation', 'CustomEventController@new_send_event_invitation');

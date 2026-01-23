@@ -273,7 +273,7 @@ class UsersController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Model::with(['offer:id,ar_name','code:id,code'])
+        $query = Model::with(['offer','code:id,code'])
             ->where('user_type','user')
             ->select(['name','mobile','mobile_code','offer_id','balance','id','created_at']);
 
@@ -303,8 +303,7 @@ class UsersController extends Controller
     public function create()
     {
         $offers = Packages::
-        select("en_name", "ar_name", "id")
-        ->where("status", 1)
+        where("status", 1)
         ->get();
         $currencies = Currency::
         get();

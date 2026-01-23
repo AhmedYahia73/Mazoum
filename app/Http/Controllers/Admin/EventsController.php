@@ -568,6 +568,34 @@ class EventsController extends Controller
     }
 
 
+    public function all_send_events(Request $request, $id)
+    {
+        // Get main item (with trashed)
+        $Item = Model::withTrashed()->findOrFail($id);
+
+        // Build event_users query
+        $query = EventUsers::where('event_id', $id); 
+
+        // ⭐ Search by name & mobile
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%$s%")
+                ->orWhere('mobile', 'like', "%$s%");
+            });
+        }
+
+        // ⭐ Pagination
+        $event_users = $query->get();
+
+        return response()->json([
+            "Item" => $Item,
+            "event_users" => $event_users
+        ]);
+    }
+
+
     public function event_report($id)
     {
         $Item = Model::withTrashed()->findOrFail($id);
@@ -944,9 +972,8 @@ class EventsController extends Controller
     }
 
     public function delete_event($id){
-        $event = Model::
-        where("id", $id)
-        ->first();
+        $event = Model::withTrashed()
+        ->find($id);
         if(empty($event)){
             return response()->json([
                 "errors" => "event empty"
@@ -959,11 +986,11 @@ class EventsController extends Controller
         $this->delete_image($event->image);
         $this->delete_image($event->video);
         $this->delete_image($event->file);
-        $event->delete();
+        $event->forceDelete();
         
         return response()->json([
             "success" => "You delete event success"
-        ], 400);
+        ]);
     }
     
 

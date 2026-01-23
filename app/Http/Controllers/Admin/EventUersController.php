@@ -2090,6 +2090,15 @@ class EventUersController extends Controller
 
   	public function login_user(Request $request, $id) {
 
+       $validator = Validator::make($request->all(), [
+            'users_count' => 'required|numeric',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        
         $Item = Model::withTrashed()->findOrFail($id);
 
       	$now = Carbon::now();

@@ -248,7 +248,9 @@ class CustomEventController extends Controller
         $bg = $event->image;
 
       	//dd($bg);
-
+        if (!file_exists(public_path('custom_event_qr_code'))) {
+            mkdir(public_path('custom_event_qr_code'), 0777, true);
+        }
       	$image_name = $uu_id . '-custom-event-qr.png';
         $link = asset('scan-custom-event-qr/' . $uu_id);
         $qr_code_path = 'custom_event_qr_code/' . $image_name;
@@ -260,8 +262,7 @@ class CustomEventController extends Controller
       	// إنشاء QR كـ صورة مؤقتة بخلفية شفافة
         $qr_temp_path = public_path('custom_event_qr_code/temp_' . $image_name);
 
-      	$color = $this->hexToRgb($row->event->color);
-
+      	 $color = $this->hexToRgb($row->event->color);
       	// dd($color);
 
         QrCode::format('png')
@@ -339,12 +340,32 @@ class CustomEventController extends Controller
             });
 
         }
+        $directory = public_path('custom_event_qr_code');
 
-        // حفظ النتيجة
-        $background->save(public_path($qr_code_path), 100);
+        if (!file_exists($directory)) {
+            // إنشاء المجلد بصلاحيات كاملة 0777
+            mkdir($directory, 0777, true);
+        } 
+        // 
+      try{
+        // تحويل الخلفية لنظام الألوان الكاملة
+$background->backup(); // احتياطاً
+$background->basePath(); // لضمان تهيئة المسار
 
+// هذا السطر السحري لحل مشكلة الـ Palette
+$background = Image::canvas($background->width(), $background->height())
+                    ->insert($background);
+
+// الآن أكمل عملية دمج الـ QR والحفظ
+$path = public_path('custom_event_qr_code/temp_' . $image_name);
+        $background->insert(('custom_event_qr_code/temp_' . $image_name), 'center');  
+        $background->save(public_path('custom_event_qr_code/temp_' . $image_name), 100);
+} catch (\Exception $e) {
+    // هذا سيخبرك بالسبب الحقيقي (مثلاً: Permission denied أو No such file)
+    dd("فشل الحفظ بسبب: " . $e->getMessage());
+}
       	$row->update([
-            'qr' => $image_name
+            'qr' => 'temp_' . $image_name
         ]);
 
         // حذف QR المؤقت
@@ -825,6 +846,37 @@ class CustomEventController extends Controller
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
             'qr_count' =>  $qr_count, 
+        ]); 
+    }
+
+
+    public function all_event_users(Request $request, $id)
+    {
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->get();
+        $invetations = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('users_count');
+        $attendance = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('scan_count');
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events, 
+            'invetations' =>  $invetations, 
+            'attendance' =>  $attendance, 
         ]); 
     }
 

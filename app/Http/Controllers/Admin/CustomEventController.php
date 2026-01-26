@@ -241,6 +241,7 @@ class CustomEventController extends Controller
         ]);  
     }
 
+
     private function update_qr($row, $uu_id) {
         $event = $row->event;
         $bg = $event->image;
@@ -975,13 +976,13 @@ class CustomEventController extends Controller
             } else {
                 return response()->json([
                     'errors' =>  'عفوا فشل ارسال ' .$error_count . ' أرقام ', 
-                ]);  
+                ], 400);  
             }
 
         } else {
             return response()->json([
                 'errors' =>  'من فضلك اختر عنصر واحد علي الاقل', 
-            ]);  
+            ], 400);  
         }
 
     }

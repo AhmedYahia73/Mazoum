@@ -1744,6 +1744,7 @@ class EventUersController extends Controller
         $Item = Events::findOrFail($id);
         $data = EventUserActions::where('event_id', $Item->id)
         ->where('action', 'accept_event')
+        ->with("event_user:id,name")
         ->whereHas('event_user', function ($q) use ($request) {
             if ($request->search) {
                 $q->where('mobile', 'like', "%{$request->search}%");

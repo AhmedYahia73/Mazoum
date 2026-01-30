@@ -17,7 +17,8 @@ class Admin
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        if (!empty(Auth::user()) && Auth::user()->role == "admin") {
+        if (!empty(Auth::user()) && (Auth::user()->role == "admin"
+         || Auth::user()->role == "employee"|| Auth::user()->role == "scan_employee") ){
             return $next($request);
         }
 

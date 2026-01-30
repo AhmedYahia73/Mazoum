@@ -40,6 +40,7 @@ class Assistant extends FormRequest
                     'mobile'   => "required|numeric|unique:$table,mobile",
                     'email'    => "required|email|unique:$table,email",
                     'password' => "required|min:6",
+                    "user_type" => "required|in:employee,scan_employee",
                 ];
 
             case 'PUT':
@@ -50,7 +51,7 @@ class Assistant extends FormRequest
                     'name'     => "required|unique:$table,name,$id",
                     'mobile'   => "required|numeric|unique:$table,mobile,$id",
                     'email'    => "required|email|unique:$table,email,$id",
-                    'password' => "nullable|min:6",
+                    'password' => "nullable|min:6", 
                 ];
 
             default:

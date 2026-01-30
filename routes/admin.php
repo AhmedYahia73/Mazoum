@@ -87,6 +87,7 @@ Route::get('web_desgins/destroy/{id}', 'WebDesginsController@destroy');
 Route::get('web_desgins/show-pdf/{id}', 'WebDesginsController@show_pdf');
 
 // Events 
+Route::get('events/event_lists', 'EventsController@event_lists');
 Route::post('events/update_location', 'EventsController@update_location');
 Route::delete('events/delete_event/{id}', 'EventsController@delete_event');
 Route::get('events/assistant_lists', 'EventsController@assistant_lists');

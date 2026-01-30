@@ -121,9 +121,8 @@ class AssistantController extends Controller
 
     private function gteInput($request,$modelClass) {
 
-        $input = $request->only(['name','email' ,'mobile','email','mobile_code']);
-      
-        $input['user_type'] =  'employee';
+        $input = $request->only(['name','email' ,'mobile','email','mobile_code', 'user_type']);
+       
 
         if(isset($modelClass) ) {
 

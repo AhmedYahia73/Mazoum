@@ -18,7 +18,6 @@ class Assistant extends Authenticatable
     protected $fillable = [
         'name', 'email','password','mobile'
     ];
-
     /**
      * The attributes that should be hidden for arrays.
      *

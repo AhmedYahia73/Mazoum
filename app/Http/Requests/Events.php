@@ -25,6 +25,8 @@ class Events extends FormRequest
         if ($method === 'POST') {
             return [
                 'country_code' => 'required',
+                'scan_assistant_id' => 'sometimes|exists:users,id',
+                'assistant_id' => 'sometimes|exists:users,id',
                 'title' => 'required|string',
                 'address' => 'required|string',
                 'file' => 'sometimes|mimes:pdf,jpg,png,jpeg',
@@ -42,6 +44,8 @@ class Events extends FormRequest
         if ($method === 'PUT' || $method === 'PATCH') {
             return [
                 'country_code' => 'required',
+                'scan_assistant_id' => 'sometimes|exists:users,id',
+                'assistant_id' => 'sometimes|exists:users,id',
                 'title' => 'required|string',
                 'address' => 'required|string',
                 'file' => 'nullable|mimes:pdf,jpg,png,jpeg',

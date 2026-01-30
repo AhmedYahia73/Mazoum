@@ -26,6 +26,8 @@ class CustomEvent extends FormRequest
                     'title'   => 'required',
                     'user_id' => 'required',
 
+                    'scan_assistant_id' => 'sometimes|exists:users,id',
+                    'assistant_id' => 'sometimes|exists:users,id',
                     'address' => 'required',
                     'date'    => 'required|date|date_format:Y-m-d',
                     'time'    => 'required',
@@ -39,6 +41,8 @@ class CustomEvent extends FormRequest
                     'title'   => 'required',
                     'user_id' => 'required',
 
+                    'scan_assistant_id' => 'sometimes|exists:users,id',
+                    'assistant_id' => 'sometimes|exists:users,id',
                     'address' => 'required',
                     'date'    => 'required|date|date_format:Y-m-d',
                     'time'    => 'required',

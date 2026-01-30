@@ -22,6 +22,20 @@ class EventsController extends Controller
     private $view = 'admin.events.';
     private $redirect = 'admin/events';
 
+    public function event_lists(){
+        $employee = User::
+        where("user_type", "employee")
+        ->get(["id", "name"]);
+        $scan_employee = User::
+        where("user_type", "scan_employee")
+        ->get(["id", "name"]);
+
+        return response()->json([
+            "employee" => $employee,
+            "scan_employee" => $scan_employee,
+        ]);
+    }
+
     public function assistant_lists(Request $request){
         $assistants = Assistant::
         select("id", "name", "mobile")
@@ -927,7 +941,7 @@ class EventsController extends Controller
             'title','lat', 'long', 'address', 'showing_qr', 'user_id' ,
             'date','time','enable_resend_again', 'assistant_id','have_reminder',
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
-            'country_code'
+            'country_code', 'scan_assistant_id'
         ]);
 
         if(! isset($modelClass)) {

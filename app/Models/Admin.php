@@ -51,14 +51,11 @@ class Admin extends Authenticatable
     {
         $this->notify(new AdminResetPasswordNotification($token));
     }
-
-
+ 
     protected static function boot() {
         parent::boot();
         static::addGlobalScope('order', function (Builder $builder) {
             $builder->orderBy('id', 'desc');
         });
-    }
-
-
-}
+    } 
+} 

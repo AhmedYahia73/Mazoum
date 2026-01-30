@@ -1738,7 +1738,6 @@ class EventUersController extends Controller
         ]);
     }
 
-
     public function confirmed_users_web_chat(Request $request, $id)
     {
         $Item = Events::findOrFail($id);

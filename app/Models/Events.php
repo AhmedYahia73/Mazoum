@@ -21,8 +21,7 @@ class Events extends Model
         'first_name' , 'last_name' , 'date' , 'time', 'assistant_id','have_reminder' , 'sent_remember',
         'country','location','can_replay_messages' , 'is_open' , 'gender','enable_resend_again',
         'sending_type','phone','invitation_count','reservation_date','package_price','payment_type',
-        'is_paid','employee_gender','color','image','video',
-        'country_code'
+        'is_paid','employee_gender','color','image','video', 'country_code', 'scan_assistant_id'
     ];
 
     public function getFileAttribute($value)
@@ -48,8 +47,55 @@ class Events extends Model
 
   	protected static function boot() {
         parent::boot();
-        static::addGlobalScope('order', function (Builder $builder) {
-            $builder->orderBy('date', 'asc');
+        static::addGlobalScope(function (Builder $builder) {
+            if (
+                auth()->check() &&
+                auth()->user()->role == 'employee'
+            ) {
+                $builder->where('assistant_id', auth()->id());
+            }
+        });
+        static::updating(function ($model) {
+            if (auth()->check() &&
+            (auth()->user()->role == 'employee' &&
+            $model->assistant_id != auth()->id()) || 
+            (auth()->user()->role == 'scan_employee' &&
+            $model->scan_assistant_id != auth()->id())) {
+                return false;
+            }
+        });
+        static::creating(function ($model) {
+            if (auth()->check() &&
+            auth()->user()->role == 'employee') {
+                $model->assistant_id = auth()->id();
+            }
+        }); 
+        static::deleting(function ($model) { 
+            if (
+                auth()->check() &&
+                ((auth()->user()->role == 'employee' &&
+                $model->assistant_id != auth()->id())
+                || (
+                auth()->user()->role == 'scan_employee' &&
+                $model->scan_assistant_id != auth()->id()))
+            ) {
+                return false;
+            }
+        });
+        //_____________________________
+        static::addGlobalScope(function (Builder $builder) {
+            if (
+                auth()->check() &&
+                auth()->user()->role == 'scan_employee'
+            ) {
+                $builder->where('scan_assistant_id', auth()->id());
+            }
+        }); 
+        static::creating(function ($model) {
+            if (auth()->check() &&
+            auth()->user()->role == 'scan_employee') {
+                $model->scan_assistant_id = auth()->id();
+            }
         });
     }
 

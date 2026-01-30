@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,6 +27,20 @@ class User extends Authenticatable
   	protected $hidden = [
         'password'
     ];
+
+    protected $appends = ['role'];
+
+    public function getRoleAttribute(){
+        if($this->attributes['user_type'] == "employee"){
+            return "employee";
+        }
+        elseif($this->attributes['user_type'] == "scan_employee"){
+            return "scan_employee";
+        }
+        else{
+            return "user";
+        }
+    }
 
     public function orders() {
         return $this->hasMany('App\Models\Orders','user_id');
@@ -66,6 +81,45 @@ class User extends Authenticatable
         }
 
         return $array;
+    }
+
+  	protected static function boot() {
+        parent::boot(); 
+        static::addGlobalScope(function (Builder $builder) {
+            if (
+                auth()->check() &&
+                auth()->user()->role == 'employee'
+            ) {
+                $builder->where('user_type', "scan_employee")
+                ->orWhere('user_type', "user");
+            }
+        });
+        static::updating(function ($model) {
+            if (
+                auth()->check() &&
+                ((auth()->user()->role == 'employee' &&
+                $model->user_type != "scan_employee") ||
+                auth()->user()->role == 'scan_employee')
+            ) {
+                return false;
+            }
+        });
+        static::creating(function ($model) {
+            if (auth()->check() &&
+            auth()->user()->role == 'employee') {
+                $model->user_type = "scan_employee";
+            }
+        });
+        static::deleting(function ($model) { 
+            if (
+                auth()->check() &&
+                ((auth()->user()->role == 'employee' &&
+                $model->user_type != "scan_employee") ||
+                auth()->user()->role == 'scan_employee')
+            ) {
+                return false;
+            }
+        });
     }
 
 }

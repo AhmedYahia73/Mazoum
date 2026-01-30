@@ -21,9 +21,10 @@ class AssistantController extends Controller
     public function index()
     {
         
-        $Item = Model::where('user_type','employee')->get([
+        $Item = Model::where('user_type','employee')
+        ->orWhere("user_type", "scan_employee")->get([
             'id', 'name', 'mobile', 'email', 'status',
-            'employee_gender', 'mobile_code'
+            'employee_gender', 'mobile_code', 'user_type'
         ]);
         return response()->json([
             'assistants' => $Item
@@ -66,7 +67,7 @@ class AssistantController extends Controller
     {
         $Item = Model::
         select('id', 'name', 'mobile', 'email', 'status',
-        'employee_gender', 'mobile_code')
+        'employee_gender', 'mobile_code', "user_type")
         ->findOrFail($id);
         return response()->json([
             'Item' => $Item

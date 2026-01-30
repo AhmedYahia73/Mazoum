@@ -31,10 +31,11 @@ class User extends Authenticatable
     protected $appends = ['role'];
 
     public function getRoleAttribute(){
-        if($this->attributes['user_type'] == "employee"){
+        $type = $this->getAttribute('user_type');
+        if($type == "employee"){
             return "employee";
         }
-        elseif($this->attributes['user_type'] == "scan_employee"){
+        elseif($type == "scan_employee"){
             return "scan_employee";
         }
         else{

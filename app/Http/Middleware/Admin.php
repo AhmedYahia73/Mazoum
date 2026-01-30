@@ -60,6 +60,7 @@ class Admin
                     "admin/sa-deleted-events",
                     "admin/delete_events",
                     "admin/events/*",
+                    "admin/events",
 //________________________________________________________________
                     'save_event_users', 
                     'update_event_users', 

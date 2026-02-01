@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Route;
 // Home
 
 Route::get('/', 'AdminController@home');
-
-
+   
+ 
 // Admins
 
 Route::resource(

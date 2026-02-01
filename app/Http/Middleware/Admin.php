@@ -33,6 +33,21 @@ class Admin
             }
             if ( Auth::user()->role == "scan_employee"){
                 $allowed = [
+                    "admin/event-messages",
+                    "admin/all-invited-users/*",
+                    "admin/login-user/*",
+                    "admin/event-qr-details/*",
+                    "admin/send-qr/*",
+                    "admin/confirmed-event-details/*",
+                    "admin/not-attend-event-details/*",
+                    "admin/hold-event-details/*",
+                    "admin/failed-event-details/*",
+                    "admin/qr-sent-event-details/*",
+                    "admin/congratulations-event-messages-details/*",
+                    "admin/non-attendance-event-details/*",
+                    "admin/event-messages/*",
+                    "admin/confirmed-users-web-chat/*",
+                    "admin/save_event_users/*",
                     "admin/new-send-custom-event-invitation",
                     "admin/delete_selected_custom_event_users",
                     "admin/custom_event_users_search",

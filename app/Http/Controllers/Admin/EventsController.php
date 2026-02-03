@@ -250,7 +250,8 @@ class EventsController extends Controller
             session()->put('admin_lang', 'ar');
         }
 
-        $Item =  Model::where('country_code','sa')->where('is_open','yes')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        $Item =  Model::where('country_code','sa')
+        ->with("user:id,name")->where('is_open','yes')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
         
         return response()->json([
             "Items" => $Item

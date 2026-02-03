@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Admin;
 
+use App\Http\Controllers\Admin\EventUersController;
 use Login\LoginController;
 
 // webhook
@@ -88,6 +89,7 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     Route::post('user/update-event', 'ApiEventsController@update');
     Route::get('user/event-details/{id}', 'ApiEventsController@event_details');
     Route::get('user/delete-event/{id}', 'ApiEventsController@destroy');
+    Route::get('login-user/{id}', [EventUersController::class, 'login_user']);
 
     // User Events
     Route::post('user/save-user-event', 'ApiEventUersController@save_event_users');

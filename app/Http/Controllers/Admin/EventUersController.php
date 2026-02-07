@@ -1073,6 +1073,7 @@ class EventUersController extends Controller
 
         $setting = Setting::first(); 
 
+
         $event_id = $request->event_id;
 
         $event = Events::where('id', $event_id)->firstOrFail();
@@ -1106,7 +1107,7 @@ class EventUersController extends Controller
                           	if(array_key_exists('users_count', $arr)) {
                                 $users_count = $arr['users_count'];
                             } else {
-								$users_count = $user_event->users_count;
+								                $users_count = $user_event->users_count;
                             }
 
                             $user_event->update([
@@ -1161,6 +1162,8 @@ class EventUersController extends Controller
                             $param_4   = $event->address;
                             $param_5   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
 
+							$param_6   = $users_count;
+
                           	/*
                           	$phone_numer_id = '746157308570599';
                             $sender_id      = '746157308570599';
@@ -1168,7 +1171,8 @@ class EventUersController extends Controller
                           	*/
 
                             //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
-                            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+                            //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+                            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&param_6='.$param_6.'&image='.$image_url;
 
                             $response = SendNewTemplateCodeV1($url);
 
@@ -1218,10 +1222,7 @@ class EventUersController extends Controller
 
                 }
 
-
-                return response()->json([
-                    'success' => 'تم الأرسال بنجاح', 
-                ]); 
+                return redirect()->back()->with('success', 'تم الأرسال بنجاح');
             }
 
         } catch(\Exception $e) {

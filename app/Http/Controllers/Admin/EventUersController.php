@@ -1329,30 +1329,12 @@ class EventUersController extends Controller
           'uu_id' => $uu_id,
           'counter' => 0
         ]);
-
+/////////////////////////////////////////
+  
         // new code
         $this->update_qr($event,$uu_id,$user_event,$image_name);
 
-        $qr_code_path = 'qr_code/' . $image_name;
-
-        // $bg = 'qr-image-v9.jpg';
-
-        // $link = asset('scan-qr/' . $uu_id);
-        // QrCode::size(900)->format('png')->generate($link, $qr_code_path);
-
-        // Image::make($bg)->insert($qr_code_path, 'left', 480, 0)->widen(700)->save($qr_code_path, 100);
-
-        // $destination = public_path($qr_code_path);
-
-        // $new_img = Image::make($destination);
-
-        // $new_img->text($user_event->users_count, 150, 615, function ($font) {
-        //   $font->file(public_path('font/OpenSans-Italic.ttf'));
-        //   $font->size(40);
-        //   $font->color('#eeb534');
-        // });
-
-        // $new_img->save($destination);
+        $qr_code_path = 'qr_code/' . $image_name; 
 
         $image_url = asset($qr_code_path);
 
@@ -1367,8 +1349,6 @@ class EventUersController extends Controller
         $template_name = 'wedding_data_v2_ar';
         $language = 'ar';
         $user_name = $user_event->name;
-        return response()->json([
-            'item' => get_whats_setting($event)]);
         $token          = get_whats_setting($event)['token'];
         $sender_id      = get_whats_setting($event)['sender_id'];
         $phone_numer_id = get_whats_setting($event)['sender_id'];
@@ -1402,6 +1382,15 @@ class EventUersController extends Controller
           ]); 
         }
 
+        /////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////
+
+
+
+
+      	//dd($response);
+ 
     }
 
 

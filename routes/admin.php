@@ -194,14 +194,22 @@ Route::get('is-send-event/{id}', 'EventUersController@is_send_event');
 
 
 Route::get('all-invited-users/{id}', 'EventUersController@all_invited_users');
+Route::get('excel-all-invited-users/{id}', 'EventUersController@excel_all_invited_users');
 Route::get('event-qr-details/{id}', 'EventUersController@event_qr_details');
+Route::get('excel-event-qr-details/{id}', 'EventUersController@excel_event_qr_details');
 Route::get('not-attend-event-details/{id}', 'EventUersController@not_attend_event_details');
+Route::get('excel-not-attend-event-details/{id}', 'EventUersController@excel_not_attend_event_details');
 Route::get('hold-event-details/{id}', 'EventUersController@hold_event_details');
+Route::get('excel-hold-event-details/{id}', 'EventUersController@excel_hold_event_details');
 Route::get('failed-event-details/{id}', 'EventUersController@failed_event_details');
+Route::get('excel-failed-event-details/{id}', 'EventUersController@excel_failed_event_details');
 Route::get('non-attendance-event-details/{id}', 'EventUersController@non_attendance_event_details');
+Route::get('excel-non-attendance-event-details/{id}', 'EventUersController@excel_non_attendance_event_details');
 
 Route::get('confirmed-event-details/{id}', 'EventUersController@confirmed_event_details');
+Route::get('excel-confirmed-event-details/{id}', 'EventUersController@excel_confirmed_event_details');
 Route::get('confirmed-users-web-chat/{id}', 'EventUersController@confirmed_users_web_chat');
+Route::get('excel-confirmed-users-web-chat/{id}', 'EventUersController@excel_confirmed_users_web_chat');
 
 
 // import
@@ -209,6 +217,7 @@ Route::post('event-user-import', 'EventUersController@import');
 
 
 Route::get('qr-sent-event-details/{id}', 'EventUersController@qr_sent_event_details');
+Route::get('excel-qr-sent-event-details/{id}', 'EventUersController@excel_qr_sent_event_details');
 Route::get('congratulations-event-messages-details/{id}', 'EventUersController@congratulations_event_messages_details');
 Route::get('delete-event-messages/{id}/{type}', 'EventUersController@delete_event_messages');
 

@@ -1676,6 +1676,26 @@ class EventUersController extends Controller
         ]);
     }
 
+    public function excel_all_invited_users(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::
+        where('event_id', $Item->id)
+        ->get();
+
+        $title = 'كل المدعوين';
+
+        $type = 'all_invited_users';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]);
+    }
+
 
 
     public function event_qr_details(Request $request, $id)
@@ -1693,6 +1713,30 @@ class EventUersController extends Controller
             });
         })
         ->paginate(15);
+
+        $title = 'كل المدعوين الذين اكدو الحضور (QR)';
+
+        $is_qr_page = 'yes';
+
+        $type = 'qr';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'is_qr_page' => $is_qr_page, 
+            'type' => $type, 
+        ]);
+    }
+
+
+    public function excel_event_qr_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('scan', 'yes') 
+        ->get();
 
         $title = 'كل المدعوين الذين اكدو الحضور (QR)';
 
@@ -1739,6 +1783,26 @@ class EventUersController extends Controller
         ]);
     }
 
+    public function excel_confirmed_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('status', 'attend')
+        ->get();
+
+        $title = 'كل المدعوين الذين ينوون الحضور';
+
+        $type = 'confirmed_event_details';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]);
+    }
+
     public function confirmed_users_web_chat(Request $request, $id)
     {
         $Item = Events::findOrFail($id);
@@ -1751,6 +1815,27 @@ class EventUersController extends Controller
             }
         })
         ->paginate(15);
+
+        $title = 'كل المدعوين الذين اكدوا الحضور من الشات الويب';
+
+        $type = 'confirmed_event_details';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]);
+    }
+
+    public function excel_confirmed_users_web_chat(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUserActions::where('event_id', $Item->id)
+        ->where('action', 'accept_event')
+        ->with("event_user:id,name") 
+        ->get();
 
         $title = 'كل المدعوين الذين اكدوا الحضور من الشات الويب';
 
@@ -1793,6 +1878,23 @@ class EventUersController extends Controller
         ]);
     }
 
+    public function excel_not_attend_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('status', 'not-attend')
+        ->get();
+
+        $title = 'كل المدعوين الذين اعتذرو';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+        ]);
+    }
+
 
 
     public function hold_event_details(Request $request, $id)
@@ -1812,6 +1914,28 @@ class EventUersController extends Controller
             });
         })
         ->paginate(15);
+
+        $title = 'كل المدعوين المنتظرين';
+
+        $type = 'hold';
+
+
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]);
+    }
+
+    public function excel_hold_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('status', 'hold')
+        ->where('is_new_sent', 0)
+        ->whereNull('is_sent') 
+        ->get();
 
         $title = 'كل المدعوين المنتظرين';
 
@@ -1862,8 +1986,66 @@ class EventUersController extends Controller
         ]);
     }
 
+  	public function excel_failed_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+
+        //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
+        $data = EventUsers::where('event_id', $Item->id)
+        ->whereIn('status', ['sent'])
+        ->whereNull('is_accepted')
+        ->whereNull('is_refused')
+        ->where(function ($query) {
+            $query->where('is_new_sent', 1)
+                ->orWhereNotNull('is_sent');
+        })
+        ->get();
+
+        $title = 'لم يتم تاكيد الحضور';
+
+      	$type = 'failed';
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]);
+    }
+
 
   	public function non_attendance_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+
+        //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('status', 'attend')
+        ->whereNull('scan')
+        ->whereNull('is_refused')
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->paginate(15);
+
+        $title = 'عدم الحضور فعليا';
+
+      	$type = 'non_attendance';
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title, 
+            'type' => $type, 
+        ]); 
+    }
+
+
+  	public function excel_non_attendance_event_details(Request $request, $id)
     {
         $Item = Events::findOrFail($id);
 
@@ -1908,6 +2090,24 @@ class EventUersController extends Controller
             });
         })
         ->paginate(15);
+
+        $title = 'كل الدعوات (Sent QR)';
+
+
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title,  
+        ]); 
+    }
+
+  	public function excel_qr_sent_event_details(Request $request, $id)
+    {
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::where('event_id', $Item->id)
+        ->where('qr_sent', 'yes')
+        ->get();
 
         $title = 'كل الدعوات (Sent QR)';
 

@@ -14,8 +14,14 @@ class Qr_Code extends Model
     protected $fillable = [
         'event_user_id', 'event_id', 'qr', 'uu_id', 'counter'
     ];
+    protected $appends = ["qr_link"];
     
-    
+    public function getQrLinkAttribute(){
+        if(isset($this->attributes['qr'])){
+            return asset("qr_code/" . $this->attributes['qr']);
+        }
+    }
+
     public function event() {
         return $this->belongsTo('App\Models\Events','event_id');
     }

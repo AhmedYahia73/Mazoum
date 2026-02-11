@@ -573,7 +573,7 @@ class EventsController extends Controller
         // Build event_users query
         $query = EventUsers::
         where('event_id', $id)
-        ->with("qr_image:id,qr"); 
+        ->with("qr_image:id,qr,event_user_id"); 
 
         // ⭐ Search by name & mobile
         if ($request->search) {

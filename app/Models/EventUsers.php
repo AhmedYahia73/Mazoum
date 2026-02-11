@@ -77,9 +77,7 @@ class EventUsers extends Model
 
     public function qr_image()
     {
-        return $this->hasMany('App\Models\Qr_Code', 'event_user_id')
-        ->orderByDesc("id")
-        ->first();
+        return $this->hasOne(Qr_Code::class, 'event_user_id')->latest();
     }
 
     // public function mobile_code()

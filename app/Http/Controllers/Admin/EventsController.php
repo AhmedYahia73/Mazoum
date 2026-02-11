@@ -571,7 +571,9 @@ class EventsController extends Controller
         $Item = Model::withTrashed()->findOrFail($id);
 
         // Build event_users query
-        $query = EventUsers::where('event_id', $id); 
+        $query = EventUsers::
+        where('event_id', $id)
+        ->with("qr_image:id,qr"); 
 
         // ⭐ Search by name & mobile
         if ($request->search) {

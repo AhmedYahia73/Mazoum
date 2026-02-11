@@ -225,6 +225,7 @@ class UsersController extends Controller
             'payment_type' => $request->payment_type,
             'employee_gender' => $request->employee_gender,
             'is_paid' => $request->is_paid,
+            'users_count' => $request->users_count ?? $order->users_count
 
         ]);
 

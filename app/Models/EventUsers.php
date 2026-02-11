@@ -75,6 +75,13 @@ class EventUsers extends Model
         return $this->belongsTo('App\Models\Events', 'event_id');
     }
 
+    public function qr_image()
+    {
+        return $this->hasMany('App\Models\Qr_Code', 'event_user_id')
+        ->orderByDesc("id")
+        ->first();
+    }
+
     // public function mobile_code()
     // {
     //     return $this->belongsTo('App\Models\MobileCodes', 'code_id');

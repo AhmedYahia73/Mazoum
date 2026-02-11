@@ -1823,8 +1823,23 @@ class EventUersController extends Controller
         $Item = Events::findOrFail($id);
         $data = EventUserActions::where('event_id', $Item->id)
         ->where('action', 'accept_event')
-        ->with("event_user:id,name") 
-        ->get();
+        ->with("event_user:id,name,users_count,is_read,scan,scan_count", "event.user") 
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "event_id" => $item->event_id,
+                "event_user_id" => $item->event_user_id,
+                "mobile" => $item->mobile,
+                "action" => $item->action,
+                "msg" => $item->msg,
+                "users_count" => $item->users_count,
+                "event_user" => $item->event_user,
+                "event" => $item?->event?->title,
+                "user_name" => $item?->event?->user?->name,
+                "user_id" => $item?->event?->user?->id,
+            ];
+        });
 
         $title = 'كل المدعوين الذين اكدوا الحضور من الشات الويب';
 
@@ -2042,15 +2057,8 @@ class EventUersController extends Controller
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'attend')
         ->whereNull('scan')
-        ->whereNull('is_refused')
-        ->when($request->search, function ($q) use ($request) {
-            $search = $request->search;
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%$search%")
-                    ->orWhere('mobile', 'like', "%$search%");
-            });
-        })
-        ->paginate(15);
+        ->whereNull('is_refused') 
+        ->get();
 
         $title = 'عدم الحضور فعليا';
 

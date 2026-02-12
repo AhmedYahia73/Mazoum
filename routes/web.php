@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Intervention\Image\ImageManagerStatic as Image;
+use App\Http\Controllers\HomeController;
 
 
 
@@ -191,3 +192,5 @@ Route::get('test-send-message-v1', function () {
 
 
 require_once __DIR__ . '/lang.php';
+
+Route::get('/', [HomeController::class, "index"]);

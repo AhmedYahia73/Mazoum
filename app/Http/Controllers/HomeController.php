@@ -17,9 +17,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\Pricing;
+use App\Models\WebDesgins;
 
 class HomeController extends Controller
 {
+    public function index(){ 
+        $Pricing = Pricing::get();
+        $Desgins = WebDesgins::get();
+
+        return response()->json([
+            "Pricing" => $Pricing,
+            "Desgins" => $Desgins,
+        ]);
+    }
     public function test()
     {
         return 'test';

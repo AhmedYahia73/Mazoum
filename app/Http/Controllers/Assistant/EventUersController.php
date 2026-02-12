@@ -363,7 +363,7 @@ class EventUersController extends Controller
 
                 }
 
-                return redirect()->back()->with('success', 'تم الأرسال بنجاح');
+                return response()->json(['success', 'تم الأرسال بنجاح']);
             }
 
         } catch(\Exception $e) {

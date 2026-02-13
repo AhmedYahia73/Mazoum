@@ -21,6 +21,7 @@ use App\Models\Notifications;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Validator;
 use GuzzleHttp\Client;
 use App\Http\Controllers\Controller;
 
@@ -32,21 +33,29 @@ class EventUserActionsController extends Controller
 
         $event_user = EventUsers::where('code', $code)->firstOrFail();
         $qr_row = Qr_Code::where('event_user_id',$event_user->id)->first();
-        return view('mobile_events.index',compact('event_user','qr_row'));
+        return response()->json([
+            "event_user" => $event_user,
+            "qr_row" => $qr_row,
+        ]);
 
     }
 
 
     public function new_save_event_action(Request $request) {
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'event_user_id' => 'required',
             'code'          => 'required',
-          	'action'        => 'required',
+          	'action'        => 'required|in:accept_event,refuse_event',
             'users_count'   => 'required_if:action,accept_event',
             'msg'           => 'nullable',
-        ]);
-
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        
       	$user_event = EventUsers::where('id',$request->event_user_id)->where('code',$request->code)->firstOrFail();
 
       	if($user_event != null && $user_event->event) {
@@ -226,7 +235,9 @@ class EventUserActionsController extends Controller
 
             }
 
-            return redirect()->back();
+            return response()->json([
+                "success" => "You add data success"
+            ]);
 
         } else {
             abort(404);

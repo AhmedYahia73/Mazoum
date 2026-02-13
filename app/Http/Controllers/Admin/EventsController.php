@@ -214,6 +214,7 @@ class EventsController extends Controller
         // بداية الـ query
         $query = Model::where('country_code', 'kw')
                     ->where('is_open', 'yes')
+                    ->with("user:id,name,mobile")
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time'

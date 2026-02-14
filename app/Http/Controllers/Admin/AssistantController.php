@@ -21,8 +21,8 @@ class AssistantController extends Controller
     public function index()
     {
         
-        $Item = Model::where('user_type','employee')
-        ->orWhere("user_type", "scan_employee")->get([
+        $Item = Model::
+        WhereIn("user_type", ["scan_employee", "employee"])->get([
             'id', 'name', 'mobile', 'email', 'status',
             'employee_gender', 'mobile_code', 'user_type'
         ]);

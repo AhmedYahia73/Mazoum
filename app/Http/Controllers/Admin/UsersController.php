@@ -275,7 +275,7 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         $query = Model::with(['offer','code:id,code'])
-            ->where('user_type','user')
+            ->whereIn('user_type',['user', "scan_employee"])
             ->select(['name','mobile','mobile_code','offer_id','balance','id','created_at']);
 
         // search

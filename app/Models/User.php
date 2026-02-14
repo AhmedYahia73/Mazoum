@@ -91,8 +91,7 @@ class User extends Authenticatable
                 auth()->check() &&
                 auth()->user()->role == 'employee'
             ) {
-                $builder->where('user_type', "scan_employee")
-                ->orWhere('user_type', "user");
+                $builder->where('user_type', "!=", "employee");
             }
         });
         static::updating(function ($model) {

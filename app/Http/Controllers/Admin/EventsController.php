@@ -228,7 +228,11 @@ class EventsController extends Controller
                 $q->where('title', 'like', "%$s%")
                 ->orWhere('address', 'like', "%$s%")
                 ->orWhere('first_name', 'like', "%$s%")
-                ->orWhere('last_name', 'like', "%$s%");
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
             });
         }
 
@@ -242,21 +246,51 @@ class EventsController extends Controller
 
 
     public function sa_events()
-    {
+    { 
         $lang = $this->get_lang();
 
-        if($lang == null) {
+        if ($lang == null) {
             $lang = 'ar';
             app()->setLocale('ar');
             session()->put('admin_lang', 'ar');
         }
 
-        $Item =  Model::where('country_code','sa')
-        ->with("user:id,name")->where('is_open','yes')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
-        
-        return response()->json([
-            "Items" => $Item
+        $query = Model::where('country_code', 'sa')
+            ->where('is_open', 'yes')
+            ->with('user:id,name');
+
+
+        // 🔎 Search
+        if (request()->search) {
+            $search = request()->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                ->orWhere('address', 'like', "%$search%")
+                ->orWhere('first_name', 'like', "%$search%")
+                ->orWhere('last_name', 'like', "%$search%");
+            })
+            ->orWhereHas("user", function($q) use($search){
+                $q->where("name", 'like', "%$search%")
+                ->orWhere("mobile", 'like', "%$search%");
+            });
+        }
+
+
+        // 📄 Pagination (default 10)
+        $Items = $query->paginate(request()->per_page ?? 10, [
+            'id',
+            'title',
+            'address',
+            'file',
+            'user_id',
+            'first_name',
+            'last_name',
+            'date',
+            'time'
         ]);
+
+        return response()->json($Items);
+
     }
 
     //////////////////////////////////////////////////////

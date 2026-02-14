@@ -211,7 +211,7 @@ class EventUersController extends Controller
                         "( قبول الدعوة ) أو ( الأعتذار ) " .
                         "يمكنكم زيارة الرابط التالي ." . PHP_EOL .
                         // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
-                        "https://mazoom-kw.com/event-login/".$code;
+                        "https://www.mazoominvitations.com/event-login/".$code;
 
                   if($request->file_type == 'image') {
 

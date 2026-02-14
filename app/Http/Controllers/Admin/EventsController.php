@@ -410,7 +410,10 @@ class EventsController extends Controller
     {
         $Item = Model::withTrashed()->findOrFail($id);
 
-        $Item->update(['is_open' => 'yes']);
+        $Item->update([
+            'is_open' => 'yes', 
+        ]);
+        $Item->restore();
 
         return response()->json([
             "success" => "You un close event success"

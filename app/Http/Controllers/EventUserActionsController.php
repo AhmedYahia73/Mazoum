@@ -31,11 +31,29 @@ class EventUserActionsController extends Controller
 
     public function event_login($code) {
 
-        $event_user = EventUsers::where('code', $code)->firstOrFail();
-        $qr_row = Qr_Code::where('event_user_id',$event_user->id)->first();
+        $event_user = EventUsers::
+        where('code', $code)
+        ->with("event")
+        ->firstOrFail();
+        $qr_row = Qr_Code::where('event_user_id',$event_user->id)->first();        
+        $accept_event = EventUserActions::
+        where('event_user_id', $event_user->id)
+        ->where('action','accept_event')
+        ->first();
+        $yes_receive_congratulation = EventUserActions::
+        where('event_user_id', $event_user->id)
+        ->where('action','yes_receive_congratulation')
+        ->first();
+        $yes_receive_apology = EventUserActions::
+        where('event_user_id', $event_user->id)
+        ->where('action','yes_receive_apology')
+        ->first();
         return response()->json([
             "event_user" => $event_user,
             "qr_row" => $qr_row,
+            "accept_event" => $accept_event,
+            "yes_receive_congratulation" => $yes_receive_congratulation,
+            "yes_receive_apology" => $yes_receive_apology,
         ]);
 
     }

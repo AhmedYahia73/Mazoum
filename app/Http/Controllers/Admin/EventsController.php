@@ -796,6 +796,7 @@ class EventsController extends Controller
             "time"=> $Item->time,
             "add_by"=> $Item->add_by,
             "user_id"=> $Item->user_id,
+            "user_name"=> $Item?->user?->name ?? null,
             "assistant_id"=> $Item->assistant_id,
             "gender"=> $Item->gender,
             "have_reminder"=> $Item->have_reminder,

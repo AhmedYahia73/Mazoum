@@ -76,7 +76,7 @@ class Admin
                     "admin/delete_events",
                     "admin/events/*",
                     "admin/events",
-//________________________________________________________________
+                    //________________________________________________________________
                     'save_event_users', 
                     'update_event_users', 
                     'update_event_users', 
@@ -127,7 +127,7 @@ class Admin
                     'send-event-location/*', 
                     'event-report/*', 
                     'send-congratulations/*', 
-//________________________________________________________________
+                    //________________________________________________________________
 
 
 

@@ -912,13 +912,13 @@ class EventsController extends Controller
         $event_user_ids = array_unique($event_user_ids);
         $event_users = EventUsers::
         whereIn('id',$event_user_ids)
-        ->with("qr_image:id,event_user_id,qr")
+        ->with("qr_image:id,event_user_id,qr", "congratulation_msg:id,event_user_id,name,mobile,message")
         ->get();
 
         if(isset(request()->event_user_id) && request()->event_user_id != null) {
 
             $event_user = EventUsers::
-            with("qr_image:id,event_user_id,qr")
+            with("qr_image:id,event_user_id,qr", "congratulation_msg:id,event_user_id,name,mobile,message")
             ->findOrFail(request()->event_user_id);
             $actions = EventUserActions::where('event_id',$id)->where('event_user_id',$event_user->id)->get();
 

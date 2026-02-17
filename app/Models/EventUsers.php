@@ -25,6 +25,9 @@ class EventUsers extends Model
         'scan_at' => 'array',
     ];
 
+    public function congratulation_msg(){
+        return $this->hasMany(CongratulationMessages::class, "event_user_id");
+    }
 
     public function setScanAtAttribute($value)
     {

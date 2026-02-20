@@ -18,7 +18,8 @@ class EventUsers extends Model
         'event_id', 'uu_id', 'message_id', 'name', 'mobile', 'status', 'scan', 'scan_at', 'get_location', 'users_count',
         'is_sent', 'is_delivered', 'qr_sent', 'is_accepted', 'is_refused' , 'log' , 'sent_from' , 'is_read',
         'error_title', 'error','confirmed_at','is_open','is_new_sent','scan_count',
-        'is_send_congratulation','code'
+        'is_send_congratulation','code',
+        "send_time", "accept_time"
     ];
 
     protected $casts = [

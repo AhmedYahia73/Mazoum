@@ -217,7 +217,7 @@ class EventsController extends Controller
                     ->with("user:id,name,mobile")
                     ->select([
                         'id','title','address','file','user_id',
-                        'first_name','last_name','date','time'
+                        'first_name','last_name','date','time', 'image'
                     ]);
 
         // ✔️ search
@@ -307,7 +307,8 @@ class EventsController extends Controller
         }
 
         $Item = Model::where('country_code','kw')
-        ->with("user:id,name")->where('is_open','no')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        ->with("user:id,name")->where('is_open','no')
+        ->get(['id','title','address', 'image', 'file','user_id','first_name' , 'last_name','date','time']);
          
         return response()->json([
             "Items" => $Item
@@ -328,7 +329,8 @@ class EventsController extends Controller
         $Item = Model::where('country_code','kw')
         ->with("user:id,name")
         ->where('is_open','current')
-        ->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        ->get(['id','title','address','file','user_id','first_name' , 
+        'last_name','date','time', 'image']);
          
         return response()->json([
             "Items" => $Item
@@ -346,7 +348,10 @@ class EventsController extends Controller
         }
 
         $Item = Model::onlyTrashed()
-        ->with("user:id,name")->where('country_code','kw')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        ->with("user:id,name")->where('country_code','kw')->get([
+            'id','title','address','file',
+            'user_id','first_name' , 'last_name',
+            'date','time', 'image']);
         
         return response()->json([
             "deleted_items" => $Item
@@ -367,7 +372,10 @@ class EventsController extends Controller
 
         $Item = Model::where('country_code','sa')
         ->with("user:id,name")
-        ->where('is_open','no')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        ->where('is_open','no')->get([
+            'id','title','address','file',
+            'user_id','first_name' , 'last_name',
+            'date','time', 'image']);
         
         return response()->json([
             "closed_events" => $Item
@@ -387,7 +395,7 @@ class EventsController extends Controller
 
         $Item = Model::where('country_code','sa')->where('is_open','current')
         ->with("user:id,name")
-        ->get(['id','title','address','file','user_id','date','time']);
+        ->get(['id','title','address','file','user_id','date','time', 'image']);
         
         return response()->json([
             "current_events" => $Item
@@ -405,7 +413,11 @@ class EventsController extends Controller
         }
 
         $Item = Model::onlyTrashed()
-        ->with("user:id,name")->where('country_code','sa')->get(['id','title','address','file','user_id','first_name' , 'last_name','date','time']);
+        ->with("user:id,name")->where('country_code','sa')
+        ->get([
+            'id','title','address','file',
+            'user_id','first_name' , 'last_name',
+            'date','time', 'image']);
        
         return response()->json([
             "sa_deleted_items" => $Item

@@ -185,13 +185,15 @@ class EventUersController extends Controller
                 $row = Model::withTrashed()->where('id',$arr['id'])->first();
 
                 if($row != null && $row->event != null) {
-
-                  if($row->code != null) {
-                    $code = $row->code;
-                  } else {
-                    $code = generateUniqueCode();
-                    $row->update(['code' => $code]);
-                  }
+                    $row->update([
+                        "send_time" => now(),
+                    ]);
+                    if($row->code != null) {
+                        $code = $row->code;
+                    } else {
+                        $code = generateUniqueCode();
+                        $row->update(['code' => $code]);
+                    }
 
                   /////////////////
 
@@ -206,10 +208,12 @@ class EventUersController extends Controller
                         " وذلك بمشيئة الله يوم " . $day_name ." الموافق " . PHP_EOL .
                         $row->event->date . " 📆" . PHP_EOL . PHP_EOL .
                         " وقت الأستقبال ⏱️ " . $row->event->time . " مساءً" . PHP_EOL . PHP_EOL .
+                        "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                         "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL .
-                        "يومك سعيد ..." . PHP_EOL  .
-                        "( قبول الدعوة ) أو ( الأعتذار ) " .
-                        "يمكنكم زيارة الرابط التالي ." . PHP_EOL .
+                        "قبول الدعوة " . PHP_EOL . PHP_EOL .
+                        "الأعتذار " . PHP_EOL .
+                        "موقع المناسبة " . PHP_EOL . PHP_EOL .
+                        "اضغط على الرابط." . PHP_EOL .
                         // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
                         "https://www.mazoominvitations.com/event-login/".$code;
 
@@ -1071,9 +1075,7 @@ class EventUersController extends Controller
             ],400);
         }
 
-        $setting = Setting::first(); 
-
-
+        $setting = Setting::first();
         $event_id = $request->event_id;
 
         $event = Events::where('id', $event_id)->firstOrFail();
@@ -1107,7 +1109,7 @@ class EventUersController extends Controller
                           	if(array_key_exists('users_count', $arr)) {
                                 $users_count = $arr['users_count'];
                             } else {
-								                $users_count = $user_event->users_count;
+								$users_count = $user_event->users_count;
                             }
 
                             $user_event->update([
@@ -1145,34 +1147,21 @@ class EventUersController extends Controller
                             $user_name = $user_event->name;
 
 
-
-                            $token          = get_whats_setting($event)['token'];
-                            $sender_id      = get_whats_setting($event)['sender_id'];
-                            $phone_numer_id = get_whats_setting($event)['sender_id'];
-
-
-                          	//dd($token,$sender_id,$phone_numer_id);
-
+                            $phone_numer_id = $setting->phone_numer_id;
+                            $token          = $setting->access_token;
 
                             // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
+
+                            $sender_id = $setting->sender_id;
 
                             $param_1   = $user_name;
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                             $param_4   = $event->address;
-                            $param_5   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
-
-							$param_6   = $users_count;
-
-                          	/*
-                          	$phone_numer_id = '746157308570599';
-                            $sender_id      = '746157308570599';
-                            $token          = 'EABIy7zT1dfYBO304MlaYIQZBalGto0d1oPSCKHXEosSCsaLIdxE6QgftNNSLuhG37zirzBTMpK8HprkTRtlLyQZB1evrzBItZBW8y8LgZAYQ1pd6y64GtnMmKUZCjlY0QAZBhvu0VErD7fPzO8iz0cg0OrZBC8ovZA1F5ZCLzWa85nwaL1jWP8WYaa8yI1Ffkmvsy0QHjRrU5bSMJLS8b9bt7ZA2c0Ys8WYvlTMufprZCQ5ZCiAGTqGfzO9LcVY8S9CdpuY1PZBD1phEneQZDZD';
-                          	*/
+                            $param_5   = $event->time != null ? $event->time : '07:00 مساء';
 
                             //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
-                            //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
-                            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&param_6='.$param_6.'&image='.$image_url;
+                            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
 
                             $response = SendNewTemplateCodeV1($url);
 
@@ -1221,6 +1210,7 @@ class EventUersController extends Controller
                     }
 
                 }
+ 
 
                 return response()->json(['success' => 'تم الأرسال بنجاح']);
             }
@@ -1518,7 +1508,14 @@ class EventUersController extends Controller
           'status'         => 'accept_event',
         ]);
 
-        $user_event->update([ 'is_accepted' => 'yes', 'scan' => null , 'scan_at' => null, 'is_refused' => null,'status' => 'attend' ]);
+        $user_event->update([ 
+            'is_accepted' => 'yes', 
+            'scan' => null , 
+            'scan_at' => null, 
+            'is_refused' => null,
+            'status' => 'attend',
+            'accept_time' => now(),
+        ]);
 
       	if($event != null && $event->showing_qr == 'yes') {
 

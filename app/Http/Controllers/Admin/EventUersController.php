@@ -211,7 +211,7 @@ class EventUersController extends Controller
                         "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 
                         "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                         "قبول الدعوة " . PHP_EOL .
-                        "الأعتذار " . PHP_EOL .
+                        "الأعتذار عن الدعوة " . PHP_EOL .
                         "موقع المناسبة " . PHP_EOL . PHP_EOL .
                         "اضغط على الرابط." . PHP_EOL .
                         // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
@@ -1350,22 +1350,28 @@ class EventUersController extends Controller
         $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
         // $sender_id = $setting->sender_id;
+        $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
+        '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.
+        '&image='.$image_url;
 
-        $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.'&image='.$image_url.'&url_button='.$url_button;
-
+        // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
+        // '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.
+        // '&image='.$image_url.'&url_button='.$url_button;
+        
         $response = SendNewTemplateCodeV1($url);
+ 		// تحويل النص لـ Array
+        $responseData = json_decode($response); 
+       
 
-      	//dd($response);
+        // التأكد أن الرد ليس فارغاً وأن مصفوفة الرسائل موجودة فعلاً
+        if ($responseData && isset($responseData->messages) && !empty($responseData->messages)) {
+            $status = $responseData->messages[0]->message_status ?? '';
 
-        if ($response != null && $response->getStatusCode() == 200) {
-
-          $user_event->update([ 'qr_sent' => 'yes'  ]);
-
-
-          return response()->json([
-              'success' => 'تم أرسال QR Scan  بنجاح', 
-          ]);
-        } else {
+            if ($status == "accepted") {
+                $user_event->update(['qr_sent' => 'yes']);
+                return response()->json(['success' => 'تم أرسال QR Scan بنجاح']);
+            }
+        }  else {
 
           return response()->json([
               'errors' => 'عفوا فشل أرسال QR Scan ', 
@@ -2676,9 +2682,9 @@ class EventUersController extends Controller
 
         $color = $this->hexToRgb($event->color ?? '#000');
 
-        if($event->image != null) {
+        if($event->file != null) {
 
-            $bg = $event->image;
+            $bg = $event->file;
             $image_name = $uu_id . '-test-qr.png';
 
             $link = asset('scan-qr/' . $uu_id);

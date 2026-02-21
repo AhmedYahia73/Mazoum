@@ -282,6 +282,7 @@ class EventsController extends Controller
             'title',
             'address',
             'file',
+            'image',
             'user_id',
             'first_name',
             'last_name',

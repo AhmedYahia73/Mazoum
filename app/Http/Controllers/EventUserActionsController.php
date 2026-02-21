@@ -64,7 +64,7 @@ class EventUserActionsController extends Controller
         $validator = Validator::make($request->all(), [
             'event_user_id' => 'required',
             'code'          => 'required',
-          	'action'        => 'required|in:accept_event,refuse_event',
+          	'action'        => 'required|in:accept_event,refuse_event,yes_receive_congratulation',
             'users_count'   => 'required_if:action,accept_event',
             'msg'           => 'nullable',
         ]); 
@@ -79,15 +79,26 @@ class EventUserActionsController extends Controller
       	if($user_event != null && $user_event->event) {
 
             if($request->action == 'accept_event') {
-
-                EventUserActions::create([
-                   'event_id' => $user_event->event_id,
-                   'event_user_id' => $user_event->id,
-                   'mobile' => $user_event->mobile,
-                   'action' => 'accept_event',
-                   'users_count' => $request->users_count,
-                   'msg' => null
-                ]);
+                $users_count = $request->users_count;
+                $event_action = EventUserActions::
+                where("event_id", $user_event->event_id)
+                ->where("event_user_id", $user_event->id)
+                ->first();
+                if ($event_action) {
+                    $users_count += ($event_action->users_count ?? 0);
+                    $event_action->users_count = $users_count;
+                    $event_action->save();
+                } else {
+                    EventUserActions::create([
+                    'event_id' => $user_event->event_id,
+                    'event_user_id' => $user_event->id,
+                    'mobile' => $user_event->mobile,
+                    'action' => 'accept_event',
+                    'users_count' => $request->users_count,
+                    'msg' => null
+                    ]);
+                }
+                
 
                 //////////////////////////////////////////////////
 
@@ -126,7 +137,7 @@ class EventUserActionsController extends Controller
                     ]);
 
                     // new code
-                    $this->update_qr($event,$uu_id,$user_event,$image_name,$request->users_count);
+                    $this->update_qr($event,$uu_id,$user_event,$image_name,$users_count);
 
                     $user_event->update([ 'qr_sent' => 'yes'  ]);
 

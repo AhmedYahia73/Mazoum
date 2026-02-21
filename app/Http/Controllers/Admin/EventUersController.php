@@ -1358,10 +1358,9 @@ class EventUersController extends Controller
         // '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.
         // '&image='.$image_url.'&url_button='.$url_button;
         
-        $response = SendNewTemplateCodeV1($url);
+        $response = SendNewVTemplateCodeV1($url);
  		// تحويل النص لـ Array
-        $responseData = json_decode($response); 
-       
+        $responseData = json_decode($response);  
 
         // التأكد أن الرد ليس فارغاً وأن مصفوفة الرسائل موجودة فعلاً
         if ($responseData && isset($responseData->messages) && !empty($responseData->messages)) {
@@ -2680,11 +2679,11 @@ class EventUersController extends Controller
 
     private function update_qr($event,$uu_id,$user_event,$image_name) {
 
-        $color = $this->hexToRgb($event->color ?? '#000');
+        $color = $this->hexToRgb($event->color);
 
-        if($event->file != null) {
+        if($event->image != null) {
 
-            $bg = $event->file;
+            $bg = $event->image;
             $image_name = $uu_id . '-test-qr.png';
 
             $link = asset('scan-qr/' . $uu_id);

@@ -29,7 +29,7 @@ class Events extends FormRequest
                 'assistant_id' => 'sometimes|exists:users,id',
                 'title' => 'required|string',
                 'address' => 'required|string',
-                'file' => 'sometimes|mimes:pdf,jpg,png,jpeg',
+                'file' => 'nullable|mimes:pdf,jpg,png,jpeg',
                 'showing_qr' => 'required',
                 'user_id' => 'required|exists:users,id',
                 'date' => 'required|date|date_format:Y-m-d',
@@ -73,7 +73,6 @@ class Events extends FormRequest
                 'user_id.required' => 'رقم المستخدم مطلوب',
                 'user_id.exists' => 'عفوا هذا المستخدم غير موجود مسبقاً',
 
-                'file.required' => 'المرفق مطلوب',
                 'file.mimes' => 'يجب أن يكون امتداد الملف pdf,jpg,png,jpeg',
             ];
         }
@@ -86,7 +85,6 @@ class Events extends FormRequest
             'user_id.required' => 'User id is required',
             'user_id.exists' => 'This user does not exist',
 
-            'file.required' => 'File is required',
             'file.mimes' => 'File must have extensions pdf,jpg,png,jpeg',
         ];
     }

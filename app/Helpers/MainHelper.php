@@ -734,6 +734,21 @@ if (! function_exists('SendNewTemplateCodeV1')) {
 }
 
 
+if (! function_exists('SendNewVTemplateCodeV1')) {
+
+    function SendNewVTemplateCodeV1($url)
+    {
+
+        $client = new Client();
+
+        $response = $client->request('POST', $url);
+
+        return $response->getBody()->getContents();
+
+    }
+}
+
+
 
 
 if (! function_exists('GetEditedLocation')) {

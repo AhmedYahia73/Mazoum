@@ -487,7 +487,7 @@ class EventsController extends Controller
     public function store(modelRequest $request)
     {
         $validator = Validator::make($request->all(), [
-            'file' => 'required|mimes:pdf,jpg,png,jpeg',
+            'file' => 'sometimes|mimes:pdf,jpg,png,jpeg',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -715,11 +715,12 @@ class EventsController extends Controller
         ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id',$Item->id)
-        ->whereIn('status', ['sent'])
+        //->whereIn('status', ['sent'])
         ->whereNull('is_accepted')
         ->whereNull('is_refused')
         ->where(function($query) { 
-            $query->where('is_new_sent',1)->orWhereNotNull('is_sent'); 
+            $query->where('is_new_sent',1)
+            ->orWhereNotNull('is_sent'); 
         })
         ->sum('users_count');
         $send_Qr = EventUsers::

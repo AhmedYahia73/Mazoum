@@ -297,10 +297,7 @@ Route::get('save-order', function () {
 Route::post('save-order', 'UsersController@save_order');
 
 
-// edit-order
-Route::get('edit-order', function () {
-    return redirect('admin');
-});
+// edit-order 
 Route::post('edit-order', 'UsersController@edit_order');
 
 

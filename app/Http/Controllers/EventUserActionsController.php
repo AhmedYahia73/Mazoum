@@ -160,7 +160,7 @@ class EventUserActionsController extends Controller
                    'event_user_id' => $user_event->id,
                    'mobile' => $user_event->mobile,
                    'action' => 'refuse_event',
-                   'msg' => null
+                   'msg' => $request->msg
                 ]);
 
                 //////////////////////////////////////////////////////////////

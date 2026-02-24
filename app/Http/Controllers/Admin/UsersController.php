@@ -196,6 +196,7 @@ class UsersController extends Controller
             'payment_type' => 'required',
             'employee_gender' => 'required',
             'is_paid' => 'required',
+            'total' => 'required|numeric',
         ]);
         if ($validation->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -209,7 +210,8 @@ class UsersController extends Controller
             'duration' => 'required|numeric|min:1',
             'payment_type' => 'required',
             'employee_gender' => 'required',
-            'is_paid' => 'required',
+            'is_paid' => 'required', 
+            'total' => 'required',
         ];
 
         $request->validate($validate_arr);
@@ -225,8 +227,8 @@ class UsersController extends Controller
             'payment_type' => $request->payment_type,
             'employee_gender' => $request->employee_gender,
             'is_paid' => $request->is_paid,
-            'users_count' => $request->users_count ?? $order->users_count
-
+            'users_count' => $request->users_count ?? $order->users_count,
+            'total' => $request->total
         ]);
 
         $user->update([

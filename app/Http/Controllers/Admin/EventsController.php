@@ -736,7 +736,7 @@ class EventsController extends Controller
         $confirm_web_users = EventUserActions::
         where('event_id',$Item->id)
         ->where('action','accept_event')
-        ->count();   
+        ->sum('users_count');
 
         $congratulation_msgs = CongratulationMessages::
         whereHas('event',function($event) { 

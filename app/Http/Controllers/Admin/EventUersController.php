@@ -205,15 +205,12 @@ class EventUersController extends Controller
 
                   $caption = $row->name . PHP_EOL . PHP_EOL .
                         $row->event->title . PHP_EOL . PHP_EOL .
-                        " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق " . PHP_EOL .
-                        $row->event->date . " 📆" . PHP_EOL . PHP_EOL .
-                        " وقت الأستقبال ⏱️ " . $row->event->time . " مساءً" . PHP_EOL . PHP_EOL .
+                        " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
+                        $row->event->date  . PHP_EOL . PHP_EOL .
+                        " وقت الاستقبال ⏱️ " . $row->event->time . " مساءً" . PHP_EOL . PHP_EOL .
                         "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 
                         "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
-                        "قبول الدعوة " . PHP_EOL .
-                        "الأعتذار عن الدعوة " . PHP_EOL .
-                        "موقع المناسبة " . PHP_EOL . PHP_EOL .
-                        "اضغط على الرابط." . PHP_EOL .
+                        "فضلاً الدخول على الرابط والضغط على (قبـول الدعـوة) لتأكيد الحضور، أو اختيار (الاعتذار) في حال عـدم التمكن من الحضور." . PHP_EOL .
                         // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
                         "https://www.mazoominvitations.com/event-login/".$code;
 
@@ -1327,7 +1324,6 @@ class EventUersController extends Controller
         $qr_code_path = 'qr_code/' . $image_name; 
 
         $image_url = asset($qr_code_path);
-
         //$code = $user_event->mobile_code->code;
         //$mobile = substr($user_event->mobile, 1);
         $mobile = $user_event->mobile;
@@ -1797,15 +1793,23 @@ class EventUersController extends Controller
     public function confirmed_users_web_chat(Request $request, $id)
     {
         $Item = Events::findOrFail($id);
-        $data = EventUserActions::where('event_id', $Item->id)
-        ->where('action', 'accept_event')
-        ->with("event_user:id,name")
-        ->whereHas('event_user', function ($q) use ($request) {
-            if ($request->search) {
-                $q->where('mobile', 'like', "%{$request->search}%");
-            }
-        })
-        ->paginate(15);
+        if($request->search){
+            $data = EventUserActions::where('event_id', $Item->id)
+            ->where('action', 'accept_event')
+            ->with("event_user:id,name")
+            ->whereHas('event_user', function ($q) use ($request) {
+                if ($request->search) {
+                    $q->where('mobile', 'like', "%{$request->search}%");
+                }
+            })
+            ->paginate(15);
+        }
+        else{
+            $data = EventUserActions::where('event_id', $Item->id)
+            ->where('action', 'accept_event')
+            ->with("event_user:id,name")
+            ->paginate(15);
+        }
 
         $title = 'كل المدعوين الذين اكدوا الحضور من الشات الويب';
 
@@ -1963,22 +1967,35 @@ class EventUersController extends Controller
         $Item = Events::findOrFail($id);
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
-        $data = EventUsers::where('event_id', $Item->id)
-        ->whereIn('status', ['sent'])
-        ->whereNull('is_accepted')
-        ->whereNull('is_refused')
-        ->where(function ($query) {
-            $query->where('is_new_sent', 1)
-                ->orWhereNotNull('is_sent');
-        })
-        ->when($request->search, function ($q) use ($request) {
-            $search = $request->search;
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%$search%")
-                    ->orWhere('mobile', 'like', "%$search%");
-            });
-        })
-        ->paginate(15);
+        if($request->search){
+            $data = EventUsers::where('event_id', $Item->id)
+            // ->whereIn('status', ['sent'])
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused')
+            ->where(function ($query) {
+                $query->where('is_new_sent', 1)
+                    ->orWhereNotNull('is_sent');
+            })
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%$search%")
+                        ->orWhere('mobile', 'like', "%$search%");
+                });
+            })
+            ->paginate(15);
+        }
+        else{
+            $data = EventUsers::where('event_id', $Item->id)
+            // ->whereIn('status', ['sent'])
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused')
+            ->where(function ($query) {
+                $query->where('is_new_sent', 1)
+                    ->orWhereNotNull('is_sent');
+            }) 
+            ->paginate(15);
+        }
 
         $title = 'لم يتم تاكيد الحضور';
 
@@ -1998,7 +2015,7 @@ class EventUersController extends Controller
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         $data = EventUsers::where('event_id', $Item->id)
-        ->whereIn('status', ['sent'])
+        //->whereIn('status', ['sent'])
         ->whereNull('is_accepted')
         ->whereNull('is_refused')
         ->where(function ($query) {
@@ -2681,84 +2698,61 @@ class EventUersController extends Controller
 
         $color = $this->hexToRgb($event->color);
 
-        if($event->image != null) {
+ 
+    if ($event->image != null) {
 
-            $bg = $event->image;
-            $image_name = $uu_id . '-test-qr.png';
+        $image_name  = $uu_id . '-test-qr.png';
+        $link        = asset('scan-qr/' . $uu_id);
+        $qr_tmp_path = public_path('qr_code/tmp_' . $image_name); // مؤقت للـ QR
+        $final_path  = public_path('qr_code/' . $image_name);     // الصورة النهائية
 
-            $link = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
-
-            // إنشاء QR كـ صورة مؤقتة
-            QrCode::format('png')
+        // ① إنشاء QR في ملف مؤقت
+        QrCode::format('png')
             ->size(300)
-            ->color($color[0],$color[1],$color[2])
-            ->backgroundColor(0, 0, 0, 0) // RGBA => شفاف
-            ->generate($link, $qr_code_path);
+            ->color($color[0], $color[1], $color[2])
+            ->backgroundColor(0, 0, 0, 0)
+            ->generate($link, $qr_tmp_path);
 
-            // افتح الخلفية
-            $background = Image::make($bg);
+        // ② فتح الخلفية
+        $background = Image::make($event->image);
 
-            // افتح QR
-            $qr = Image::make($qr_code_path);
+        // ③ فتح الـ QR من الملف المؤقت
+        $qr = Image::make($qr_tmp_path);
 
-            // احسب الإحداثيات لتوسيط QR في الأسفل
-            $x = intval(($background->width() - $qr->width()) / 2); // مركز أفقي
-            $y = $background->height() - $qr->height() - 180; // من الأسفل
+        // ① صغّر الـ QR عشان يتناسب مع الخلفية
+        $qr_size = intval($background->height() * 0.6); // 60% من ارتفاع الخلفية
+        $qr->resize($qr_size, $qr_size);
 
-            // أدرج QR
-            //$background->insert($qr, 'top-left', $x, $y - 350);
-            $background->insert($qr, 'top-left', $x, $y - 170);
+        // ② حساب الموضع الصح
+        $x = intval(($background->width() - $qr->width()) / 2);   // وسط أفقي
+        $y = intval(($background->height() - $qr->height()) / 2); // وسط عمودي
 
-            // احسب مركز الصورة للنص
+        // ③ دمج
+        $background->insert($qr, 'top-left', $x, $y);
+ 
+
+        // ⑥ إضافة النص لو users_count > 1
+        if ($user_event->users_count > 1) {
             $center_x = intval($background->width() / 2);
-            $text_y = $y + $qr->height() - 380; // أسفل QR بـ 20px
+            $text_y   = $y + $qr->height() + 40;
 
-            // $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-            // $name = $Arabic->utf8Glyphs($user_event->mobile);
-
-          	/*
-            $name = $user_event->mobile;
-
-            // أضف النص في وسط الصورة أفقيًا وأسفل QR
-            $background->text($name, $center_x, $text_y, function ($font) {
+            $background->text($user_event->users_count, $center_x, $text_y, function ($font) {
                 $font->file(public_path('font/OpenSans.ttf'));
                 $font->size(26);
                 $font->color('#000');
                 $font->align('center');
                 $font->valign('top');
             });
-            */
+        }
 
+        // ⑦ حفظ الصورة النهائية
+        $background->save($final_path, 100);
+        // ⑧ حذف الـ QR المؤقت
+        if (file_exists($qr_tmp_path)) {
+            unlink($qr_tmp_path);
+        }
 
-            // احسب مركز الصورة للنص
-            $text_y2 = $y + $qr->height() + 40; // أسفل QR بـ 20px
-
-            // $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
-            // $user_count_label = 'عدد الدخول ' . $user_event->users_count . '';
-            // $name2 = $Arabic2->utf8Glyphs($user_count_label);
-
-            if($user_event->users_count > 1) {
-
-                $user_count_label = $user_event->users_count;
-                $name2 = $user_count_label;
-
-                // أضف النص في وسط الصورة أفقيًا وأسفل QR
-                $background->text($name2, $center_x, $text_y2, function ($font) {
-                    $font->file(public_path('font/OpenSans.ttf'));
-                    $font->size(26);
-                    $font->color('#000');
-                    $font->align('center');
-                    $font->valign('top');
-                });
-
-            }
-
-
-            // حفظ النتيجة
-            $background->save(public_path($qr_code_path), 100);
-
-        } else {
+    }else {
 
             $bg = 'qr-image-v9.jpg';
 

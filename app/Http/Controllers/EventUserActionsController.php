@@ -128,13 +128,24 @@ class EventUserActionsController extends Controller
 
                     $image_name = $uu_id . '-test-qr.png';
 
-                    Qr_Code::create([
-                        'event_user_id' => $user_event->id,
-                        'event_id' => $user_event->event_id,
-                        'qr' => $image_name,
-                        'uu_id' => $uu_id,
-                        'counter' => 0
-                    ]);
+                    $qr_row = Qr_Code::
+                    where("event_user_id", $user_event->id)
+                    ->first();
+                    if($qr_row){
+                        $qr_row
+                        ->update([
+                            "qr" => $image_name
+                        ]);
+                    }
+                    else{
+                        Qr_Code::create([
+                            'event_user_id' => $user_event->id,
+                            'event_id' => $user_event->event_id,
+                            'qr' => $image_name,
+                            'uu_id' => $uu_id,
+                            'counter' => 0
+                        ]);
+                    }
 
                     // new code
                     $this->update_qr($event,$uu_id,$user_event,$image_name,$users_count);
@@ -766,6 +777,4 @@ class EventUserActionsController extends Controller
 
         return [$r, $g, $b];
     }
-
-
 }

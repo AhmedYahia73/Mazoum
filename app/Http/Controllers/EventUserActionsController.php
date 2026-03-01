@@ -44,6 +44,18 @@ class EventUserActionsController extends Controller
         where('event_user_id', $event_user->id)
         ->where('action','yes_receive_congratulation')
         ->first();
+                        //   CongratulationMessages::create([
+                        //     'event_id' => $event->id,
+                        //     'message_id' => $request->message_id,
+                        //     'type' => '',
+                        //     'name' => $user->name,
+                        //     'mobile' => $user->mobile,
+                        //     'message' => $request->message
+                        //   ]);
+        $yes_reply_congratulation = CongratulationMessages::
+        where("event_id", $event_user->event_id)
+        ->where("type", "replay")
+        ->first();
         $yes_receive_apology = EventUserActions::
         where('event_user_id', $event_user->id)
         ->where('action','yes_receive_apology')
@@ -54,6 +66,7 @@ class EventUserActionsController extends Controller
             "accept_event" => $accept_event,
             "yes_receive_congratulation" => $yes_receive_congratulation,
             "yes_receive_apology" => $yes_receive_apology,
+            "yes_reply_congratulation" => $yes_reply_congratulation?->message,
         ]);
 
     }

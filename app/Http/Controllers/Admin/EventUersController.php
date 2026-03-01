@@ -686,9 +686,8 @@ class EventUersController extends Controller
 
                             } else {
 
-                                $caption = '- ' . $user_event->name . PHP_EOL . PHP_EOL .
-                                // ' - شركة معزوم  لتنظيم الحفلات' . PHP_EOL . PHP_EOL .
-                                ' - ' . $request->message;
+                                $caption = '' . $user_event->name . PHP_EOL . PHP_EOL .
+                                ' ' . $request->message;
 
                                 // $api=$client->sendChatMessage($to,$body);
                                 $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);

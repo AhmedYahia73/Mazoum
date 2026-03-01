@@ -214,7 +214,7 @@ class EventsController extends Controller
         // بداية الـ query
         $query = Model::where('country_code', 'kw')
                     ->where('is_open', 'yes')
-                    ->with("user:id,name,mobile")
+                    ->with("user:id,name,mobile", "employee:id,name")
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image'
@@ -257,7 +257,7 @@ class EventsController extends Controller
 
         $query = Model::where('country_code', 'sa')
             ->where('is_open', 'yes')
-            ->with('user:id,name');
+            ->with('user:id,name', "employee:id,name");
 
 
         // 🔎 Search
@@ -308,7 +308,7 @@ class EventsController extends Controller
         }
 
         $Item = Model::where('country_code','kw')
-        ->with("user:id,name")->where('is_open','no')
+        ->with("user:id,name", "employee:id,name")->where('is_open','no')
         ->get(['id','title','address', 'image', 'file','user_id','first_name' , 'last_name','date','time']);
          
         return response()->json([
@@ -328,7 +328,7 @@ class EventsController extends Controller
         }
 
         $Item = Model::where('country_code','kw')
-        ->with("user:id,name")
+        ->with("user:id,name", "employee:id,name")
         ->where('is_open','current')
         ->get(['id','title','address','file','user_id','first_name' , 
         'last_name','date','time', 'image']);
@@ -372,7 +372,7 @@ class EventsController extends Controller
         }
 
         $Item = Model::where('country_code','sa')
-        ->with("user:id,name")
+        ->with("user:id,name", "employee:id,name")
         ->where('is_open','no')->get([
             'id','title','address','file',
             'user_id','first_name' , 'last_name',
@@ -395,7 +395,7 @@ class EventsController extends Controller
         }
 
         $Item = Model::where('country_code','sa')->where('is_open','current')
-        ->with("user:id,name")
+        ->with("user:id,name", "employee:id,name")
         ->get(['id','title','address','file','user_id','date','time', 'image']);
         
         return response()->json([

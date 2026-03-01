@@ -43,6 +43,11 @@ class Events extends Model
     {
         return $this->belongsTo('App\Models\User', 'user_id');
     }
+    
+    public function employee()
+    {
+        return $this->belongsTo('App\Models\User', 'assistant_id');
+    }
 
 
   	protected static function boot() {

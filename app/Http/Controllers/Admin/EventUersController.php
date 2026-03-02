@@ -2215,7 +2215,9 @@ class EventUersController extends Controller
         foreach($mobiles as $phone) {
             $mobiles_arr[] = ltrim($phone,"+");
         }
-        $messages = CongratulationMessages::whereHas('event', function ($event) {
+        $messages = CongratulationMessages::
+        with("reply")
+        ->whereHas('event', function ($event) {
             $event->whereIn('is_open', ['yes', 'current']);
         })
         ->when($mobiles_arr ?? false, function ($q) use ($mobiles_arr) {

@@ -217,7 +217,8 @@ class EventsController extends Controller
                     ->with("user:id,name,mobile", "employee:id,name")
                     ->select([
                         'id','title','address','file','user_id',
-                        'first_name','last_name','date','time', 'image'
+                        'first_name','last_name','date','time', 'image',
+                        'assistant_id'
                     ]);
 
         // ✔️ search
@@ -287,7 +288,8 @@ class EventsController extends Controller
             'first_name',
             'last_name',
             'date',
-            'time'
+            'time', 
+            'assistant_id'
         ]);
 
         return response()->json($Items);
@@ -309,7 +311,8 @@ class EventsController extends Controller
 
         $Item = Model::where('country_code','kw')
         ->with("user:id,name", "employee:id,name")->where('is_open','no')
-        ->get(['id','title','address', 'image', 'file','user_id','first_name' , 'last_name','date','time']);
+        ->get(['id','title','address', 'image', 'file','user_id',
+        'first_name' , 'last_name','date','time', 'assistant_id']);
          
         return response()->json([
             "Items" => $Item
@@ -331,7 +334,7 @@ class EventsController extends Controller
         ->with("user:id,name", "employee:id,name")
         ->where('is_open','current')
         ->get(['id','title','address','file','user_id','first_name' , 
-        'last_name','date','time', 'image']);
+        'last_name','date','time', 'image', 'assistant_id']);
          
         return response()->json([
             "Items" => $Item
@@ -376,7 +379,7 @@ class EventsController extends Controller
         ->where('is_open','no')->get([
             'id','title','address','file',
             'user_id','first_name' , 'last_name',
-            'date','time', 'image']);
+            'date','time', 'image', 'assistant_id']);
         
         return response()->json([
             "closed_events" => $Item
@@ -396,7 +399,8 @@ class EventsController extends Controller
 
         $Item = Model::where('country_code','sa')->where('is_open','current')
         ->with("user:id,name", "employee:id,name")
-        ->get(['id','title','address','file','user_id','date','time', 'image']);
+        ->get(['id','title','address','file','user_id',
+        'date','time', 'image', 'assistant_id']);
         
         return response()->json([
             "current_events" => $Item

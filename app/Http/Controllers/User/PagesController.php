@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Subscribers;
 
 
@@ -62,10 +63,14 @@ class PagesController extends Controller
     public function save_subscribe(Request $request) {
 
         $lang = app()->getLocale();
-
-        $request->validate([
+       $validator = Validator::make($request->all(), [
             'email' => 'required|email'
-        ]);
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
 
         $count = Subscribers::where('email',$request->email)->count();
 
@@ -76,9 +81,13 @@ class PagesController extends Controller
         }
 
         if($lang == 'en') {
-            return redirect()->back()->with('success','you subscribed successfully');
+            return response()->json([
+                'success' =>'you subscribed successfully'
+            ]);
         } else {
-            return redirect()->back()->with('success',' تم الأشتراك بنجاح');
+            return response()->json([
+                'success' =>' تم الأشتراك بنجاح'
+            ]);
         }
 
     }

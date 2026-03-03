@@ -3,6 +3,7 @@
 use App\Models\Messages;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 $check_lang = request()->segment(1);
 $lang = ($check_lang == 'en') ? 'en' : 'ar';
@@ -38,26 +39,32 @@ Route::group(['namespace' => 'User'], function () use ($prefix) {
 
     Route::post('contact-us', function (Request $request) {
 
-        $request->validate([
+       $validator = Validator::make($request->all(), [
             'first_name' => 'required',
             'last_name' => 'required',
             'mobile' => 'required|numeric',
             'email' => 'required|email',
             'message' => 'required',
-            //'g-recaptcha-response' => 'required'
-        ]);
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
 
 
         $message = Messages::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'mobile' => $request->mobile,
-            'email' => $request->email,
-            'message' => $request->message
+            "first_name" => $request->first_name,
+            "last_name" => $request->last_name,
+            "mobile" => $request->mobile,
+            "email" => $request->email,
+            "message" => $request->message
         ]);
 
 
-        return redirect()->back()->with('success', 'message sent successfully');
+        return response()->json([
+            'success' => 'message sent successfully'
+        ]);
 
     })->name('ar-save-contact-us');
 

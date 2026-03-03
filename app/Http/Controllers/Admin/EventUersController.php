@@ -1263,6 +1263,9 @@ class EventUersController extends Controller
     {
         $Item = Model::withTrashed()->findOrFail($id);
         $Item->delete();
+        EventUserActions::
+        where("event_user_id", $id)
+        ->delete();
 
         return response()->json([
             'success' => 'You delete data success', 

@@ -178,7 +178,16 @@ class EventUserActionsController extends Controller
                 }
 
             } elseif($request->action == 'refuse_event') {
-
+                $user_event_count = $user_event->users_count;
+                $event_action = EventUserActions::
+                where("event_id", $user_event->event_id)
+                ->where("event_user_id", $user_event->id)
+                ->first(); 
+                if($event_action && $user_event_count - $event_action->users_count < $request->users_count){
+                    $refuse_count = $request->users_count - ($user_event_count - $event_action->users_count);
+                    $event_action->users_count -= $refuse_count;
+                    $event_action->save();
+                }
                 EventUserActions::create([
                    'event_id' => $user_event->event_id,
                    'event_user_id' => $user_event->id,

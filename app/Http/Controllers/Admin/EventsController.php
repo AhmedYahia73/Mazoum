@@ -703,9 +703,13 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('scan','yes')
         ->sum('scan_count');
-        $confirm_attend = EventUsers::
+        // $confirm_attend = EventUsers::
+        // where('event_id',$Item->id)
+        // ->where('status', 'attend')
+        // ->sum('users_count');
+        $confirm_attend = EventUserActions::
         where('event_id',$Item->id)
-        ->where('is_accepted','yes')
+        ->where('action', 'accept_event')
         ->sum('users_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)

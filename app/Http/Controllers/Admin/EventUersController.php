@@ -1496,6 +1496,28 @@ class EventUersController extends Controller
 
         $event = Events::find($user_event->event_id);
 
+
+        $event_action = EventUserActions::
+        where("event_id", $user_event->event_id)
+        ->where("event_user_id", $id)
+        ->where('action', 'accept_event')
+        ->first();
+        if($user_event->is_accepted != "yes"){
+            if($event_action){
+                $event_action->users_count = $user_event->users_count;
+                $event_action->save();
+            }
+            else{
+                EventUserActions::create([
+                    'event_id' => $user_event->event_id,
+                    'event_user_id' => $user_event->id,
+                    'mobile' => $user_event->mobile,
+                    'action' => 'accept_event',
+                    'users_count' => $user_event->users_count,
+                    'msg' => null
+                ]);
+            }
+        }
       	Notifications::create([
           'add_by'         => 'admin',
           'user_id'        => 1,
@@ -1565,11 +1587,7 @@ class EventUersController extends Controller
             // });
 
             // $new_img->save($destination);
-
-
         }
-
-
         return response()->json([
             'success' => 'تم قبول الدعوه', 
         ]);

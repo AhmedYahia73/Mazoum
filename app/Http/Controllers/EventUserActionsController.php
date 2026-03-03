@@ -132,8 +132,13 @@ class EventUserActionsController extends Controller
                     'status'         => 'accept_event',
                 ]);
 
-                $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
+                $user_event->update(['confirmed_at' => now(),'status' => 'attend' ]);
 
+                if($user_event->users_count <= $users_count){
+                    $user_event->update([
+                        'is_accepted' => 'yes'
+                    ]);
+                }
                 if($event->showing_qr == 'yes') {
 
                     $uu_id = $this->unique_uu_id();

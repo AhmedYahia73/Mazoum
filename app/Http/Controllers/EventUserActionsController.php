@@ -39,11 +39,7 @@ class EventUserActionsController extends Controller
         $accept_event = EventUserActions::
         where('event_user_id', $event_user->id)
         ->where('action','accept_event')
-        ->first();
-        $yes_receive_congratulation = EventUserActions::
-        where('event_user_id', $event_user->id)
-        ->where('action','yes_receive_congratulation')
-        ->first();
+        ->first(); 
                         //   CongratulationMessages::create([
                         //     'event_id' => $event->id,
                         //     'message_id' => $request->message_id,
@@ -52,21 +48,36 @@ class EventUserActionsController extends Controller
                         //     'mobile' => $user->mobile,
                         //     'message' => $request->message
                         //   ]);
-        $yes_reply_congratulation = CongratulationMessages::
-        where("event_id", $event_user->event_id)
-        ->where("type", "replay")
+    
+        // $yes_receive_apology = EventUserActions::
+        // where('event_user_id', $event_user->id)
+        // ->where('action','yes_receive_apology')
+        // ->first();
+        
+        $apologize_messages = EventMessages::
+        whereHas('event', function ($event) {
+            $event->whereIn('is_open', ['yes', 'current']);
+        })
+        ->where("event_user_id", $event_user->id)
+        ->with("reply")
         ->first();
-        $yes_receive_apology = EventUserActions::
-        where('event_user_id', $event_user->id)
-        ->where('action','yes_receive_apology')
+        $yes_receive_congratulation = CongratulationMessages::
+        with("reply")
+        ->whereHas('event', function ($event) {
+            $event->whereIn('is_open', ['yes', 'current']);
+        }) 
+        ->first();
+        $yes_reply_congratulation = CongratulationMessages::
+        where("message_id", $yes_receive_congratulation->id)
         ->first();
         return response()->json([
             "event_user" => $event_user,
             "qr_row" => $qr_row,
             "accept_event" => $accept_event,
             "yes_receive_congratulation" => $yes_receive_congratulation,
-            "yes_receive_apology" => $yes_receive_apology,
+            // "yes_receive_apology" => $yes_receive_apology,
             "yes_reply_congratulation" => $yes_reply_congratulation?->message,
+            "apologize_messages" => $apologize_messages
         ]);
 
     }

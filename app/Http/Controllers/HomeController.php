@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Orders;
 use App\Models\Admin;
-use App\Models\Setting;
-use App\Models\Logs;
-use App\Models\EventUsers;
-use App\Models\Qr_Code;
-use App\Models\EventUserLogs;
-use App\Models\Events;
-use App\Models\EventMessages;
-use App\Models\Parking;
 use App\Models\CongratulationMessages;
+use App\Models\Desgins;
+use App\Models\EventMessages;
+use App\Models\Events;
+use App\Models\EventUserLogs;
+use App\Models\EventUsers;
+use App\Models\Logs;
+use App\Models\Orders;
+use App\Models\Parking;
+use App\Models\Pricing;
+use App\Models\Qr_Code;
+use App\Models\Setting;
+use App\Models\WebDesgins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use App\Models\Pricing;
-use App\Models\WebDesgins;
 
 class HomeController extends Controller
 {
     public function index(){ 
         $Pricing = Pricing::get();
         $Desgins = WebDesgins::get();
-
+        $desgns_2 = Desgins::get();
         return response()->json([
             "Pricing" => $Pricing,
             "Desgins" => $Desgins,
+            "desgns_2" => $desgns_2,
         ]);
     }
     public function test()

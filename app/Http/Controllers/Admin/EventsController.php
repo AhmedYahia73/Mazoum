@@ -707,6 +707,10 @@ class EventsController extends Controller
         // where('event_id',$Item->id)
         // ->where('status', 'attend')
         // ->sum('users_count');
+        $new_confirm_attend = EventUsers::
+        where('event_id',$Item->id)
+        ->whereHas('event_action')
+        ->sum('users_count');
         $confirm_attend = EventUserActions::
         where('event_id',$Item->id)
         ->where('action', 'accept_event')
@@ -731,12 +735,12 @@ class EventsController extends Controller
         //     ->orWhereNotNull('is_sent'); 
         // })
         // ->sum('users_count');
-        $not_confirm = $invitees - $confirm_attend;
+        $not_confirm = $invitees - $new_confirm_attend;
         // $send_Qr = EventUsers::
         // where('event_id',$Item->id)
         // ->where('qr_sent','yes')
         // ->sum('users_count'); 
-        $send_Qr = $invitees - $waiting;
+        $send_Qr = $confirm_attend;
         $not_attend = $confirm_attend - $qr;
         $confirm_web_users = EventUserActions::
         where('event_id',$Item->id)

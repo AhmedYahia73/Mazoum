@@ -1767,15 +1767,50 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'attend')
+        ->whereHas('event_action')
+        ->with("event_action")
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {
                 $sub->where('name', 'like', "%$search%")
                     ->orWhere('mobile', 'like', "%$search%");
             });
-        })
-        ->paginate(15);
+        }) 
+        ->paginate(15) 
+        ->withQueryString() 
+        ->through(function($item) { 
+            return [
+                "id" => $item->id,
+                "users_count" => $item->event_action ? $item->event_action->sum("users_count") : 0, 
+                'event_id' => $item->event_id,
+                'uu_id' => $item->uu_id,
+                'message_id' => $item->message_id,
+                'name' => $item->name,
+                'mobile' => $item->mobile,
+                'status' => $item->status,
+                'scan' => $item->scan,
+                'scan_at' => $item->scan_at,
+                'get_location' => $item->get_location,
+                'is_sent' => $item->is_sent,
+                'is_delivered' => $item->is_delivered,
+                'qr_sent' => $item->qr_sent,
+                'is_accepted' => $item->is_accepted,
+                'is_refused' => $item->is_refused,
+                'log' => $item->log,
+                'sent_from' => $item->sent_from,
+                'is_read' => $item->is_read,
+                'error_title' => $item->error_title,
+                'error' => $item->error,
+                'confirmed_at' => $item->confirmed_at,
+                'is_open' => $item->is_open,
+                'is_new_sent' => $item->is_new_sent,
+                'scan_count' => $item->scan_count,
+                'is_send_congratulation' => $item->is_send_congratulation,
+                'code' => $item->code,
+                "send_time" => $item->send_time,
+                "accept_time" => $item->accept_time
+            ];
+        });
 
         $title = 'كل المدعوين الذين ينوون الحضور';
 
@@ -1990,12 +2025,7 @@ class EventUersController extends Controller
         if($request->search){
             $data = EventUsers::where('event_id', $Item->id)
             // ->whereIn('status', ['sent'])
-            ->whereNull('is_accepted')
-            ->whereNull('is_refused')
-            ->where(function ($query) {
-                $query->where('is_new_sent', 1)
-                    ->orWhereNotNull('is_sent');
-            })
+            ->whereDoesntHave('event_action')
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2008,12 +2038,8 @@ class EventUersController extends Controller
         else{
             $data = EventUsers::where('event_id', $Item->id)
             // ->whereIn('status', ['sent'])
-            ->whereNull('is_accepted')
-            ->whereNull('is_refused')
-            ->where(function ($query) {
-                $query->where('is_new_sent', 1)
-                    ->orWhereNotNull('is_sent');
-            }) 
+            
+            ->whereDoesntHave('event_action')
             ->paginate(15);
         }
 
@@ -2063,9 +2089,8 @@ class EventUersController extends Controller
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'attend')
-        ->whereNull('scan')
-        ->whereNull('is_refused')
+        //->where('status', 'attend')
+        ->whereNull('is_refused') 
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {
@@ -2073,7 +2098,46 @@ class EventUersController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
-        ->paginate(15);
+        ->paginate(15) 
+        ->withQueryString() 
+        ->through(function($item) { 
+            $user_count = $item->event_action ? $item->event_action->sum("users_count") : 0;
+            $user_count = $user_count - $item->scan_count;
+            if($user_count > 0){
+                return [
+                    "id" => $item->id,
+                    "users_count" => $user_count, 
+                    'event_id' => $item->event_id,
+                    'uu_id' => $item->uu_id,
+                    'message_id' => $item->message_id,
+                    'name' => $item->name,
+                    'mobile' => $item->mobile,
+                    'status' => $item->status,
+                    'scan' => $item->scan,
+                    'scan_at' => $item->scan_at,
+                    'get_location' => $item->get_location,
+                    'is_sent' => $item->is_sent,
+                    'is_delivered' => $item->is_delivered,
+                    'qr_sent' => $item->qr_sent,
+                    'is_accepted' => $item->is_accepted,
+                    'is_refused' => $item->is_refused,
+                    'log' => $item->log,
+                    'sent_from' => $item->sent_from,
+                    'is_read' => $item->is_read,
+                    'error_title' => $item->error_title,
+                    'error' => $item->error,
+                    'confirmed_at' => $item->confirmed_at,
+                    'is_open' => $item->is_open,
+                    'is_new_sent' => $item->is_new_sent,
+                    'scan_count' => $item->scan_count,
+                    'is_send_congratulation' => $item->is_send_congratulation,
+                    'code' => $item->code,
+                    "send_time" => $item->send_time,
+                    "accept_time" => $item->accept_time
+                ];
+            }
+        });
+        $data->setCollection($data->getCollection()->filter());
 
         $title = 'عدم الحضور فعليا';
 
@@ -2117,7 +2181,7 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('qr_sent', 'yes')
+        //->where('qr_sent', 'yes')
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {
@@ -2125,7 +2189,41 @@ class EventUersController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
-        ->paginate(15);
+        ->paginate(15)
+        ->withQueryString() 
+        ->through(function($item) { 
+            return [
+                "id" => $item->id,
+                "users_count" => $item->event_action ? $item->event_action->sum("users_count") : 0, 
+                'event_id' => $item->event_id,
+                'uu_id' => $item->uu_id,
+                'message_id' => $item->message_id,
+                'name' => $item->name,
+                'mobile' => $item->mobile,
+                'status' => $item->status,
+                'scan' => $item->scan,
+                'scan_at' => $item->scan_at,
+                'get_location' => $item->get_location,
+                'is_sent' => $item->is_sent,
+                'is_delivered' => $item->is_delivered,
+                'qr_sent' => $item->qr_sent,
+                'is_accepted' => $item->is_accepted,
+                'is_refused' => $item->is_refused,
+                'log' => $item->log,
+                'sent_from' => $item->sent_from,
+                'is_read' => $item->is_read,
+                'error_title' => $item->error_title,
+                'error' => $item->error,
+                'confirmed_at' => $item->confirmed_at,
+                'is_open' => $item->is_open,
+                'is_new_sent' => $item->is_new_sent,
+                'scan_count' => $item->scan_count,
+                'is_send_congratulation' => $item->is_send_congratulation,
+                'code' => $item->code,
+                "send_time" => $item->send_time,
+                "accept_time" => $item->accept_time
+            ];
+        });
 
         $title = 'كل الدعوات (Sent QR)';
 

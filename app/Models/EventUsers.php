@@ -30,6 +30,11 @@ class EventUsers extends Model
         return $this->hasMany(CongratulationMessages::class, "event_user_id");
     }
 
+    public function event_action(){
+        return $this->hasMany(EventUserActions::class, "event_user_id")
+        ->where('action','accept_event');
+    }
+
     public function setScanAtAttribute($value)
     {
         // لو القيمة فاضية، خليه يحتفظ بالقيمة القديمة كما هي

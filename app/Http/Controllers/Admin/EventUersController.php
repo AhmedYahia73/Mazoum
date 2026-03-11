@@ -2201,6 +2201,9 @@ class EventUersController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
+        ->where(function($query) {
+            $query->whereRaw('(SELECT SUM(users_count) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > 0');
+        })
         ->paginate(15)
         ->withQueryString() 
         ->through(function($item) { 

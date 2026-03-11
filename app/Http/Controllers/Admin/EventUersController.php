@@ -2026,6 +2026,12 @@ class EventUersController extends Controller
             $data = EventUsers::where('event_id', $Item->id)
             // ->whereIn('status', ['sent'])
             ->whereDoesntHave('event_action')
+            ->where(function($query){
+                
+                $query->where('status','hold')
+                ->orWhere('is_new_sent',0)
+                ->orWhereNull('is_sent');
+            })
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2039,6 +2045,12 @@ class EventUersController extends Controller
             $data = EventUsers::where('event_id', $Item->id)
             // ->whereIn('status', ['sent'])
             
+            ->where(function($query){
+                
+                $query->where('status', "!=", 'hold')
+                ->orWhere('is_new_sent', "!=", 0)
+                ->orWhereNotNull('is_sent');
+            })
             ->whereDoesntHave('event_action')
             ->paginate(15);
         }

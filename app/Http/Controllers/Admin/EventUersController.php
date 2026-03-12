@@ -2405,6 +2405,7 @@ class EventUersController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
+        ->with("reply")
         ->paginate(15);
 
         $title = 'كل الرسائل';

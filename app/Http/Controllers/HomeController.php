@@ -234,8 +234,8 @@ class HomeController extends Controller
                        'counter' => 0
                     ]);
 
-                    // $link = asset('scan-qr/' . $uu_id);
-                    $link = asset('mobile-scan-qr/' . $uu_id);
+                    $link = asset('scan-qr/' . $uu_id);
+                    // $link = asset('mobile-scan-qr/' . $uu_id);
                     $qr_code_path = 'qr_code/' . $image_name;
                     QrCode::size(900)->format('png')->generate($link, $qr_code_path);
 

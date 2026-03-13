@@ -489,8 +489,8 @@ class EventUserActionsController extends Controller
 
                             $image_name = $uu_id . '-test-qr.png';
 
-                            // $link = asset('scan-qr/' . $uu_id);
-                            $link = asset('mobile-scan-qr/' . $uu_id);
+                            $link = asset('scan-qr/' . $uu_id);
+                            // $link = asset('mobile-scan-qr/' . $uu_id);
                             $qr_code_path = 'qr_code/' . $image_name;
 
                         } else {
@@ -684,8 +684,8 @@ class EventUserActionsController extends Controller
             $bg = $event->image;
             $image_name = $uu_id . '-test-qr.png';
 
-            // $link = asset('scan-qr/' . $uu_id);
-            $link = asset('mobile-scan-qr/' . $uu_id);
+            $link = asset('scan-qr/' . $uu_id);
+            // $link = asset('mobile-scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
             // إنشاء QR كـ صورة مؤقتة
@@ -764,8 +764,8 @@ class EventUserActionsController extends Controller
 
             $bg = 'qr-image-v9.jpg';
 
-            // $link = asset('scan-qr/' . $uu_id);
-            $link = asset('mobile-scan-qr/' . $uu_id);
+            $link = asset('scan-qr/' . $uu_id);
+            // $link = asset('mobile-scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
             QrCode::size(450)->format('png')->generate($link, $qr_code_path);
 

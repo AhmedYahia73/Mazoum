@@ -2805,9 +2805,7 @@ class EventUersController extends Controller
         EventUserActions::
         where('event_user_id', $event_user_id)
         ->where('action','accept_event')
-        ->update([
-            "action" => null
-        ]); 
+        ->delete(); 
 
       	if($user_event != null && $user_event->event) {
       		Notifications::create([

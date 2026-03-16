@@ -66,7 +66,10 @@ class EventUserActionsController extends Controller
         ->whereHas('event', function ($event) {
             $event->whereIn('is_open', ['yes', 'current']);
         }) 
+        ->where("event_user_id", $event_user->id)
         ->first();
+        
+
         $yes_reply_congratulation = CongratulationMessages::
         where("message_id", $yes_receive_congratulation->id)
         ->first();

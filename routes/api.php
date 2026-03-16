@@ -14,14 +14,11 @@ Route::post('webhook', 'HomeController@webhook_post');
 Route::controller(LoginController::class)->group(function () {
     Route::post('login_admin', 'login_admin');
 });
-
-
-
+  
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-
+ 
 ////////////////////// Gest User
 Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'], function () {
 
@@ -125,11 +122,7 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
 
 
     /////////////////////////////////////////////////////////////////
-});
-
-
-
-
+}); 
 
 // accept-event
 Route::post('accept-event', function (Request $request) {
@@ -138,9 +131,7 @@ Route::post('accept-event', function (Request $request) {
     info($request->all());
 
 });
-
-
-
+ 
 Route::post('accept-event', 'EventsApiController@accept_event');
 
 Route::post('refuse-event', 'EventsApiController@refuse_event');
@@ -159,16 +150,7 @@ Route::post('location-event', 'EventsApiController@location_event');
 Route::post('event-date', 'EventsApiController@event_date');
 
 Route::post('resend-qr-code', 'EventsApiController@resend_qr_code');
-
-
-
-
+ 
 Route::post('confirm-reservation', 'ReservationApiController@confirm_reservation');
 
 Route::post('cancel-reservation', 'ReservationApiController@cancel_reservation');
-
-
-
-
-
-

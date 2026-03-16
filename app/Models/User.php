@@ -18,10 +18,10 @@ class User extends Authenticatable
 
 
     protected $fillable = [
-        'name', 'mobile', 'device_token', 'token' , 'status' , 'mobile_code',
-        'offer_id' , 'balance' ,'full_balance' , 'user_type' , 'password', 'email' , 'pass',
-        'order_id','start_subscription_date','duration_type','duration',
-        'payment_type','employee_gender','is_paid','subscription_price'
+        "name", "mobile", "device_token", "token" , "status" , "mobile_code",
+        "offer_id" , "balance" ,"full_balance" , "user_type" , "password", "email" , "pass",
+        "order_id","start_subscription_date","duration_type","duration",
+        "payment_type","employee_gender","is_paid","subscription_price"
     ];
 
   	protected $hidden = [

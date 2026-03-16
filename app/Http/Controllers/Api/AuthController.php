@@ -230,7 +230,8 @@ class AuthController extends Controller
                 }
             } else {
 
-              	if($request->user_type == 'employee' || $request->user_type == 'user') {
+              	if($request->user_type == 'employee' || $request->user_type == 'user'
+                || $request->user_type == 'custom_user') {
 
                   	if (Hash::check($request->password, $user->password)) {
 

@@ -49,6 +49,7 @@ class UserItemResource extends JsonResource
             'offer_name' => $offer != null ? $offer->{$lang.'_name'} : '',
             'available' => $this->full_balance - $this->balance,
             'token' => $this->token,
+            'user_type' => $this->user_type,
             'currency' => $this->order && $this->order->currency ? CurrencyItemResource::make($this->order->currency) : null
         ];
 

@@ -71,7 +71,7 @@ class EventUserActionsController extends Controller
         
 
         $yes_reply_congratulation = CongratulationMessages::
-        where("message_id", $yes_receive_congratulation->id)
+        where("message_id", $event_user->id)
         ->first();
         return response()->json([
             "event_user" => $event_user,

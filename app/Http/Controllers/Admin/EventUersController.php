@@ -2802,6 +2802,12 @@ class EventUersController extends Controller
             'mobile' => $user_event->mobile,
             'message' => $request->msg2
         ]);
+        EventUserActions::
+        where('event_user_id', $event_user_id)
+        ->where('action','accept_event')
+        ->update([
+            "action" => null
+        ]); 
 
       	if($user_event != null && $user_event->event) {
       		Notifications::create([

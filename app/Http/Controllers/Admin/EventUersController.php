@@ -187,6 +187,7 @@ class EventUersController extends Controller
                 if($row != null && $row->event != null) {
                     $row->update([
                         "send_time" => now(),
+                        "send_type" => "link",
                     ]);
                     if($row->code != null) {
                         $code = $row->code;
@@ -681,6 +682,7 @@ class EventUersController extends Controller
                                 } else {
                                     $user_event->update([
                                         'status' => 'failed-v2',
+                                        "send_type" => "meta",
                                     ]);
                                 }
 
@@ -695,6 +697,10 @@ class EventUersController extends Controller
                                 // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
 
                                 if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+                                    
+                                    $user_event->update([ 
+                                        "send_type" => "link",
+                                    ]);
                                     // dd('ok');
                                 } else {
                                     // dd('not ok',$api);
@@ -1125,6 +1131,7 @@ class EventUersController extends Controller
                                 'error_title' => null,
                                 'error' => null,
                                 'log' => null,
+                                "send_type" => "meta",
                             ]);
 
                             $image_path = $event->file;
@@ -2484,16 +2491,27 @@ class EventUersController extends Controller
         $sender_id      = get_whats_setting($event)['sender_id'];
         $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-        $phone = $mobile;
-        // $template_name = 'wedding_data_v7_ar';
-        $template_name = 'wedding_data_v15__';
-        $param_1 = $user_event->name;
+        if($user_event->send_type == "meta"){ 
+            $phone = $mobile;
+            // $template_name = 'wedding_data_v7_ar';
+            $template_name = 'wedding_data_v15__';
+            $param_1 = $user_event->name;
 
-        $url_button = '?q=' . $event->lat . ',' . $event->long;
+            $url_button = '?q=' . $event->lat . ',' . $event->long;
 
-        $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name.'&url_button='.$url_button;
+            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name.'&url_button='.$url_button;
 
-        $response = SendNewTemplateCodeV1($url);
+            $response = SendNewTemplateCodeV1($url);
+        }
+        else{
+            $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+            $instance_id="instance109805"; // Ultramsg.com instance id
+            $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
+  
+            // $api=$client->sendChatMessage($to,$body);
+            $api2 = $client->sendLocationMessage($mobile,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
+ 
+        }
 
         if ($response && $response->getStatusCode() == 200) { // 200 OK
 

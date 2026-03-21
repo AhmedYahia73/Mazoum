@@ -1,10 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-use Api\CustomEvent\ChatController;
-use Api\CustomEvent\PackageController;
-use Api\CustomEvent\UserController;
+ 
+use Api\CustomEvent\PackageController; 
  
 
 Route::controller(PackageController::class)

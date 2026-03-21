@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\EventUersController;
 use Login\LoginController;
 
 //////////// User
-Route::group(['middleware' => ['IsUser', 'auth:sanctum'], 'prefix' => 'user'], function () {
         
     Route::controller('Api\CustomEvent\ChatController')
     ->prefix("chat")->group(function () {
@@ -50,8 +49,7 @@ Route::group(['middleware' => ['IsUser', 'auth:sanctum'], 'prefix' => 'user'], f
         Route::get('/lists', 'lists');    
         Route::post('/add', 'create');    
 
-    });
-});
+    }); 
 
 // webhook
 Route::get('webhook', 'HomeController@webhook_v1');

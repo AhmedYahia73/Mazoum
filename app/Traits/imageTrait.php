@@ -3,7 +3,7 @@
 namespace App\trait;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;use Intervention\Image\ImageManagerStatic as Image;
+use Illuminate\Support\Facades\Storage;
 
 trait imageTrait
 {
@@ -16,22 +16,6 @@ trait imageTrait
             return $imagePath;
         }
         return Null;
-    }
-    
-    public function upload_img_png(Request $request, $fileName = 'image', $directory)
-    {
-        if ($request->hasFile($fileName)) {
-            $file = $request->file($fileName);
-            $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.png';
-            $path = $directory . '/' . $name;
-            
-            $image = Image::read($file)->toPng();
-            Storage::disk('public')->put($path, (string) $image);
-            
-            return $path;
-        }
-        
-        return null;
     } 
     
     public function update_image(Request $request, $old_image_path,$fileName = 'image',$directory){

@@ -63,7 +63,7 @@ class PackageController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }
-        $receipt = $this->upload_img_png($request, "receipt", "payments");
+        $receipt = $this->upload($request, "receipt", "payments");
         $package = Packages::
         where("id", $request->package_id)
         ->first();

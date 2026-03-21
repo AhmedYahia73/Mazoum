@@ -41,10 +41,6 @@ Route::group(['middleware' => ['AuthAdmin:admin', 'Admin_Language', 'auth:sanctu
     require_once __DIR__ . '/admin.php';
 });
 
-//////////// Admin
-Route::group(['middleware' => ['IsUser', 'auth:sanctum'], 'prefix' => 'user'], function () {
-    require_once __DIR__ . '/user.php';
-});
 
 
 

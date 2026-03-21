@@ -9,6 +9,11 @@ use App\Http\Controllers\Api\CustomEvent\PackageController;
 use App\Http\Controllers\Admin\EventUersController;
 use Login\LoginController;
 
+//////////// User
+Route::group(['middleware' => ['IsUser', 'auth:sanctum'], 'prefix' => 'user'], function () {
+    require_once __DIR__ . '/user.php';
+});
+
 // webhook
 Route::get('webhook', 'HomeController@webhook_v1');
 Route::post('webhook', 'HomeController@webhook_post');

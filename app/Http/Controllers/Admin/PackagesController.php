@@ -34,7 +34,7 @@ class PackagesController extends Controller
             $lang = 'ar';app()->setLocale('ar');session()->put('admin_lang','ar');
         }
 
-        $Item = Model::where('status',1)->with('currency:id,ar_name')->get(['id','en_name','ar_name', 'users_count', 'price','currency_id','image']);
+        $Item = Model::where('status',1)->with('currency:id,ar_name')->get(['id','en_name','ar_name', 'users_count', 'price','currency_id','image', "description", "type"]);
         
         return response()->json([
             "packages" => $Item,
@@ -132,7 +132,8 @@ class PackagesController extends Controller
     private function gteInput($request,$modelClass) {
 
         $input = $request->only([
-            'en_name','ar_name', 'users_count', 'price' , 'currency_id'
+            'en_name','ar_name', 'users_count', 
+            'price' , 'currency_id', "type", "description"
         ]);
       
       	$path = 'images';

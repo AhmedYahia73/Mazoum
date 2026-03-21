@@ -21,7 +21,8 @@ class User extends Authenticatable
         "name", "mobile", "device_token", "token" , "status" , "mobile_code",
         "offer_id" , "balance" ,"full_balance" , "user_type" , "password", "email" , "pass",
         "order_id","start_subscription_date","duration_type","duration",
-        "payment_type","employee_gender","is_paid","subscription_price"
+        "payment_type","employee_gender","is_paid","subscription_price",
+        "user_id", "custom_invetaion", "send_custom_invetaion"
     ];
 
   	protected $hidden = [
@@ -29,6 +30,10 @@ class User extends Authenticatable
     ];
 
     protected $appends = ['role'];
+
+    public function sub_users(){
+        return $this->hasMany(User::class, "user_id");
+    }
 
     public function getRoleAttribute(){
         $type = $this->getAttribute('user_type');

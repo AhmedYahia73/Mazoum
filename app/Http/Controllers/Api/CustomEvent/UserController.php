@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers\Api\CustomEvent;
+
+use App\Http\Controllers\Controller;
+use App\Models\MobileCodes;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class UserController extends Controller
+{
+    public function view(){
+        $users = User::where("user_id", auth()->user()->id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "mobile_code" => $item->mobile_code,
+                "mobile" => $item->mobile,
+                "name" => $item->name, 
+                "custom_invetaion" => $item->custom_invetaion,
+            ];
+        });
+
+        return response()->json([
+            "users" => $users
+        ]);
+    }
+    public function lists(){
+        $codes = MobileCodes::get(['id','ar_country_name','code']);
+        return response()->json([
+            "codes" => $codes
+        ]);
+    }
+
+    public function create(Request $request){
+        $validator = Validator::make($request->all(), [
+          'mobile_code' => 'required|exists:mobile_codes,id',
+          'mobile' => 'required',
+          'name' => 'required',
+          'custom_invetaion' => 'required|numeric'
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        User::create([
+            "mobile_code" => $request->mobile_code,
+            "mobile" => $request->mobile,
+            "name" => $request->name,
+            "custom_invetaion" => $request->custom_invetaion,
+            "user_id" => $request->user()->id,
+        ]);
+
+        return response()->json([
+            "success" => "You add data success"
+        ]);
+    }
+}

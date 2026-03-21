@@ -52,6 +52,8 @@ class Packages extends FormRequest
                     'users_count' => 'required|numeric|min:1',
                     'price' => 'required',
                     'currency_id' => 'required',
+                    'type' => 'required|in:link,phone,other',
+                    'description' => 'sometimes',
                   	'image' => 'required',
                 ];
             }
@@ -65,6 +67,8 @@ class Packages extends FormRequest
                     'price' => 'required',
                     'currency_id' => 'required',
                   	'image' => 'nullable',
+                    'type' => 'required|in:link,phone,other',
+                    'description' => 'sometimes',
 
                 ];
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\trait;
+namespace App\Traits;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

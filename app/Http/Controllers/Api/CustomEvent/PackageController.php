@@ -9,7 +9,7 @@ use App\Models\CustomEventUsers;
 use App\Models\Packages;
 use App\Models\Payment;
 use App\Models\User;
-use App\Trait\imageTrait;
+use App\Traits\imageTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

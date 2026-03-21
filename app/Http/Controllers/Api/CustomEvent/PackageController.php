@@ -194,10 +194,11 @@ class PackageController extends Controller
             foreach ($request->event_users as $key => $arr) {
                 $id = $request->event_users[$key]['id'];
                 $row = CustomEventUsers::
+                where('id', $id)->
                 whereHas("event", function($query){
                     $query->where("user_id", auth()->user()->id);
                 })
-                ->firstOrFail($id);
+                ->firstOrFail();
 
                 if($row != null && $arr['name'] != null && $arr['users_count'] != null && is_numeric($arr['users_count'])) {
 

@@ -38,7 +38,7 @@ class PackageController extends Controller
         ->map(function($item) use($locale){
             return [
                 "id" => $item->id,
-                "id" => $locale == "en" ? $item->en_name : $item->ar_name,
+                "name" => $locale == "en" ? $item->en_name : $item->ar_name,
                 "users_count" => $item->users_count,
                 "price" => $item->price,
                 "currency" => $locale == "en" ? $item->currency?->en_name : $item->currency?->ar_name,

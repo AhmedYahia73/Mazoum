@@ -17,24 +17,22 @@ trait imageTrait
         }
         return Null;
     }
-
+    
     public function upload_img_png(Request $request, $fileName = 'image', $directory)
     {
         if ($request->hasFile($fileName)) {
             $file = $request->file($fileName);
-
             $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.png';
             $path = $directory . '/' . $name;
-
+            
             $image = Image::read($file)->toPng();
-
             Storage::disk('public')->put($path, (string) $image);
-
+            
             return $path;
         }
         
         return null;
-    }
+    } 
     
     public function update_image(Request $request, $old_image_path,$fileName = 'image',$directory){
         if($request->has($fileName)){// if Request has a Image

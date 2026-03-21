@@ -3,8 +3,7 @@
 namespace App\trait;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Support\Facades\Storage;use Intervention\Image\ImageManagerStatic as Image;
 
 trait imageTrait
 {

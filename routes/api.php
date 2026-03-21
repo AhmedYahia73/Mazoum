@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Admin;
 
+use App\Http\Controllers\Api\CustomEvent\PackageController;
+
 use App\Http\Controllers\Admin\EventUersController;
 use Login\LoginController;
 

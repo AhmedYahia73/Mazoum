@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\CustomEvent\ChatController;
-use App\Http\Controllers\Api\CustomEvent\PackageController;
-use App\Http\Controllers\Api\CustomEvent\UserController;
+use Api\CustomEvent\ChatController;
+use Api\CustomEvent\PackageController;
+use Api\CustomEvent\UserController;
 
 Route::controller(ChatController::class)
 ->prefix("chat")->group(function () {
@@ -15,6 +15,7 @@ Route::controller(PackageController::class)
 ->prefix("package")->group(function () {
     Route::get('/', 'view');
     Route::post('/payment', 'payment');
+    // ____________________________________
     Route::post('/save_event_users', 'save_event_users');
     Route::get('/event_visitors/{id}', 'event_visitors');
     Route::post('/update_event_users', 'update_event_users');

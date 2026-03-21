@@ -18,6 +18,7 @@ class CreatePaymentsTable extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->foreignId('currency_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->foreignId('package_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
+            $table->string("receipt")->nullable();
             $table->decimal("price", 10, 2);
             $table->enum("status", ["pending", "approve", "reject"])->default("pending");
             $table->timestamps();

@@ -14,6 +14,7 @@ class Payment extends Model
         "currency_id",
         "price",
         "package_id",
+        "receipt",
         "status",
     ];
 

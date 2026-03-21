@@ -400,7 +400,7 @@ Route::post('update_custom_event_family', 'CustomEventController@update_event_fa
 
 
 // event_family_search
-Route::get('custom_event_family_search', 'CustomEventController@event_family_search');
+Route::get('', 'CustomEventController@event_family_search');
 
 
 // destroy

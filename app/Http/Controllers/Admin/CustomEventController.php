@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\CustomEventUsers;
-use App\Models\Qr_Code;
-use Illuminate\Http\Request;
-use App\Http\Requests\CustomEvent as modelRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily; 
-use Carbon\Carbon;
-use Response;
-use PDF;
-use Intervention\Image\ImageManagerStatic as Image;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\CustomEventUsers;
 use App\Models\Notifications;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Qr_Code;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\ImageManagerStatic as Image;
+use Maatwebsite\Excel\Facades\Excel;
+use PDF;
+use Response;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 
@@ -102,6 +103,13 @@ class CustomEventController extends Controller
             }
 
         }
+        $users_count = collect($request->event_users)->sum('users_count');
+        $user = User::
+        where("id", $event->user_id)
+        ->first();
+        $user->update([
+            "send_custom_invetaion" => $user->send_custom_invetaion + $users_count
+        ]);
 
         return response()->json([
             'success' =>  'تم الحفظ بنجاح', 
@@ -136,6 +144,14 @@ class CustomEventController extends Controller
 
                 if($row != null && $arr['name'] != null && $arr['users_count'] != null && is_numeric($arr['users_count'])) {
 
+                    $users_count = $arr['users_count'] - $row->users_count;
+                    $user = User::
+                    where("id", $row->user_id)
+                    ->first();
+                    $user->update([
+                        "send_custom_invetaion" => $user->send_custom_invetaion + $users_count
+                    ]);
+
                     $uu_id = uniqid();
 
                   	$row->update([
@@ -146,6 +162,7 @@ class CustomEventController extends Controller
                     ]);
 
                     $this->update_qr($row,$uu_id);
+
 
                 }
             }

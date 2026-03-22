@@ -28,7 +28,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/update_event_users', 'update_event_users');
         Route::delete('/destroy_user/{id}', 'destroy_user');
         //______________________________________________
-        Route::get('/send_invitations', 'send_invitations');
+        Route::get('/send_invitations/{id}', 'send_invitations');
         Route::post('/new_send_event_invitation', 'new_send_event_invitation');
         //______________________________________________
 

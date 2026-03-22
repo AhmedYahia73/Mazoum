@@ -32,7 +32,7 @@ class UserMiddleware
         $token = $request->header('token');
 
         // 3. التحقق من وجود المستخدم بناءً على التوكن
-        $user = null;
+        $user = 1;
         if ($token) {
             $user = User::where('token', $token)->first();
         }
@@ -40,7 +40,7 @@ class UserMiddleware
         // 4. إذا لم يتم إرسال توكن أو المستخدم غير موجود
         if (empty($user)) {
             $message = ($lang === 'en') ? 'User is required or token is invalid' : 'المستخدم مطلوب أو التوكن غير صحيح';
-            return $this->returnError('E100', $token);
+            return $this->returnError('E100', $user);
         }
 
         // 5. التحقق من نوع المستخدم

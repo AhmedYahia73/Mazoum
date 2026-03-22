@@ -34,7 +34,7 @@ class UserMiddleware
         // 3. التحقق من وجود المستخدم بناءً على التوكن
         $user = 1;
         if ($token) {
-            $user = User::where('token', $token)->first();
+            $user = User:: first();
         }
 
         // 4. إذا لم يتم إرسال توكن أو المستخدم غير موجود

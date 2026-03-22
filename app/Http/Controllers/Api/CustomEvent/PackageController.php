@@ -204,7 +204,7 @@ class PackageController extends Controller
 
                     $users_count = $arr['users_count'] - $row->users_count;
                     $user = User::
-                    where("id", $row->user_id)
+                    where("id", $row->event->user_id)
                     ->first();
                     $user->update([
                         "send_custom_invetaion" => $user->send_custom_invetaion + $users_count

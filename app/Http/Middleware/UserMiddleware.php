@@ -29,12 +29,12 @@ class UserMiddleware
         App::setLocale($lang); // لضبط لغة النظام بالكامل بناءً على طلب المستخدم
 
         // 2. جلب التوكن
-        $token = $request->header('token');
+        $this->token = $request->header('token');
 
         // 3. التحقق من وجود المستخدم بناءً على التوكن
-        $user = 1;
-        if ($token) {
-            $user = User:: first();
+        $user = null;
+        if ($this->token) {
+            $user = User::where('token', $this->token)->first();
         }
 
         // 4. إذا لم يتم إرسال توكن أو المستخدم غير موجود

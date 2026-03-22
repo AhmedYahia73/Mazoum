@@ -24,6 +24,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         // ____________________________________
         Route::post('/save_event_users', 'save_event_users');
         Route::get('/event_visitors/{id}', 'event_visitors');
+        Route::get('/event_visitor_item/{id}', 'event_visitor_item');
         Route::post('/update_event_users', 'update_event_users');
         Route::delete('/destroy_user/{id}', 'destroy_user');
         //______________________________________________

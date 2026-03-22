@@ -47,6 +47,14 @@ class UserController extends Controller
             ],400);
         }
 
+        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
+        if($available < $request->custom_invetaion){
+            return response()->json([
+                "errors" => "عدد الدعوات لا تكفى"
+            ]);
+        }
+        auth()->user()->custom_invetaion -= $request->custom_invetaion;
+        auth()->user()->save();
         User::create([
             "mobile_code" => $request->mobile_code,
             "mobile" => $request->mobile,

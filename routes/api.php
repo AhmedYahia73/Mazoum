@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\EventUersController;
 use Login\LoginController;
 
 //////////// User
-Route::group(['middleware' => ['IsUser', 'auth:sanctum'], 'prefix' => 'user'], function () {
+Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         
     Route::controller('Api\CustomEvent\ChatController')
     ->prefix("chat")->group(function () {

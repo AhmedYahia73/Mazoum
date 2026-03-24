@@ -103,7 +103,7 @@ class User extends Authenticatable
             if (
                 auth()->check() &&
                 ((auth()->user()->role == 'employee' &&
-                $model->user_type != "scan_employee") ||
+                $model->user_type == "employee") ||
                 auth()->user()->role == 'scan_employee')
             ) {
                 return false;
@@ -111,7 +111,7 @@ class User extends Authenticatable
         });
         static::creating(function ($model) {
             if (auth()->check() &&
-            auth()->user()->role == 'employee') {
+            auth()->user()->role == 'employee' && is_null($model->user_type)){
                 $model->user_type = "scan_employee";
             }
         });

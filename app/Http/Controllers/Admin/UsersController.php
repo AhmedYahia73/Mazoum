@@ -325,6 +325,10 @@ class UsersController extends Controller
      */
     public function store(modelRequest $request)
     {
+        $request->merge([
+            "user_type" => "user"
+        ]);
+
         Model::create($this->gteInput($request, null));
         return response()->json([
             'success' =>  'تم تخزين البيانات بنجاح', 
@@ -370,6 +374,9 @@ class UsersController extends Controller
      */
     public function update(modelRequest $request, $id)
     {
+        $request->merge([
+            "user_type" => "user"
+        ]);
         $Item = Model::findOrFail($id);
         $Item->update($this->gteInput($request, $Item));
         return response()->json([
@@ -396,7 +403,7 @@ class UsersController extends Controller
     private function gteInput($request, $modelClass)
     {
         $input = $request->only([
-            'name', 'mobile', 'mobile_code',
+            'name', 'mobile', 'mobile_code', 'user_type'
         ]);
 
         if (isset($modelClass)) {

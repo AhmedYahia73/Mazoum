@@ -99,7 +99,7 @@ class EventUserActionsController extends Controller
             // "yes_receive_apology" => $yes_receive_apology,
             "yes_reply_congratulation" => $yes_reply_congratulation?->message,
             "apologize_messages" => $apologize_messages,
-            "check_receive_apology" => $check_receive_apology
+            "check_receive_apology" => !empty($check_receive_apology)
         ]);
 
     }

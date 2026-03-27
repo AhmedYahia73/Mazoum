@@ -35,7 +35,9 @@ class EventUserActionsController extends Controller
         where('code', $code)
         ->with("event")
         ->firstOrFail();
-        $check_receive_apology = EventUserActions::where('event_user_id',$event_user->id)->where('action','accept_event')->first();
+        $check_receive_apology = EventUserActions::where('event_user_id',$event_user->id)->where('action','accept_event')
+        ->orWhere('action', 'refuse_event')->first();
+         
         $qr_row = $check_receive_apology ? Qr_Code::where('event_user_id',$event_user->id)->first() : null;        
         $accept_event = EventUserActions::
         where('event_user_id', $event_user->id)
@@ -62,6 +64,21 @@ class EventUserActionsController extends Controller
         ->where("event_user_id", $event_user->id)
         ->with("reply")
         ->first();
+        if($check_receive_apology && !$apologize_messages){
+            $apologize_messages = [
+                "created_at" => "2026-03-27T00:03:47.000000Z",
+                "event_id" => 1906,
+                "event_user_id" => 47090,
+                "id" => 1903,
+                "message" => "",
+                "message_id" => null,
+                "mobile" => "966582836463",
+                "name" => "",
+                "reply" => [],
+                'type' => "new",
+                'updated_at => "2025-05-05' 
+            ];
+        }
         $yes_receive_congratulation = CongratulationMessages::
         with("reply")
         ->whereHas('event', function ($event) {

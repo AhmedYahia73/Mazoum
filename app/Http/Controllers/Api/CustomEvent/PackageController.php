@@ -119,7 +119,12 @@ class PackageController extends Controller
         $custom_event_id = $request->custom_event_id;
 
         $event = Model::where('id', $custom_event_id)
-        ->where("user_id", auth()->user()->id)->firstOrFail();
+        ->where("user_id", auth()->user()->id)      
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->where('id', $custom_event_id)
+        ->firstOrFail();
 
         if($request->event_users != null && ! empty($request->event_users)) {
 
@@ -208,7 +213,10 @@ class PackageController extends Controller
                 $row = CustomEventUsers::
                 where('id', $id)
                 ->whereHas("event", function($query){
-                    $query->where("user_id", auth()->user()->id);
+                    $query->where("user_id", auth()->user()->id)
+                    ->orWhereHas("sub_user", function($query){
+                        $query->where("users.id", auth()->user()->id);
+                    });
                 })
                 ->firstOrFail();
 
@@ -246,7 +254,10 @@ class PackageController extends Controller
     {
         $Item = CustomEventUsers::
         whereHas("event", function($query){
-            $query->where("user_id", auth()->user()->id);
+            $query->where("user_id", auth()->user()->id)
+            ->orWhereHas("sub_user", function($query){
+                $query->where("users.id", auth()->user()->id);
+            });
         })
         ->findOrFail($id);
         $Item->delete();
@@ -263,6 +274,9 @@ class PackageController extends Controller
     {
         $Item = Model::
         where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
         ->findOrFail($id);
         $event_users = CustomEventUsers::where('custom_event_id', $Item->id)
         ->when($request->search, function ($q) use ($request) {
@@ -302,7 +316,12 @@ class PackageController extends Controller
         $nocache=true;
 
       	$event = Model::where('id',$request->custom_event_id)
-        ->where("user_id", auth()->user()->id)->firstOrFail();
+        ->where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->where('id',$request->custom_event_id)
+        ->firstOrFail();
 
         if($request->users != null && ! empty($request->users)) {
 
@@ -379,6 +398,9 @@ class PackageController extends Controller
     {
         $Item = Model::
         where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
         ->findOrFail($id);
         $user_events = CustomEventUsers::
         where('custom_event_id', $Item->id)
@@ -457,6 +479,10 @@ class PackageController extends Controller
 
         $event = Model::where('id', $event_id)
         ->where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->where('id', $event_id)
         ->firstOrFail();
 
         if($request->event_users != null && ! empty($request->event_users)) {
@@ -513,6 +539,9 @@ class PackageController extends Controller
     {
         $Item = Model::
         where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
         ->findOrFail($id);
         $visitors_count = CustomEventUsers::
         where('custom_event_id',$Item->id)

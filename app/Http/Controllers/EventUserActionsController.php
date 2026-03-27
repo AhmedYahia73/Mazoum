@@ -35,8 +35,8 @@ class EventUserActionsController extends Controller
         where('code', $code)
         ->with("event")
         ->firstOrFail();
-        $check_receive_apology = EventUserActions::where('event_user_id',$event_user->id)->where('action','accept_event')
-        ->orWhere('action', 'refuse_event')
+        $check_receive_apology = EventUserActions::
+        where('action', 'refuse_event')
         ->where('event_user_id',$event_user->id)->first();
          
         $qr_row = $check_receive_apology ? Qr_Code::where('event_user_id',$event_user->id)->first() : null;        

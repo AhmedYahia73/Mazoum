@@ -2050,6 +2050,7 @@ class EventUersController extends Controller
         }
         else{
             $data = EventUsers::where('event_id', $Item->id)
+            ->whereIn('status', "!=", 'not-attend')
             // ->whereIn('status', ['sent'])
             
             ->where(function($query){

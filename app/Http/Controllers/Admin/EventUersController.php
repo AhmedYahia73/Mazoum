@@ -2031,7 +2031,7 @@ class EventUersController extends Controller
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         if($request->search){
             $data = EventUsers::where('event_id', $Item->id)
-            ->whereIn('status', "!=", 'not-attend')
+            ->where('status', "!=", 'not-attend')
             ->whereDoesntHave('event_action')
             ->where(function($query){
                 
@@ -2050,7 +2050,7 @@ class EventUersController extends Controller
         }
         else{
             $data = EventUsers::where('event_id', $Item->id)
-            ->whereIn('status', "!=", 'not-attend')
+            ->where('status', "!=", 'not-attend')
             // ->whereIn('status', ['sent'])
             
             ->where(function($query){

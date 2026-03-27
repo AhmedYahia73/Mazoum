@@ -64,21 +64,6 @@ class EventUserActionsController extends Controller
         ->where("event_user_id", $event_user->id)
         ->with("reply")
         ->first();
-        if($check_receive_apology && !$apologize_messages){
-            $apologize_messages = [
-                "created_at" => "2026-03-27T00:03:47.000000Z",
-                "event_id" => 1906,
-                "event_user_id" => 47090,
-                "id" => 1903,
-                "message" => "",
-                "message_id" => null,
-                "mobile" => "966582836463",
-                "name" => "",
-                "reply" => [],
-                'type' => "new",
-                'updated_at => "2025-05-05' 
-            ];
-        }
         $yes_receive_congratulation = CongratulationMessages::
         with("reply")
         ->whereHas('event', function ($event) {
@@ -122,7 +107,11 @@ class EventUserActionsController extends Controller
       	$user_event = EventUsers::where('id',$request->event_user_id)->where('code',$request->code)->firstOrFail();
 
       	if($user_event != null && $user_event->event) {
-
+            if(!$request->msg){
+                $request->merge([
+                    "msg" => " "
+                ]);
+            }
             if($request->action == 'accept_event') {
                 $users_count = $request->users_count;
                 $event_action = EventUserActions::

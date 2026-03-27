@@ -80,6 +80,18 @@ class PackageController extends Controller
         ]);
     }
 
+    public function my_custom_events(Request $request){
+        $my_custom_events = Model::where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->get();
+
+        return response()->json([
+            "my_custom_events" => $my_custom_events
+        ]);
+    }
+
      // save_event_users
     public function save_event_users(Request $request)
     {

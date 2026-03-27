@@ -22,6 +22,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::get('/', 'view');
         Route::post('/payment', 'payment');
         // ____________________________________
+        Route::get('/my_custom_events', 'my_custom_events');
         Route::post('/save_event_users', 'save_event_users');
         Route::get('/event_visitors/{id}', 'event_visitors');
         Route::get('/event_visitor_item/{id}', 'event_visitor_item');

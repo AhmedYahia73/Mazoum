@@ -27,6 +27,7 @@ class UserController extends Controller
             "users" => $users
         ]);
     }
+
     public function lists(){
         $codes = MobileCodes::get(['id','ar_country_name','code']);
         return response()->json([
@@ -39,7 +40,8 @@ class UserController extends Controller
           'mobile_code' => 'required|exists:mobile_codes,id',
           'mobile' => 'required',
           'name' => 'required',
-          'custom_invetaion' => 'required|numeric'
+          'custom_invetaion' => 'required|numeric',
+          "custom_event_id" => "required|exists:custom_event,id"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -61,6 +63,7 @@ class UserController extends Controller
             "name" => $request->name,
             "custom_invetaion" => $request->custom_invetaion,
             "user_id" => $request->user()->id,
+            "custom_event_id" => $request->custom_event_id,
         ]);
 
         return response()->json([

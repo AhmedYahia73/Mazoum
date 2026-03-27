@@ -22,6 +22,11 @@ class CustomEvent extends Model
         return Image_Path($value);
     }
 
+    public function sub_user()
+    {
+        return $this->hasMany('App\Models\User', 'custom_event_id');
+    }
+
     public function user()
     {
         return $this->belongsTo('App\Models\User', 'user_id');

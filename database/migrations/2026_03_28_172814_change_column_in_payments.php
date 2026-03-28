@@ -14,7 +14,7 @@ class ChangeColumnInPayments extends Migration
     public function up()
     {
         Schema::table('payments', function (Blueprint $table) {
-            //$table->dropForeign('payments_package_id_foreign');
+            $table->dropForeign('payments_package_id_foreign');
             $table->foreign('package_id')
             ->references('id')
             ->on('pricing')

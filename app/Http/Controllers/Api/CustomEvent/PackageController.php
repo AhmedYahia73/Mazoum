@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
-use App\Models\Packages;
+use App\Models\Pricing;
 use App\Models\Payment;
 use App\Models\User;
 use App\Traits\imageTrait;
@@ -32,21 +32,8 @@ class PackageController extends Controller
         }
 
         $locale = $request->locale;
-        $packages = Packages::
-        where("status", 1)
-        ->get()
-        ->map(function($item) use($locale){
-            return [
-                "id" => $item->id,
-                "name" => $locale == "en" ? $item->en_name : $item->ar_name,
-                "users_count" => $item->users_count,
-                "price" => $item->price,
-                "currency" => $locale == "en" ? $item->currency?->en_name : $item->currency?->ar_name,
-                "image" => $item->image,
-                "type" => $item->type,
-                "description" => $item->description,
-            ];
-        });
+        $packages = Pricing:: 
+        get();
 
         return response()->json([
             "packages" => $packages
@@ -55,7 +42,7 @@ class PackageController extends Controller
 
     public function payment(Request $request){
         $validator = Validator::make($request->all(), [
-          'package_id' => 'required|exists:packages,id',
+          'package_id' => 'required|exists:pricing,id',
           "receipt" => 'required'
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
@@ -64,12 +51,11 @@ class PackageController extends Controller
             ],400);
         }
         $receipt = $this->upload($request, "receipt", "payments");
-        $package = Packages::
+        $package = Pricing::
         where("id", $request->package_id)
         ->first();
         Payment::create([
-            "user_id" => $request->user()->id,
-            "currency_id" => $package->currency_id,
+            "user_id" => $request->user()->id, 
             "price" => $package->price,
             "package_id" => $package->id,
             "receipt" => $receipt,

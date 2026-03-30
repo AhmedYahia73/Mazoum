@@ -14,8 +14,8 @@ class ChangeColumnsInPayments extends Migration
     public function up()
     {
         Schema::table('payments', function (Blueprint $table) {
-            $table->dropForeign('payments_package_id_foreign');
-            $table->dropColumn("package_id");
+            // $table->dropForeign('payments_package_id_foreign');
+            // $table->dropColumn("package_id");
             $table->foreignId('order_id')->nullable()->constrained("orders")->onUpdate('cascade')->onDelete('cascade');
         });
     }

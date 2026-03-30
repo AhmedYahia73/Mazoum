@@ -20,6 +20,9 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     Route::controller('Api\CustomEvent\PackageController')
     ->prefix("package")->group(function () {
         Route::get('/', 'view');
+        Route::post('/negotaition', 'negotaition');
+        Route::get('/orders_list', 'orders_list');
+        Route::get('/orders_history', 'orders_history');
         Route::post('/payment', 'payment');
         // ____________________________________
         Route::get('/my_custom_events', 'my_custom_events');

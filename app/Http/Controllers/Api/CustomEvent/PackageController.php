@@ -7,6 +7,8 @@ use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
 use App\Models\Pricing;
+use App\Models\Orders;
+use App\Models\Negotaition;
 use App\Models\Payment;
 use App\Models\User;
 use App\Traits\imageTrait;
@@ -40,10 +42,85 @@ class PackageController extends Controller
         ]);
     }
 
+    public function negotaition(Request $request){
+        $validator = Validator::make($request->all(), [
+            'package_id' => 'required|exists:pricing,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $negotaition = Negotaition::
+        create([
+            "pricing_id" => $request->package_id,
+            "user_id" => $request->user()->id,
+        ]); 
+
+        return response()->json([
+            "success" => "You negotaition success"
+        ]);
+    }
+
+    public function orders_list(){
+        $orders = Orders::
+        where("user_id", auth()->user()->id)
+        ->with("currency")
+        ->where("is_paid", "not_paid")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "duration" => $item->duration,
+                "duration_type" => $item->duration_type,
+                "operation_date" => $item->operation_date,
+                "order_number" => $item->order_number,
+                "payment_type" => $item->payment_type,
+                "total" => $item->total,
+                "type" => $item->type,
+                "users_count" => $item->users_count,
+                "type" => $item->type,
+                "type" => $item->type,
+            ];
+        });
+
+
+        return response()->json([
+            "orders" => $orders
+        ]);
+    }
+
+    public function orders_history(){
+        $orders = Orders::
+        where("user_id", auth()->user()->id)
+        ->with("currency")
+        ->where("is_paid", "paid")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "duration" => $item->duration,
+                "duration_type" => $item->duration_type,
+                "operation_date" => $item->operation_date,
+                "order_number" => $item->order_number,
+                "payment_type" => $item->payment_type,
+                "total" => $item->total,
+                "type" => $item->type,
+                "users_count" => $item->users_count,
+                "type" => $item->type,
+                "type" => $item->type,
+            ];
+        });
+
+        return response()->json([
+            "orders" => $orders
+        ]);
+    }
+
     public function payment(Request $request){
         $validator = Validator::make($request->all(), [
-          'package_id' => 'required|exists:pricing,id',
-          "receipt" => 'required'
+          'order_id' => 'required|exists:orders,id',
+          "receipt" => 'required',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -51,18 +128,19 @@ class PackageController extends Controller
             ],400);
         }
         $receipt = $this->upload($request, "receipt", "payments");
-        $package = Pricing::
-        where("id", $request->package_id)
+        $order = Orders::
+        where("id", $request->order_id)
         ->first();
         Payment::create([
             "user_id" => $request->user()->id, 
-            "price" => $package->price,
-            "package_id" => $package->id,
+            "currency_id" => $order->currency_id, 
+            "price" => $order->total,
+            "order_id" => $order->id,
             "receipt" => $receipt,
         ]);
 
         return response()->json([
-            "packages" => "You pay success"
+            "success" => "You pay success"
         ]);
     }
 

@@ -13,7 +13,7 @@ class Payment extends Model
         "user_id",
         "currency_id",
         "price",
-        "package_id",
+        "order_id",
         "receipt",
         "status",
     ];
@@ -26,7 +26,7 @@ class Payment extends Model
         return $this->belongsTo(Currency::class, "currency_id");
     }
 
-    public function package(){
-        return $this->belongsTo(Pricing::class, "package_id");
+    public function orders(){
+        return $this->belongsTo(Orders::class, "order_id");
     }
 }

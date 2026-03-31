@@ -12,5 +12,14 @@ class Negotaition extends Model
     protected $fillable = [
         'pricing_id', 
         'user_id',
+        'status',
     ];
+
+    public function package(){
+        return $this->belongsTo(Pricing::class, "pricing_id");
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class, "user_id");
+    }
 }

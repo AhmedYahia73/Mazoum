@@ -75,6 +75,26 @@ class PaymentMethodController extends Controller
         ]);
     }
  
+    public function status(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            "status" => ['required', "boolean"],
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $payment_method = PaymentMethod::
+        findOrFail($id);
+        $paymentMethodRequest = $validator->validated();
+        $payment_method->update($paymentMethodRequest);
+
+        return response()->json([
+            "success" => "You update status success"
+        ]);
+    }
+ 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [

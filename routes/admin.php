@@ -56,6 +56,7 @@ Route::get('packages/destroy/{id}', 'PackagesController@destroy');
 Route::post('packages/{id}', 'PackagesController@update')->name('admin.packages.update');
 
 // Payment Method
+Route::put('payment_method/status/{id}', 'PaymentMethodController@status')->name('admin.payment_method.status');
 Route::post('payment_method/{id}', 'PaymentMethodController@update')->name('admin.payment_method.update');
 Route::resource('payment_method','PaymentMethodController',['names' => 'admin.payment_method']);
 

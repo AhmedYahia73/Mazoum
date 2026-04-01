@@ -108,7 +108,6 @@ class PackageController extends Controller
                 "type" => $item->type,
                 "users_count" => $item->users_count,
                 "type" => $item->type,
-                "type" => $item->type,
             ];
         });
 
@@ -156,6 +155,51 @@ class PackageController extends Controller
         ]);
     }
 
+
+    public function event_users(Request $request, $id)
+    {
+        $Item = Model::
+        where("user_id", auth()->user()->id)
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->when($request->search, function ($q) use ($request) { 
+            $search = $request->search; 
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->paginate(15);
+        $invetations = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('users_count');
+        $send_qr = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->where("send_qr", 1)
+        ->sum('users_count');
+        $attendance = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('scan_count');
+        $Item->invetations = $invetations;
+        $Item->attendance = $attendance;
+        $waiting = $invetations - $attendance;
+        $Item->waiting = $waiting;
+        $Item->send_qr = $send_qr;
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events, 
+            'invetations' =>  $invetations, 
+            'attendance' =>  $attendance, 
+            'waiting' =>  $waiting, 
+            'send_qr' =>  $send_qr, 
+        ]); 
+    }
+    
      // save_event_users
     public function save_event_users(Request $request)
     {
@@ -422,6 +466,8 @@ class PackageController extends Controller
                     // dd('ok');
                     // $row->update(['is_new_sent' => 1]);
 
+                        $row->send_qr = 1;
+                        $row->save();
                   } else {
 
                     $error_count = $error_count + 1;
@@ -453,43 +499,37 @@ class PackageController extends Controller
         }
 
     }
-
-
-    // ___________________________________________________
-    
-
-    public function event_users(Request $request, $id)
-    {
-        $Item = Model::
-        where("user_id", auth()->user()->id)
+ 
+    public function share_custom_invitation_watts(Request $request) {
+        $validator = Validator::make($request->all(), [
+        	'custom_event_id' => 'required|exists:custom_event,id',
+            'users_id' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+      	$event = Model::where('id',$request->custom_event_id)
+        ->where("user_id", auth()->user()->id)
         ->orWhereHas("sub_user", function($query){
             $query->where("users.id", auth()->user()->id);
         })
-        ->findOrFail($id);
-        $user_events = CustomEventUsers::
-        where('custom_event_id', $Item->id)
-        ->when($request->search, function ($q) use ($request) { 
-            $search = $request->search; 
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%$search%")
-                    ->orWhere('mobile', 'like', "%$search%");
-            });
-        })
-        ->paginate(15);
-        $invetations = CustomEventUsers::
-        where('custom_event_id',$Item->id)
-        ->sum('users_count');
-        $attendance = CustomEventUsers::
-        where('custom_event_id',$Item->id)
-        ->sum('scan_count');
+        ->where('id',$request->custom_event_id)
+        ->firstOrFail();
+        $event_user = CustomEventUsers::
+        where('id',$request->users_id)
+        ->first();
 
+        $event_user->send_qr = 1;
+        $event_user->save(); 
+    
         return response()->json([
-            'Item' =>  $Item, 
-            'user_events' =>  $user_events, 
-            'invetations' =>  $invetations, 
-            'attendance' =>  $attendance, 
-        ]); 
+            "success" => "You send qr success"
+        ]);
     }
+
+ 
  
     // _______________________________________________
 

@@ -19,7 +19,16 @@ class CustomEventUsers extends Model
     ];
 
     protected $fillable = [
-        'custom_event_id', 'uu_id', 'name' , 'mobile', 'qr' , 'scan', 'scan_at', 'users_count', 'scan_count'
+        'custom_event_id',
+        'uu_id',
+        'name' ,
+        'mobile',
+        'qr' ,
+        'scan',
+        'scan_at',
+        'users_count',
+        'scan_count',
+        'send_qr',
     ];
 
     public function event()

@@ -34,6 +34,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         //______________________________________________
         Route::get('/send_invitations/{id}', 'send_invitations');
         Route::post('/new_send_event_invitation', 'new_send_event_invitation');
+        Route::post('/share_custom_invitation_watts', 'share_custom_invitation_watts');
         //______________________________________________
 
         Route::get('/event_users/{id}', 'event_users');    

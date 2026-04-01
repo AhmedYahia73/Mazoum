@@ -164,16 +164,79 @@ class PackageController extends Controller
             $query->where("users.id", auth()->user()->id);
         })
         ->findOrFail($id);
-        $user_events = CustomEventUsers::
-        where('custom_event_id', $Item->id)
-        ->when($request->search, function ($q) use ($request) { 
-            $search = $request->search; 
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%$search%")
-                    ->orWhere('mobile', 'like', "%$search%");
-            });
-        })
-        ->paginate(15);
+        // $user_events = CustomEventUsers::
+        // where('custom_event_id', $Item->id)
+        // ->when($request->search, function ($q) use ($request) { 
+        //     $search = $request->search; 
+        //     $q->where(function ($sub) use ($search) {
+        //         $sub->where('name', 'like', "%$search%")
+        //             ->orWhere('mobile', 'like', "%$search%");
+        //     });
+        // })
+        // ->get()
+        // ->map(function($item){
+        //     return [
+        //         "id" => $item->id,
+        //         "name" => $item->name,
+        //         "mobile" => $item->mobile,
+                
+        //         "invetations" => $item->users_count,
+        //         "send_qr" => $item->send_qr ? $item->users_count : 0,
+        //         "attendance" => $item->scan_count,
+        //         "waiting" => $item->users_count - $item->scan_count,
+        //     ];
+        // });
+        $perPage = 10;
+
+        $invetations_list = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->paginate($perPage)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile, 
+                "count" => $item->users_count, 
+            ];
+        });
+
+        $send_qr_list = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->where("send_qr", 1)
+        ->paginate($perPage)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile,
+                "count" => $item->users_count,
+            ];
+        });
+
+        $attendance_list = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->paginate($perPage)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile, 
+                "count" => $item->scan_count,
+            ];
+        });
+
+        $waiting_list = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->whereColumn("users_count", ">", "scan_count")
+        ->paginate($perPage)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile, 
+                "count" => $item->users_count - $item->scan_count,
+            ];
+        });
         $invetations = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->sum('users_count');
@@ -192,11 +255,16 @@ class PackageController extends Controller
 
         return response()->json([
             'Item' =>  $Item, 
-            'user_events' =>  $user_events, 
             'invetations' =>  $invetations, 
             'attendance' =>  $attendance, 
             'waiting' =>  $waiting, 
             'send_qr' =>  $send_qr, 
+
+            'invetations_list' =>  $invetations_list, 
+            'send_qr_list' =>  $send_qr_list, 
+            'attendance_list' =>  $attendance_list, 
+            'waiting_list' =>  $waiting_list, 
+
         ]); 
     }
     

@@ -267,6 +267,28 @@ class PackageController extends Controller
 
         ]); 
     }
+
+    public function attend_custom_event(Request $request, $id){
+        
+
+        $validator = Validator::make($request->all(), [
+            'scan_count' => 'required|numeric',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        $attendance = CustomEventUsers::
+        where('custom_event_id',$id)
+        ->update([
+            "scan_count" => $request->scan_count
+        ]);
+
+        return response()->json([
+            "success" => "You attend success"
+        ]);
+    }
     
      // save_event_users
     public function save_event_users(Request $request)

@@ -215,6 +215,7 @@ class PackageController extends Controller
 
         $attendance_list = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("scan_count", ">", 0)
         ->paginate($perPage)
         ->through(function($item){
             return [

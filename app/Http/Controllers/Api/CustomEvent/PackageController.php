@@ -281,7 +281,7 @@ class PackageController extends Controller
             ],400);
         }  
         $attendance = CustomEventUsers::
-        where('custom_event_id',$id)
+        where('id',$id)
         ->update([
             "scan_count" => $request->scan_count
         ]);

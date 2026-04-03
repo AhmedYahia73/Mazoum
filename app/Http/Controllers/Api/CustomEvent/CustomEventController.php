@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CustomEvent as Model;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Requests\CustomEvent as modelRequest;
 
 class CustomEventController extends Controller
 {
@@ -41,9 +40,16 @@ class CustomEventController extends Controller
     //     return view($this->view . 'create');
     // }
  
-    public function store(modelRequest $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'title'=> ["required"], 
+            'color' => ["sometimes"], 
+            'language' => ["sometimes"],
+            'address' => ["required"], 
+            'date' => ["required", "date", "date_format:Y-m-d"], 
+            'time'=> ["required"],
+            'image'   => 'required',
             "name_qr" => ["required", "boolean"],
             "number_qr" => ["required", "boolean"],
             "qr_height" => ["required", "numeric"],
@@ -84,9 +90,17 @@ class CustomEventController extends Controller
         ]);  
     }
     
-    public function update(modelRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
+            
+            'title'=> ["required"], 
+            'color' => ["sometimes"], 
+            'language' => ["sometimes"],
+            'address' => ["required"], 
+            'date' => ["required", "date", "date_format:Y-m-d"], 
+            'time'=> ["required"],
+            'image'   => 'required',
             "name_qr" => ["required", "boolean"],
             "number_qr" => ["required", "boolean"],
             "qr_height" => ["required", "numeric"],

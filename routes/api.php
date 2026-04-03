@@ -17,6 +17,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
 
     });
  
+    Route::post('/custom_event/{id}', 'Api\CustomEvent\CustomEventController@update');
     Route::resource('custom_event','Api\CustomEvent\CustomEventController',['names' => 'user.custom_event']);
 
     Route::controller('Api\CustomEvent\PackageController')

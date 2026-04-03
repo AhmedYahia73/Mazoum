@@ -16,6 +16,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     ->prefix("chat")->group(function () {
 
     });
+ 
+    Route::resource('custom_event','Api\CustomEvent\CustomEventController',['names' => 'user.custom_event']);
 
     Route::controller('Api\CustomEvent\PackageController')
     ->prefix("package")->group(function () {

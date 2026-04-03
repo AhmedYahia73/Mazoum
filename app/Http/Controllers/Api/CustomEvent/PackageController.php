@@ -317,8 +317,7 @@ class PackageController extends Controller
         ->where("user_id", auth()->user()->id)      
         ->orWhereHas("sub_user", function($query){
             $query->where("users.id", auth()->user()->id);
-        })
-        ->where('id', $custom_event_id)
+        }) 
         ->firstOrFail();
 
         if($request->event_users != null && ! empty($request->event_users)) {
@@ -806,7 +805,7 @@ class PackageController extends Controller
     }
 
     private function update_qr($row, $uu_id) {
-        $event = $row->event;
+ $event = $row->event;
         $bg = $event->image;
 
         // تأكد من وجود المجلد
@@ -814,16 +813,24 @@ class PackageController extends Controller
         if (!file_exists($directory)) {
             mkdir($directory, 0777, true);
         }
-
+        $event_element = $row->event;
+        $name_qr = $row->event?->name_qr; 
+        $number_qr = $row->event?->number_qr; 
+        $qr_height = $row->event?->qr_height; 
+        $qr_width = $row->event?->qr_width; 
+        $qr_x = $row->event?->qr_x; 
+        $qr_y = $row->event?->qr_y; 
+        $user_name = $row->name;
+        $users_count = $row->users_count;
         $image_name = $uu_id . '-custom-event-qr.png';
         $link = asset('scan-custom-event-qr/' . $uu_id);
         $qr_temp_path = public_path('custom_event_qr_code/temp_qr_' . $image_name);
 
         // إنشاء QR بخلفية شفافة
-        $color = $this->hexToRgb($row->event->color);
+        $color = $this->hexToRgb($event_element->color);
         
         QrCode::format('png')
-            ->size(140)
+            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
             ->color($color[0], $color[1], $color[2])
             ->backgroundColor(0, 0, 0, 0)
             ->generate($link, $qr_temp_path);
@@ -834,9 +841,14 @@ class PackageController extends Controller
         // افتح QR
         $qr = Image::make($qr_temp_path);
 
-        // احسب الإحداثيات لتوسيط QR
-        $x = intval(($background->width() - $qr->width()) / 2);
-        $y = $background->height() - $qr->height() - 280;
+        // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
+        if ($qr_width > 0 && $qr_height > 0) {
+            $qr->resize($qr_width, $qr_height);
+        }
+
+        // تحديد مكان الـ QR بناءً على المحاور المطلوبة (X و Y)
+        $x = $qr_x;
+        $y = $qr_y;
 
         // أدرج QR مرة واحدة بس!
         $background->insert($qr, 'top-left', $x, $y);
@@ -861,19 +873,23 @@ class PackageController extends Controller
         $center_x = intval($background->width() / 2);
         $text_y = $y + $qr->height() + 15;
 
-        // إضافة اسم الشخص
-        $background->text($name, $center_x, $text_y, function ($font) use ($font_path) {
-            $font->file($font_path);
-            $font->size(20);
-            $font->color('#000');
-            $font->align('center');
-            $font->valign('top');
-        });
+        // إضافة اسم الشخص (مربوط بالـ Boolean)
+        if ($name_qr) {
+            $background->text($name, $center_x, $text_y, function ($font) use ($font_path) {
+                $font->file($font_path);
+                $font->size(20);
+                $font->color('#000');
+                $font->align('center');
+                $font->valign('top');
+            });
+            
+            // لو الاسم انطبع، ننزل السطر اللي بعده مسافة عشان العدد (لو موجود)
+            $text_y += 25; 
+        }
 
-        // إضافة عدد المستخدمين
-        if ($row->users_count > 1) {
-            $text_y2 = $text_y + 25;
-            $background->text($name2, $center_x, $text_y2, function ($font) use ($font_path) {
+        // إضافة عدد المستخدمين (مربوط بالـ Boolean)
+        if ($number_qr && $row->users_count > 1) {
+            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path) {
                 $font->file($font_path);
                 $font->size(20);
                 $font->color('#000');

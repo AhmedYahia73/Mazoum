@@ -507,13 +507,7 @@ class CustomEventController extends Controller
     {
         return view($this->view . 'create');
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function store(modelRequest $request)
     {
         Model::create($this->gteInput($request, null));
@@ -521,12 +515,7 @@ class CustomEventController extends Controller
             'success' =>  'تم تخزين البيانات بنجاح', 
         ]);  
     }
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function show($id)
     {
         $Item = Model::findOrFail($id);
@@ -534,13 +523,7 @@ class CustomEventController extends Controller
             'Item' =>  $Item, 
         ]);  
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function edit($id)
     {
         $Item = Model::findOrFail($id);
@@ -548,14 +531,7 @@ class CustomEventController extends Controller
             'Item' =>  $Item, 
         ]);  
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function update(modelRequest $request, $id)
     {
         $Item = Model::findOrFail($id);
@@ -564,14 +540,7 @@ class CustomEventController extends Controller
             'success' =>  'تم تحديث البيانات بنجاح', 
         ]); 
     }
-
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function destroy($id)
     {
         $Item = Model::findOrFail($id);

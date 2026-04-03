@@ -13,9 +13,20 @@ class CustomEvent extends Model
     public $timestamp = true;
 
     protected $fillable = [
-        'title', 'image', 'code', 'user_id' , 'color' , 'assistant_id' , 'language',
-        'address' , 'date' , 'time', 'scan_assistant_id', "resend_qr"
+        'title', 'image', 'code', 'user_id' , 
+        'color' , 'assistant_id' , 'language',
+        'address' , 'date' , 'time', 
+        "name_qr", "number_qr", "qr_height",
+        "qr_width", "qr_x", "qr_y", "lat", "lng",
+        'scan_assistant_id', "resend_qr"
     ];
+    protected $appends = ["map"];
+
+    public function getMapAttribute(){
+        if(isset($this->attributes['lat']) && isset($this->attributes['lng'])){
+            return "https://www.google.com/maps?q={$this->attributes['lat']},{$this->attributes['lng']}";
+        }
+    }
 
     public function getImageAttribute($value)
     {

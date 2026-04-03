@@ -458,13 +458,14 @@ class PackageController extends Controller
      
     public function send_invitations(Request $request, $id)
     {
-        $Item = Model::
-        where("user_id", auth()->user()->id)
-        ->orWhereHas("sub_user", function($query){
-            $query->where("users.id", auth()->user()->id);
+        $Item = Model::where('id', $id)
+        ->where(function ($query) {
+            $query->where('user_id', auth()->id())
+                ->orWhereHas('sub_user', function ($subQuery) {
+                    $subQuery->where('users.id', auth()->id());
+                });
         })
-        ->where("id", $id)
-        ->findFirst();
+        ->firstOrFail();
         $event_users = CustomEventUsers::where('custom_event_id', $id)
         ->when($request->search, function ($q) use ($request) {
 

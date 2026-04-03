@@ -204,11 +204,12 @@ class PackageController extends Controller
         where('custom_event_id',$Item->id)
         ->where("send_qr", 1)
         ->paginate($perPage)
-        ->through(function($item){
+        ->through(function($item) use($Item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->mobile,
+                "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count,
             ];
         });
@@ -217,11 +218,12 @@ class PackageController extends Controller
         where('custom_event_id',$Item->id)
         ->where("scan_count", ">", 0)
         ->paginate($perPage)
-        ->through(function($item){
+        ->through(function($item) use($Item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->mobile, 
+                "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->scan_count,
             ];
         });
@@ -230,11 +232,12 @@ class PackageController extends Controller
         where('custom_event_id',$Item->id)
         ->whereColumn("users_count", ">", "scan_count")
         ->paginate($perPage)
-        ->through(function($item){
+        ->through(function($item) use($Item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->mobile, 
+                "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count - $item->scan_count,
             ];
         });

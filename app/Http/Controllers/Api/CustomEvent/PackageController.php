@@ -190,11 +190,12 @@ class PackageController extends Controller
         $invetations_list = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->paginate($perPage)
-        ->through(function($item){
+        ->through(function($item) use($Item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
-                "mobile" => $item->mobile, 
+                "mobile" => $item->mobile,
+                "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count, 
             ];
         });

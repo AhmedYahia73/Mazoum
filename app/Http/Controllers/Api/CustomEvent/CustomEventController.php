@@ -16,8 +16,7 @@ class CustomEventController extends Controller
         where("user_id", auth()->user()->id)      
         ->orWhereHas("sub_user", function($query){
             $query->where("users.id", auth()->user()->id);
-        })
-        ->query();
+        });
 
         // Search
         if ($request->search) {

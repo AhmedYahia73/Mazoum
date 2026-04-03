@@ -21,6 +21,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     ->prefix("package")->group(function () {
         Route::get('/', 'view');
         Route::post('/negotaition', 'negotaition');
+        Route::post('/create_qr', 'create_qr');
         Route::get('/orders_list', 'orders_list');
         Route::get('/orders_history', 'orders_history');
         Route::post('/payment', 'payment');
@@ -48,7 +49,6 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         //______________________________________________
 
         Route::get('/event_report/{id}', 'event_report');    
-
     });
 
     Route::controller('Api\CustomEvent\UserController')
@@ -56,7 +56,6 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::get('/', 'view');    
         Route::get('/lists', 'lists');    
         Route::post('/add', 'create');    
-
     });
 });
 

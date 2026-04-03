@@ -29,7 +29,14 @@ class CustomEventUsers extends Model
         'users_count',
         'scan_count',
         'send_qr',
+        'user_id',
+        "resend_qr",
     ];
+
+    public function user()
+    {
+        return $this->belongsTo('App\Models\User', 'user_id');
+    }
 
     public function event()
     {

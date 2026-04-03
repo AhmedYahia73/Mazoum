@@ -14,7 +14,7 @@ class CustomEvent extends Model
 
     protected $fillable = [
         'title', 'image', 'code', 'user_id' , 'color' , 'assistant_id' , 'language',
-        'address' , 'date' , 'time', 'scan_assistant_id'
+        'address' , 'date' , 'time', 'scan_assistant_id', "resend_qr"
     ];
 
     public function getImageAttribute($value)

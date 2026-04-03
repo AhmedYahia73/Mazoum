@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Validator;
 
 class PackageController extends Controller
 {
@@ -154,8 +155,7 @@ class PackageController extends Controller
             "my_custom_events" => $my_custom_events
         ]);
     }
-
-
+ 
     public function event_users(Request $request, $id)
     {
         $Item = Model::
@@ -308,13 +308,6 @@ class PackageController extends Controller
             ],400);
         }   
 
-        $users_count = collect($request->event_users)->sum('users_count');
-        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-        if($users_count >= $available){
-            return response()->json([
-                "errors" => "لا تمتلك كل هذا العدد من الدعوات"
-            ], 400);
-        }
         $custom_event_id = $request->custom_event_id;
 
         $event = Model::where('id', $custom_event_id)
@@ -338,17 +331,13 @@ class PackageController extends Controller
                         'name' => $arr['name'],
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
-                        'uu_id' => $uu_id
-                    ]);
-
-                    $this->update_qr($row,$uu_id);
-
+                        'uu_id' => $uu_id,
+                        "user_id" => auth()->user()->id,
+                    ]); 
                 }
             }
 
         }
-        auth()->user()->send_custom_invetaion += $users_count;
-        auth()->user()->save();
 
         return response()->json([
             'success' =>  'تم الحفظ بنجاح', 
@@ -436,9 +425,7 @@ class PackageController extends Controller
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
                         'uu_id' => $uu_id
-                    ]);
-
-                    $this->update_qr($row,$uu_id);
+                    ]); 
                 }
             }
         }
@@ -464,11 +451,9 @@ class PackageController extends Controller
         return response()->json([
             'success' =>  'تم حذف البيانات بنجاح', 
         ]); 
-    }
-
+    } 
     // ___________________________________________________
-    
-
+     
     public function send_invitations(Request $request, $id)
     {
         $Item = Model::
@@ -506,13 +491,7 @@ class PackageController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }
-        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
-        $instance_id="instance109805"; // Ultramsg.com instance id
-        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
 
-        $priority=0;
-        $referenceId="SDK";
-        $nocache=true;
 
       	$event = Model::where('id',$request->custom_event_id)
         ->where("user_id", auth()->user()->id)
@@ -520,7 +499,15 @@ class PackageController extends Controller
             $query->where("users.id", auth()->user()->id);
         })
         ->where('id',$request->custom_event_id)
-        ->firstOrFail();
+        ->firstOrFail(); 
+
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
 
         if($request->users != null && ! empty($request->users)) {
 
@@ -531,7 +518,29 @@ class PackageController extends Controller
               if(isset($item)) {
 
                 $row = CustomEventUsers::where('id',$item)->first();
-
+                // __________________________________________________________________________________
+                if(!$event->resend_qr && $row->send_qr || $event->resend_qr && $row->resend_qr){
+                    continue;
+                }
+                if($row->send_qr ){
+                    $row->resend_qr = true;
+                    $row->save();
+                }
+                $users_count = $row->users_count;
+                $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
+                if($users_count >= $available){
+                    return response()->json([
+                        "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+                    ], 400);
+                }
+                // __________________________________________________________________________________
+                $this->update_qr($row,$row->uu_id);
+                // __________________________________________________________________________________
+                if(!$row->send_qr){
+                    auth()->user()->send_custom_invetaion += $users_count;
+                    auth()->user()->save();
+                }
+                // __________________________________________________________________________________
                 if($row != null && $row->mobile != null && $event != null) {
 
                   $to = $row->mobile;
@@ -611,16 +620,57 @@ class PackageController extends Controller
         $event_user = CustomEventUsers::
         where('id',$request->users_id)
         ->first();
+        // __________________________________________________________________________________
+        if(!$event->resend_qr && $event_user->send_qr || $event->resend_qr && $event_user->resend_qr){
+            return response()->json([
+                "errors" => "لقد ارسلت الدعوة سابقا"
+            ], 400);
+        }
 
-        $event_user->send_qr = 1;
-        $event_user->save(); 
-    
         return response()->json([
             "success" => "You send qr success"
         ]);
     }
 
+    public function create_qr(Request $request){
+        $validator = Validator::make($request->all(), [
+            'custom_event_user_id' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
  
+        $event_user = CustomEventUsers::
+        where('id',$request->custom_event_user_id)
+        ->first();
+        if($event_user->send_qr ){
+            $event_user->resend_qr = true;
+            $event_user->save();
+        }
+        $users_count = $event_user->users_count;
+        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
+        if($users_count >= $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        }
+        // __________________________________________________________________________________
+        $this->update_qr($event_user,$event_user->uu_id);
+        // __________________________________________________________________________________
+        if(!$event_user->send_qr){
+            auth()->user()->send_custom_invetaion += $users_count;
+            auth()->user()->save();
+        }
+        // __________________________________________________________________________________
+        $event_user->send_qr = 1;
+        $event_user->save();
+    
+        return response()->json([
+            "success" => "You create qr success"
+        ]);
+    }
  
     // _______________________________________________
 

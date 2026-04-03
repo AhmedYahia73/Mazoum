@@ -22,7 +22,7 @@ class User extends Authenticatable
         "offer_id" , "balance" ,"full_balance" , "user_type" , "password", "email" , "pass",
         "order_id","start_subscription_date","duration_type","duration",
         "payment_type","employee_gender","is_paid","subscription_price",
-        "user_id", "custom_invetaion", "send_custom_invetaion", "custom_event_id"
+        "user_id", "custom_invetaion", "send_custom_invetaion", "custom_event_id", 
     ];
 
   	protected $hidden = [

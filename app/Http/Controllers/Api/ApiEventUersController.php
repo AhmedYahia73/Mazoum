@@ -62,25 +62,7 @@ class ApiEventUersController extends Controller
         }
     }
 
-    public function attend_event(Request $request, $id){
-        $validator = Validator::make($request->all(), [
-            'scan_count' => 'required|numeric',
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }  
-        $attendance = Model::
-        where('id',$id)
-        ->update([
-            "scan_count" => $request->scan_count
-        ]);
 
-        return response()->json([
-            "success" => "You attend success"
-        ]);
-    }
 
   	public function delete_event_messages($id,$type)
     {

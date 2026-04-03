@@ -463,8 +463,9 @@ class PackageController extends Controller
         ->orWhereHas("sub_user", function($query){
             $query->where("users.id", auth()->user()->id);
         })
-        ->findOrFail($id);
-        $event_users = CustomEventUsers::where('custom_event_id', $Item->id)
+        ->where("id", $id)
+        ->findFirst();
+        $event_users = CustomEventUsers::where('custom_event_id', $id)
         ->when($request->search, function ($q) use ($request) {
 
             $search = $request->search;

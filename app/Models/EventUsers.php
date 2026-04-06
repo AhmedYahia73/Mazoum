@@ -22,6 +22,15 @@ class EventUsers extends Model
         "send_time", "accept_time"
     ];
 
+    public function msgs(){
+        return $this->hasMany(EventChat::class, "event_user_id");
+    }
+
+    public function un_read_msgs(){
+        return $this->hasMany(EventChat::class, "event_user_id")
+        ->where("is_read", false);
+    }
+
     protected $casts = [
         'scan_at' => 'array',
     ];

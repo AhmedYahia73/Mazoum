@@ -22,6 +22,7 @@ class CustomEvent extends Model
     ];
     protected $appends = ["map"];
 
+
     public function getMapAttribute(){
         if(isset($this->attributes['lat']) && isset($this->attributes['lng'])){
             return "https://www.google.com/maps?q={$this->attributes['lat']},{$this->attributes['lng']}";

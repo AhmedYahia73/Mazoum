@@ -33,6 +33,15 @@ class CustomEventUsers extends Model
         "resend_qr",
     ];
 
+    public function msgs(){
+        return $this->hasMany(CustomChat::class, "custom_user_id");
+    }
+
+    public function un_read_msgs(){
+        return $this->hasMany(CustomChat::class, "custom_user_id")
+        ->where("is_read", false);
+    }
+
     public function user()
     {
         return $this->belongsTo('App\Models\User', 'user_id');

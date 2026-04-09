@@ -198,7 +198,7 @@ class PackageController extends Controller
                 "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count, 
             ];
-        });
+        }); 
 
         $send_qr_list = CustomEventUsers::
         where('custom_event_id',$Item->id)
@@ -257,6 +257,15 @@ class PackageController extends Controller
         $Item->waiting = $waiting;
         $Item->send_qr = $send_qr;
 
+        $invetation_data = $invetations_list->toArray();
+        $invetation_data['total_users'] = $invetations;
+        $send_qr_data = $send_qr_list->toArray();
+        $send_qr_data['total_users'] = $send_qr;
+        $attendance_data = $attendance_list->toArray();
+        $attendance_data['total_users'] = $attendance;
+        $waiting_data = $waiting_list->toArray();
+        $waiting_data['total_users'] = $waiting;
+
         return response()->json([
             'Item' =>  $Item, 
             'invetations' =>  $invetations, 
@@ -264,10 +273,10 @@ class PackageController extends Controller
             'waiting' =>  $waiting, 
             'send_qr' =>  $send_qr, 
 
-            'invetations_list' =>  $invetations_list, 
-            'send_qr_list' =>  $send_qr_list, 
-            'attendance_list' =>  $attendance_list, 
-            'waiting_list' =>  $waiting_list, 
+            'invetations_list' =>  $invetation_data, 
+            'send_qr_list' =>  $send_qr_data, 
+            'attendance_list' =>  $attendance_data, 
+            'waiting_list' =>  $waiting_data, 
 
         ]); 
     }

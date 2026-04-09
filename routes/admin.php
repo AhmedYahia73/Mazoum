@@ -62,7 +62,7 @@ Route::resource('payment_method','PaymentMethodController',['names' => 'admin.pa
 
 // Negotation
 Route::get('negotation', 'NegotaitionController@view')->name('admin.negotation.view');
-Route::get('negotation/item', 'NegotaitionController@negotaition')->name('admin.negotation_item.view');
+Route::get('negotation/item/{id}', 'NegotaitionController@negotaition')->name('admin.negotation_item.view');
 
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);

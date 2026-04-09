@@ -88,7 +88,7 @@ class NegotaitionController extends Controller
         ]);
 
         return response()->json([
-            "success" => "You update data success"
+            "success" => "You status data success"
         ]);
     }
 }

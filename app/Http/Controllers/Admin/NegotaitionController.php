@@ -10,11 +10,30 @@ use App\Models\Negotaition;
 class NegotaitionController extends Controller
 {
     public function view(Request $request){
-        $negotation = Negotaition::
-        where("status", 0)
+        $negotation = Negotaition::where("status", 0)
         ->with("package", "user")
-        ->get()
-        ->map(function($item){
+        ->paginate(10)
+        ->through(function($item){
+            return [
+                "id" => $item?->id ?? null,
+                "user_name" => $item?->user?->name ?? null,
+                "user_email" => $item?->user?->email ?? null,
+                "user_mobile" => ($item?->user?->mobile_code ?? null) . ($item?->user?->mobile ?? null),
+                "package" => $item?->package?->ar_title ?? null,
+                "package_price" => $item?->package?->price,
+            ];
+        });
+
+        return response()->json([
+            "negotation" => $negotation
+        ]);
+    }
+    
+    public function history(Request $request){
+        $negotation = Negotaition::where("status", 1)
+        ->with("package", "user")
+        ->paginate(10)
+        ->through(function($item){
             return [
                 "id" => $item?->id ?? null,
                 "user_name" => $item?->user?->name ?? null,
@@ -58,6 +77,18 @@ class NegotaitionController extends Controller
 
         return response()->json([
             "negotation" => $negotation
+        ]);
+    }
+
+    public function status(Request $request, $id){
+        Negotaition::
+        where("id", $id) 
+        ->update([
+            "status" => 1
+        ]);
+
+        return response()->json([
+            "success" => "You update data success"
         ]);
     }
 }

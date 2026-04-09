@@ -62,7 +62,9 @@ Route::resource('payment_method','PaymentMethodController',['names' => 'admin.pa
 
 // Negotation
 Route::get('negotation', 'NegotaitionController@view')->name('admin.negotation.view');
-Route::get('negotation/item/{id}', 'NegotaitionController@negotaition')->name('admin.negotation_item.view');
+Route::get('negotation/history', 'NegotaitionController@history')->name('admin.negotation.history');
+Route::get('negotation/item/{id}', 'NegotaitionController@negotaition')->name('admin.negotation.item');
+Route::put('negotation/status/{id}', 'NegotaitionController@status')->name('admin.negotation.status');
 
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);

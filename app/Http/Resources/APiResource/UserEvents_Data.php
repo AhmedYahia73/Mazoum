@@ -31,7 +31,8 @@ class UserEvents_Data extends JsonResource
             'name' => $this->name,
             'code' => $code,
             'mobile' => $this->mobile,
-            'phone' => str_replace('+','',$code).$this->mobile
+            'phone' => str_replace('+','',$code).$this->mobile,
+            "scan_status" => $item->users_count > $item->scan_count,
         ];
 
 

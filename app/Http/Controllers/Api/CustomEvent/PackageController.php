@@ -197,6 +197,7 @@ class PackageController extends Controller
                 "mobile" => $item->mobile,
                 "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count, 
+                "scan_status" => $item->users_count > $item->scan_count,
             ];
         }); 
 
@@ -211,6 +212,7 @@ class PackageController extends Controller
                 "mobile" => $item->mobile,
                 "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count,
+                "scan_status" => $item->users_count > $item->scan_count,
             ];
         });
 
@@ -225,6 +227,7 @@ class PackageController extends Controller
                 "mobile" => $item->mobile, 
                 "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->scan_count,
+                "scan_status" => $item->users_count > $item->scan_count,
             ];
         });
 
@@ -239,6 +242,7 @@ class PackageController extends Controller
                 "mobile" => $item->mobile, 
                 "can_send_qr" => !$item->send_qr || (!$item->resend_qr && $Item->resend_qr),
                 "count" => $item->users_count - $item->scan_count,
+                "scan_status" => $item->users_count > $item->scan_count,
             ];
         });
         $invetations = CustomEventUsers::

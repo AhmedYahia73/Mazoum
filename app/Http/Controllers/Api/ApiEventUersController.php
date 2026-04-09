@@ -1140,24 +1140,121 @@ class ApiEventUersController extends Controller
 
         if ($Item != null) {
 
-            $EventUsers = EventUsers::where('event_id', $Item->id)->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
+            $EventUsers = EventUsers::where('event_id', $Item->id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
             $user_events = UserEvents_Data::collection($EventUsers);
 
-            $all_invited_users = EventUsers::where('event_id',$Item->id)->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
-            $invitations_not_sent_users = EventUsers::where('event_id',$Item->id)->where('status','hold')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
+            $all_invited_users = EventUsers::where('event_id',$Item->id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });;
+            $invitations_not_sent_users = EventUsers::where('event_id',$Item->id)->where('status','hold')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
 
-            //$confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','attend')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
-            $confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
+            //$confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','attend')->get(['id','name','mobile','users_count','scan_at','confirmed_at'])
 
-            $scaned_qr_users = EventUsers::where('event_id',$Item->id)->where('scan','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count']);
-            $apologized_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','not-attend')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
-            $failed_invitatios_users = EventUsers::where('event_id',$Item->id)->whereIn('status',['hold','sent'])->whereNull('is_accepted')->whereNull('is_refused')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
+            $confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
+
+            $scaned_qr_users = EventUsers::where('event_id',$Item->id)->where('scan','yes')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });;
+            $apologized_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','not-attend')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
+            $failed_invitatios_users = EventUsers::where('event_id',$Item->id)->whereIn('status',['hold','sent'])->whereNull('is_accepted')->whereNull('is_refused')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
 
             $enterd_events = EventFamily::where('event_id',$Item->id)->get(['id','name','mobile','scan_qr']);
 
             // $confirmed_without_attend = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->where('scan','!=','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
 
-            $non_attendance_users   = EventUsers::where('event_id',$Item->id)->where('status','attend')->whereNull('scan')->whereNull('is_refused')->get(['id','name','mobile','users_count','scan_count','scan_at','confirmed_at']);
+            $non_attendance_users   = EventUsers::where('event_id',$Item->id)->where('status','attend')->whereNull('scan')->whereNull('is_refused')
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
 
 
             $arr1 = [

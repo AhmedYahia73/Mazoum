@@ -60,6 +60,10 @@ Route::put('payment_method/status/{id}', 'PaymentMethodController@status')->name
 Route::post('payment_method/{id}', 'PaymentMethodController@update')->name('admin.payment_method.update');
 Route::resource('payment_method','PaymentMethodController',['names' => 'admin.payment_method']);
 
+// Negotation
+Route::get('negotation', 'NegotaitionController@view')->name('admin.negotation.view');
+Route::get('negotation/item', 'NegotaitionController@negotaition')->name('admin.negotation_item.view');
+
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);
 Route::get('pricing/destroy/{id}', 'PricingController@destroy');

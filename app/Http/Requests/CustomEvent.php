@@ -33,6 +33,16 @@ class CustomEvent extends FormRequest
                     'time'    => 'required',
 
                     'image'   => 'required',
+                    'color' => ["sometimes"], 
+                    "name_qr" => ["required", "boolean"],
+                    "number_qr" => ["required", "boolean"],
+                    "qr_height" => ["required", "numeric"],
+                    "qr_width" => ["required", "numeric"],
+                    "qr_x" => ["required", "numeric"],
+                    "qr_y" => ["required", "numeric"],
+                    "lat" => ["required", "numeric"],
+                    "lng" => ["required", "numeric"],
+                    "send_type" => ["required", "in:all,watts,msg"],
                 ];
 
             case 'PUT':
@@ -48,6 +58,17 @@ class CustomEvent extends FormRequest
                     'time'    => 'required',
 
                     'image'   => 'nullable',
+                    
+                    'color' => ["sometimes"], 
+                    "name_qr" => ["required", "boolean"],
+                    "number_qr" => ["required", "boolean"],
+                    "qr_height" => ["required", "numeric"],
+                    "qr_width" => ["required", "numeric"],
+                    "qr_x" => ["required", "numeric"],
+                    "qr_y" => ["required", "numeric"],
+                    "lat" => ["required", "numeric"],
+                    "lng" => ["required", "numeric"],
+                    "send_type" => ["required", "in:all,watts,msg"],
                 ];
 
             default:

@@ -15,7 +15,7 @@ class CustomEvent extends Model
     protected $fillable = [
         'title', 'image', 'code', 'user_id' , 
         'color' , 'assistant_id' , 'language',
-        'address' , 'date' , 'time', 
+        'address' , 'date' , 'time', "send_type",
         "name_qr", "number_qr", "qr_height",
         "qr_width", "qr_x", "qr_y", "lat", "lng",
         'scan_assistant_id', "resend_qr"

@@ -555,7 +555,9 @@ class CustomEventController extends Controller
     {
         $input = $request->only([
             'title', 'user_id', 'color' , 'assistant_id' , 'language' ,
-            'address' , 'date' , 'time', 'scan_assistant_id'
+            'address' , 'date' , 'time', 'scan_assistant_id',
+            "name_qr", "number_qr", "qr_height", "send_type",
+            "qr_width", "qr_x", "qr_y", "lat", "lng",
         ]);
 
         $path = 'images';

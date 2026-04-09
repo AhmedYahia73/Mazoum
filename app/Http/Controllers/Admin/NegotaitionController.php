@@ -24,6 +24,10 @@ class NegotaitionController extends Controller
                 "package_price" => $item?->package?->price,
             ];
         });
+
+        return response()->json([
+            "negotation" => $negotation
+        ]);
     }
     
     public function negotaition(Request $request, $id){
@@ -50,6 +54,10 @@ class NegotaitionController extends Controller
             "user_name" => $negotation?->user?->name ?? null,
             "user_email" => $negotation?->user?->email ?? null,
             "user_mobile" => ($negotation?->user?->mobile_code ?? null) . ($negotation?->user?->mobile ?? null),
+        ]);
+
+        return response()->json([
+            "negotation" => $negotation
         ]);
     }
 }

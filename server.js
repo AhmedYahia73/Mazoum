@@ -1,21 +1,39 @@
 const server = require('http').createServer();
 const io = require('socket.io')(server, {
-    cors: { origin: "*" }
+    cors: { 
+        origin: "*", // في الإنتاج يفضل وضع https://mazoom.online
+        methods: ["GET", "POST"]
+    },
+    path: '/socket.io' // ضروري جداً ليتوافق مع إعدادات Nginx
 });
+
 const Redis = require('ioredis');
-const redis = new Redis(); // يفترض أن Redis يعمل على نفس السيرفر بورت 6379
+const redis = new Redis(); 
 
 redis.psubscribe('*', (err, count) => {
-    console.log('Subscribed to all channels');
+    if (err) {
+        console.error('Redis subscription error:', err);
+    } else {
+        console.log(`Subscribed to ${count} channels. Listening for updates...`);
+    }
 });
 
 redis.on('pmessage', (pattern, channel, message) => {
-    console.log('Message Received from: ' + channel);
-    message = JSON.parse(message);
-    // إرسال البيانات للمتصفح (تأكد من اسم الحدث)
-    io.emit(channel + ':' + message.event, message.data);
+    console.log('Message Received from Channel: ' + channel);
+    
+    try {
+        const parsedMessage = JSON.parse(message);
+        io.to(channel).emit(parsedMessage.event, parsedMessage.data);
+        
+        io.emit(channel, parsedMessage.data); 
+        
+        console.log('Event Emitted:', parsedMessage.event);
+    } catch (e) {
+        console.error('Error parsing Redis message:', e);
+    }
 });
 
-server.listen(3001, () => {
-    console.log('Socket server is running on port 3001');
+const PORT = 3001; 
+server.listen(PORT, () => {
+    console.log(`Socket server is running on port ${PORT}`);
 });

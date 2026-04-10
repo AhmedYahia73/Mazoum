@@ -45,20 +45,22 @@
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
 <script>
-// 1. إعداد الـ Echo
+// الإعداد المصحح للاتصال عبر HTTPS و Nginx Proxy
 window.Echo = new Echo({
     broadcaster: 'socket.io',
-    // نستخدم العنوان الحالي للموقع أوتوماتيكياً
-    host: window.location.hostname, 
+    // تحديد العنوان كاملاً مع البروتوكول لضمان عدم حدوث Redirect Loops
+    host: 'https://mazoom.online', 
     transports: ['websocket', 'polling'],
     forceTLS: true,
-    path: '/socket.io' // ضروري جداً لأننا عرفناه في Nginx
+    path: '/socket.io',
+    // إضافة الإعدادات الضرورية لتجاوز مشاكل CORS أو التوثيق في الاختبار
+    client: io
 });
 
 const statusEl = document.getElementById('connection-status');
 const container = document.getElementById('messages-container');
 
-// 2. مراقبة حالة الاتصال بالـ Socket مباشرة
+// مراقبة الاتصال
 window.Echo.connector.socket.on('connect', () => {
     statusEl.innerText = "متصل بنجاح ✅";
     statusEl.className = "status-online";
@@ -76,9 +78,10 @@ window.Echo.connector.socket.on('disconnect', () => {
     statusEl.className = "status-offline";
 });
 
-// 3. الاستماع للقناة (تأكد من اسم القناة والحدث)
+// الاستماع للقناة
+// ملاحظة: تأكد أن اسم القناة في Laravel هو ChatEvent بدون سوابق إضافية إذا لم يشتغل
 window.Echo.channel('laravel_database_ChatEvent')
-    .listen('.chat_event', (data) => { // النقطة هنا تعني استخدام اسم الحدث الخام
+    .listen('.chat_event', (data) => {
         console.log("وصلت بيانات جديدة:", data);
         
         if(container.querySelector('.text-muted')) {
@@ -88,7 +91,6 @@ window.Echo.channel('laravel_database_ChatEvent')
         const newMessage = document.createElement('div');
         newMessage.className = 'message-item shadow-sm';
         
-        // جلب الرسالة سواء كانت باسم message أو نص مباشر
         const content = data.message ? data.message : (typeof data === 'string' ? data : JSON.stringify(data));
         
         newMessage.innerHTML = `

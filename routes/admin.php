@@ -4,10 +4,6 @@ use Illuminate\Support\Facades\Route;
 
 // Home
 
-Route::get('test', function ($uu_id) {
-    return view("welcome");
-});
-
 Route::get('/', 'AdminController@home');
    
  

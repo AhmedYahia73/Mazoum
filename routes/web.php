@@ -15,6 +15,10 @@ use App\Http\Controllers\HomeController;
 
 
 
+
+Route::get('test', function ($uu_id) {
+    return view("welcome");
+});
 Route::get('event-login/{id}', 'EventUserActionsController@event_login');
 
 Route::post('new-save-event-user-action', 'EventUserActionsController@new_save_event_action');

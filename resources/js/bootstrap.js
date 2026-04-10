@@ -1,14 +1,9 @@
 import Echo from 'laravel-echo';
-window.Pusher = require('pusher-js');
+import io from 'socket.io-client';
+
+window.io = io;
 
 window.Echo = new Echo({
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    wsHost: import.meta.env.VITE_PUSHER_HOST,
-    wsPort: import.meta.env.VITE_PUSHER_PORT,
-    wssPort: import.meta.env.VITE_PUSHER_PORT,
-    forceTLS: true,
-    encrypted: true,
-    disableStats: true,
-    enabledTransports: ['ws', 'wss'],
+    broadcaster: 'socket.io',
+    host: window.location.hostname + ':3000',
 });

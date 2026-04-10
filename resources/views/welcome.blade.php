@@ -1,144 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار Real-Time Socket.io</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; padding: 50px; }
+        #messages-container { height: 300px; overflow-y: auto; background: white; border-radius: 8px; padding: 15px; border: 1px solid #ddd; }
+        .message-item { background: #e9ecef; border-radius: 5px; padding: 10px; margin-bottom: 10px; border-right: 5px solid #007bff; text-align: right; }
+        .status-online { color: green; font-weight: bold; }
+        .status-offline { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title> {{ $counter == 0 ? 'مسح صحيح' : 'مسح غير صحيح' }}  </title>
-        <link href="{{ asset('auth/bootstrap.min.css') }}" rel="stylesheet">
-      
-      	<link rel="stylesheet" href="{{ asset('arabic_font') }}/droidarabickufi.css"/>
-
-
-        <style>
-          
-          body {
-          	background: #EEE;
-          }
-          
-          body, html, h1, h2, h3, h4, h5, h6, p, li, .btn ,select , .btn-primary,
-          .theme-green .back-bar .pointer-label , .custom_font
-          {
-            font-family: 'DroidArabicKufiRegular', sans-serif !important;
-          }
-
-          ::-webkit-input-placeholder {
-            /* Chrome/Opera/Safari */
-            font-family: 'DroidArabicKufiRegular', sans-serif !important;
-          }
-          ::-moz-placeholder {
-            /* Firefox 19+ */
-            font-family: 'DroidArabicKufiRegular', sans-serif !important;
-          }
-          :-ms-input-placeholder {
-            /* IE 10+ */
-            font-family: 'DroidArabicKufiRegular', sans-serif !important;
-          }
-          :-moz-placeholder {
-            /* Firefox 18- */
-            font-family: 'DroidArabicKufiRegular', sans-serif !important;
-          }
-          
-          .custom_font {
-          	    padding-left: 3%;
-          	    padding-right: 3%;
-          }
-          
-          @media(min-width:768px) {
-            .card_desgin {
-            	min-width: 1200px
-            }
-          }
-
-         </style>
-
-  
-    </head>
-
-    <body>
-        <div class="vh-100 d-flex justify-content-center align-items-center">
-          
-          	@if($counter == 0)
-          
-          	<div class="card card_desgin">
-              <div class="card-header" style="text-align: center;background: #16AA68;color: #FFF;">
-                
-                	<img src="{{ asset('check.png') }}" style="max-width: 140px;margin-top: 30px;margin-bottom: 20px;">
-                
-                    <p style="margin-bottom: 20px;font-size: 22px;" class="custom_font">   
-                		حياكم الله , أكتمـل حفلنا بحضوركم نتمنى لكم ليلة ممتعة
-                	</p>
-                
-                	<div class="text-center" style="display: flex;justify-content: center;direction: rtl;">
-                  
-                  
-                      <p class="custom_font">  
-                        <span> {{ $user_event->name }}  </span>
-                      </p>
-
-
-                      <p class="custom_font">  
-                        <span>  دعوات :    </span>
-                        <span> {{ $user_event->users_count }} </span>
-
-
-                      </p>
-
-                      <p class="custom_font">  
-
-                        <span> دخول : </span>
-                        <span> {{ $user_event->scan_count }}  </span>
-                      </p>
-
-
-
-                      @if($user_event->mobile)
-                      <p class="custom_font">  
-                        <span> {{ $user_event->mobile }}  </span>
-                      </p>
-                      @endif
-
-                  </div>
-                
-              </div>
-              <div class="card-body">
-              	<div class="text-center" style="display: flex;justify-content: center;direction: rtl;">
-                  
-                 	<img src="{{ asset('scan_logo.png') }}?{{ rand() }}" style="height: 110px;padding: 15px 0;">
-                  
-                </div>
-              </div>
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white text-center">
+            <h5 class="mb-0">نظام استقبال الرسائل (ChatEvent)</h5>
+        </div>
+        <div class="card-body">
+            <p>حالة الاتصال بالسيرفر: <span id="connection-status" class="status-offline">جاري الاتصال...</span></p>
+            <hr>
+            <div id="messages-container">
+                <div class="text-muted text-center">في انتظار وصول رسائل عبر Tinker...</div>
             </div>
-          
-          	@else
-          
-          	<div class="card card_desgin" >
-              <div class="card-header" style="text-align: center;background: #F6AE1A;color: #FFF;">
-                
-                	<img src="{{ asset('error.png') }}" style="max-width: 140px;margin-top: 30px;margin-bottom: 20px;">
-                
-                    <p style="font-size: 20px;">
-                    	نأسف لكم لقد تجـاوزتم الحد الاقصي من الدعوات
-                  	</p>
-                
-              </div>
-              <div class="card-body" style="height: 125px;line-height: 100px;">
-                
-                <div class="text-center" style="display: flex;justify-content: center;direction: rtl;">
-                  
-                 	<img src="{{ asset('scan_logo2.png') }}?{{ rand() }}" style="height: 110px;padding: 15px 0;">
-                  
-                </div>
-                
-              	
-              </div>
-            </div>
-          
+        </div>
+    </div>
+</div>
 
-          	@endif
-     
-      </div>
-    </body>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
+<script>
+    // إعداد Laravel Echo
+    window.Echo = new Echo({
+        broadcaster: 'socket.io',
+        host: window.location.hostname + ':3000', 
+        transports: ['websocket', 'polling'] 
+    });
+
+    const statusEl = document.getElementById('connection-status');
+    const container = document.getElementById('messages-container');
+    
+    window.Echo.connector.socket.on('connect', () => {
+        statusEl.innerText = "متصل بنجاح ✅";
+        statusEl.className = "status-online";
+    });
+
+    window.Echo.connector.socket.on('disconnect', () => {
+        statusEl.innerText = "انقطع الاتصال ❌";
+        statusEl.className = "status-offline";
+    });
+
+    // التعديل هنا ليتناسب مع الكود الخاص بك:
+    // 1. اسم القناة: 'ChatEvent' (مع إضافة Prefix لارافيل الافتراضي)
+    // 2. اسم الحدث: '.chat_event' (النقطة ضرورية لأنك استخدمت broadcastAs)
+    window.Echo.channel('laravel_database_ChatEvent')
+        .listen('.chat_event', (data) => {
+            console.log("وصلت بيانات:", data);
+            
+            if(container.querySelector('.text-muted')) container.innerHTML = '';
+
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message-item';
+            
+            // تأكد أن 'message' هو اسم المتغير العام في الـ Event الخاص بك
+            const content = data.message ? data.message : JSON.stringify(data);
+            
+            newMessage.innerHTML = `<strong>الرسالة المستلمة:</strong> ${content} <br> <small class="text-secondary">${new Date().toLocaleTimeString()}</small>`;
+            container.prepend(newMessage);
+        });
+</script>
+
+</body>
 </html>

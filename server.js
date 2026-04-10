@@ -1,30 +1,21 @@
-const express = require('express');
-const app = express();
-const server = require('http').createServer(app);
+const server = require('http').createServer();
 const io = require('socket.io')(server, {
-    cors: { origin: "*" } 
+    cors: { origin: "*" }
 });
 const Redis = require('ioredis');
- 
-const redis = new Redis({
-    host: '127.0.0.1',
-    port: 6379,
-});
- 
-redis.psubscribe('*', (err, count) => {
-    if (err) console.error('Redis Subscribe Error:', err);
-    console.log(`Subscribed to ${count} Redis channels`);
-});
+const redis = new Redis(); // يفترض أن Redis يعمل على نفس السيرفر بورت 6379
 
+redis.psubscribe('*', (err, count) => {
+    console.log('Subscribed to all channels');
+});
 
 redis.on('pmessage', (pattern, channel, message) => {
-    console.log(`Message received on channel: ${channel}`);
-    const parsedMessage = JSON.parse(message);
-    const eventName = parsedMessage.event;
-    const eventData = parsedMessage.data;
-    io.emit(`${channel}:${eventName}`, eventData);
+    console.log('Message Received from: ' + channel);
+    message = JSON.parse(message);
+    // إرسال البيانات للمتصفح (تأكد من اسم الحدث)
+    io.emit(channel + ':' + message.event, message.data);
 });
 
 server.listen(3000, () => {
-    console.log('Socket.IO Server is running on port 3000');
+    console.log('Socket server is running on port 3000');
 });

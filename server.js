@@ -20,7 +20,9 @@ redis.psubscribe('*', (err, count) => {
 
 redis.on('pmessage', (pattern, channel, message) => {
     console.log('Message Received from Channel: ' + channel);
-    
+    console.log('--- وصل شيء من Redis! ---');
+    console.log('القناة:', channel);
+    console.log('البيانات:', message);
     try {
         const parsedMessage = JSON.parse(message);
         io.to(channel).emit(parsedMessage.event, parsedMessage.data);

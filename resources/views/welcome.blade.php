@@ -83,7 +83,8 @@ window.Echo.connector.socket.on('disconnect', () => {
 window.Echo.channel('laravel_database_ChatEvent')
     .listen('.chat_event', (data) => {
         console.log("وصلت بيانات جديدة:", data);
-        
+        const messageBox = document.querySelector('.messages'); // افترضنا أن هذا اسم الكلاس
+        messageBox.innerHTML += `<p>${e.message}</p>`;
         if(container.querySelector('.text-muted')) {
             container.innerHTML = '';
         }

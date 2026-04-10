@@ -45,61 +45,61 @@
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
 <script>
-    // إعداد Laravel Echo للعمل مع Nginx Reverse Proxy
-    window.Echo = new Echo({
-        broadcaster: 'socket.io',
-        // نستخدم الدومين مباشرة مع https لأن Nginx سيوجه الطلب داخلياً لبورت 3000
-        host: 'https://' + window.location.hostname, 
-        transports: ['websocket', 'polling'],
-        forceTLS: true
+// 1. إعداد الـ Echo
+window.Echo = new Echo({
+    broadcaster: 'socket.io',
+    // نستخدم العنوان الحالي للموقع أوتوماتيكياً
+    host: window.location.hostname, 
+    transports: ['websocket', 'polling'],
+    forceTLS: true,
+    path: '/socket.io' // ضروري جداً لأننا عرفناه في Nginx
+});
+
+const statusEl = document.getElementById('connection-status');
+const container = document.getElementById('messages-container');
+
+// 2. مراقبة حالة الاتصال بالـ Socket مباشرة
+window.Echo.connector.socket.on('connect', () => {
+    statusEl.innerText = "متصل بنجاح ✅";
+    statusEl.className = "status-online";
+    console.log("Connected successfully to mazoom-socket!");
+});
+
+window.Echo.connector.socket.on('connect_error', (error) => {
+    console.error("Connection Error Details:", error);
+    statusEl.innerText = "خطأ في الاتصال ⚠️";
+    statusEl.className = "status-offline";
+});
+
+window.Echo.connector.socket.on('disconnect', () => {
+    statusEl.innerText = "انقطع الاتصال ❌";
+    statusEl.className = "status-offline";
+});
+
+// 3. الاستماع للقناة (تأكد من اسم القناة والحدث)
+window.Echo.channel('laravel_database_ChatEvent')
+    .listen('.chat_event', (data) => { // النقطة هنا تعني استخدام اسم الحدث الخام
+        console.log("وصلت بيانات جديدة:", data);
+        
+        if(container.querySelector('.text-muted')) {
+            container.innerHTML = '';
+        }
+
+        const newMessage = document.createElement('div');
+        newMessage.className = 'message-item shadow-sm';
+        
+        // جلب الرسالة سواء كانت باسم message أو نص مباشر
+        const content = data.message ? data.message : (typeof data === 'string' ? data : JSON.stringify(data));
+        
+        newMessage.innerHTML = `
+            <strong>الرسالة المستلمة:</strong> 
+            <div class="mt-1">${content}</div>
+            <hr class="my-2">
+            <small class="text-muted">${new Date().toLocaleTimeString('ar-EG')}</small>
+        `;
+        
+        container.prepend(newMessage);
     });
-
-    const statusEl = document.getElementById('connection-status');
-    const container = document.getElementById('messages-container');
-
-    // مراقبة حالة الاتصال
-    window.Echo.connector.socket.on('connect', () => {
-        statusEl.innerText = "متصل بنجاح ✅";
-        statusEl.className = "status-online";
-        console.log("Connected to Socket.IO Server");
-    });
-
-    window.Echo.connector.socket.on('disconnect', () => {
-        statusEl.innerText = "انقطع الاتصال ❌";
-        statusEl.className = "status-offline";
-    });
-
-    window.Echo.connector.socket.on('connect_error', (error) => {
-        console.error("Connection Error:", error);
-        statusEl.innerText = "خطأ في الاتصال ⚠️";
-    });
-
-    // الاستماع للقناة والحدث الخاص بك
-    // تأكد من بقاء النقطة قبل chat_event
-    window.Echo.channel('laravel_database_ChatEvent')
-        .listen('.chat_event', (data) => {
-            console.log("وصلت بيانات جديدة:", data);
-            
-            // إزالة نص الانتظار عند استلام أول رسالة
-            if(container.querySelector('.text-muted')) {
-                container.innerHTML = '';
-            }
-
-            const newMessage = document.createElement('div');
-            newMessage.className = 'message-item shadow-sm';
-            
-            // معالجة البيانات المستلمة
-            const content = data.message ? data.message : JSON.stringify(data);
-            
-            newMessage.innerHTML = `
-                <strong>الرسالة المستلمة:</strong> 
-                <div class="mt-1">${content}</div>
-                <hr class="my-2">
-                <small class="text-muted">${new Date().toLocaleTimeString('ar-EG')}</small>
-            `;
-            
-            container.prepend(newMessage);
-        });
 </script>
 
 </body>

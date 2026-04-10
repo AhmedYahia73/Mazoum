@@ -16,6 +16,6 @@ redis.on('pmessage', (pattern, channel, message) => {
     io.emit(channel + ':' + message.event, message.data);
 });
 
-server.listen(3000, () => {
-    console.log('Socket server is running on port 3000');
+server.listen(3001, () => {
+    console.log('Socket server is running on port 3001');
 });

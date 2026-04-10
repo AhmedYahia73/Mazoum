@@ -3,28 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار Real-Time Socket.io</title>
+    <title>اختبار Real-Time | mazoom.online</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; padding: 50px; }
-        #messages-container { height: 300px; overflow-y: auto; background: white; border-radius: 8px; padding: 15px; border: 1px solid #ddd; }
-        .message-item { background: #e9ecef; border-radius: 5px; padding: 10px; margin-bottom: 10px; border-right: 5px solid #007bff; text-align: right; }
-        .status-online { color: green; font-weight: bold; }
-        .status-offline { color: red; font-weight: bold; }
+        body { background-color: #f4f7f6; padding: 50px; font-family: sans-serif; }
+        #messages-container { height: 350px; overflow-y: auto; background: white; border-radius: 8px; padding: 15px; border: 1px solid #ddd; }
+        .message-item { background: #e9ecef; border-radius: 5px; padding: 12px; margin-bottom: 10px; border-right: 5px solid #007bff; text-align: right; }
+        .status-online { color: #28a745; font-weight: bold; }
+        .status-offline { color: #dc3545; font-weight: bold; }
+        .card-header { font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="card shadow">
-        <div class="card-header bg-dark text-white text-center">
-            <h5 class="mb-0">نظام استقبال الرسائل (ChatEvent)</h5>
-        </div>
-        <div class="card-body">
-            <p>حالة الاتصال بالسيرفر: <span id="connection-status" class="status-offline">جاري الاتصال...</span></p>
-            <hr>
-            <div id="messages-container">
-                <div class="text-muted text-center">في انتظار وصول رسائل عبر Tinker...</div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0">نظام استقبال الرسائل المباشر (ChatEvent)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>حالة الاتصال بالسيرفر:</span>
+                        <span id="connection-status" class="status-offline">جاري محاولة الاتصال...</span>
+                    </div>
+                    
+                    <div id="messages-container">
+                        <div class="text-muted text-center mt-5">في انتظار وصول بيانات من السيرفر عبر Tinker...</div>
+                    </div>
+                </div>
+                <div class="card-footer text-center text-muted small">
+                    mazoom.online - Real Time Socket.IO
+                </div>
             </div>
         </div>
     </div>
@@ -34,19 +45,23 @@
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
 <script>
-    // إعداد Laravel Echo
+    // إعداد Laravel Echo للعمل مع Nginx Reverse Proxy
     window.Echo = new Echo({
         broadcaster: 'socket.io',
-        host: window.location.hostname + ':3000', 
-        transports: ['websocket', 'polling'] 
+        // نستخدم الدومين مباشرة مع https لأن Nginx سيوجه الطلب داخلياً لبورت 3000
+        host: 'https://' + window.location.hostname, 
+        transports: ['websocket', 'polling'],
+        forceTLS: true
     });
 
     const statusEl = document.getElementById('connection-status');
     const container = document.getElementById('messages-container');
-    
+
+    // مراقبة حالة الاتصال
     window.Echo.connector.socket.on('connect', () => {
         statusEl.innerText = "متصل بنجاح ✅";
         statusEl.className = "status-online";
+        console.log("Connected to Socket.IO Server");
     });
 
     window.Echo.connector.socket.on('disconnect', () => {
@@ -54,22 +69,35 @@
         statusEl.className = "status-offline";
     });
 
-    // التعديل هنا ليتناسب مع الكود الخاص بك:
-    // 1. اسم القناة: 'ChatEvent' (مع إضافة Prefix لارافيل الافتراضي)
-    // 2. اسم الحدث: '.chat_event' (النقطة ضرورية لأنك استخدمت broadcastAs)
+    window.Echo.connector.socket.on('connect_error', (error) => {
+        console.error("Connection Error:", error);
+        statusEl.innerText = "خطأ في الاتصال ⚠️";
+    });
+
+    // الاستماع للقناة والحدث الخاص بك
+    // تأكد من بقاء النقطة قبل chat_event
     window.Echo.channel('laravel_database_ChatEvent')
         .listen('.chat_event', (data) => {
-            console.log("وصلت بيانات:", data);
+            console.log("وصلت بيانات جديدة:", data);
             
-            if(container.querySelector('.text-muted')) container.innerHTML = '';
+            // إزالة نص الانتظار عند استلام أول رسالة
+            if(container.querySelector('.text-muted')) {
+                container.innerHTML = '';
+            }
 
             const newMessage = document.createElement('div');
-            newMessage.className = 'message-item';
+            newMessage.className = 'message-item shadow-sm';
             
-            // تأكد أن 'message' هو اسم المتغير العام في الـ Event الخاص بك
+            // معالجة البيانات المستلمة
             const content = data.message ? data.message : JSON.stringify(data);
             
-            newMessage.innerHTML = `<strong>الرسالة المستلمة:</strong> ${content} <br> <small class="text-secondary">${new Date().toLocaleTimeString()}</small>`;
+            newMessage.innerHTML = `
+                <strong>الرسالة المستلمة:</strong> 
+                <div class="mt-1">${content}</div>
+                <hr class="my-2">
+                <small class="text-muted">${new Date().toLocaleTimeString('ar-EG')}</small>
+            `;
+            
             container.prepend(newMessage);
         });
 </script>

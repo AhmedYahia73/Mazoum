@@ -5,5 +5,7 @@ window.io = io;
 
 window.Echo = new Echo({
     broadcaster: 'socket.io',
-    host: window.location.hostname + ':3000',
+    host: window.location.protocol + '//' + window.location.hostname, 
+    transports: ['websocket', 'polling'], // تحديد وسيلة النقل لضمان التوافقية
+    forceTLS: true, 
 });

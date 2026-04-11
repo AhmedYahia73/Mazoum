@@ -26,7 +26,7 @@ class ChatEvent implements ShouldBroadcastNow
     public function broadcastOn()
     {
         // return new PrivateChannel('channel-name');
-        return new Channel('ChatEvent');
+        return new Channel('chat.' . $this->message->event_user_id);
     }
     
     public function broadcastAs()

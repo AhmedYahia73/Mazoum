@@ -63,7 +63,7 @@
 
     if (event_user_id) {
         // الاستماع للقناة الخاصة بالـ ID الممرر فقط
-        window.Echo.channel('laravel_database_chat.' + event_user_id)
+        window.Echo.channel('laravel_database_customchat.' + event_user_id)
         .listen('.custom_chat_event', (data) => {
                 console.log("وصلت بيانات لهذا المستخدم:", data);
                 

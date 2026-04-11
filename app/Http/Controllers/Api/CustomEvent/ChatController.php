@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Events\ChatEvent;
 use App\Events\CustomChatEvent;
+use App\Traits\imageTrait;
 
 use App\Models\CustomEventUsers;
 use App\Models\CustomChat;
@@ -15,6 +16,8 @@ use App\Models\EventChat;
 
 class ChatController extends Controller
 {
+    use imageTrait;
+    
     public function custom_users(Request $request, $id){
         $users = CustomEventUsers::
         where("custom_event_id", $id)

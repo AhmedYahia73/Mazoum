@@ -17,7 +17,7 @@ use App\Models\EventChat;
 class ChatController extends Controller
 {
     use imageTrait;
-    
+
     public function custom_users(Request $request, $id){
         $users = CustomEventUsers::
         where("custom_event_id", $id)
@@ -322,6 +322,7 @@ class ChatController extends Controller
         $chat_imges_count = EventChat::
         where("user_id", $request->user()->id)
         ->where("event_user_id", $request->event_user_id)
+        ->where("user_sent", false)
         ->whereNotNull("image")
         ->count();
         if($chat_imges_count > 1){

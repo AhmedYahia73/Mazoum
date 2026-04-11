@@ -157,6 +157,7 @@ class ChatController extends Controller
         where("user_id", $request->user()->id)
         ->where("custom_user_id", $request->custom_user_id)
         ->whereNotNull("image")
+        ->where("user_sent", false)
         ->count();
         if($chat_imges_count > 1){
             return response()->json([

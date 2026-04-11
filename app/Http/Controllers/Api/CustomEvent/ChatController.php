@@ -154,8 +154,7 @@ class ChatController extends Controller
         $custom_event_id = $custom_event_user->custom_event_id;
         $user_id = $custom_event_user->event?->user_id;
         $chat_imges_count = CustomChat::
-        where("user_id", $request->user()->id)
-        ->where("custom_user_id", $request->custom_user_id)
+        where("custom_user_id", $request->custom_user_id)
         ->whereNotNull("image")
         ->where("user_sent", false)
         ->count();
@@ -321,8 +320,7 @@ class ChatController extends Controller
         $event_id = $event_user->event_id;
         $user_id = $event_user->event?->user_id;
         $chat_imges_count = EventChat::
-        where("user_id", $request->user()->id)
-        ->where("event_user_id", $request->event_user_id)
+        where("event_user_id", $request->event_user_id)
         ->where("user_sent", false)
         ->whereNotNull("image")
         ->count();

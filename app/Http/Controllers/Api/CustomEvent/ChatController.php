@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\CustomEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Events\ChatEvent;
+use App\Events\CustomChatEvent;
 
 use App\Models\CustomEventUsers;
 use App\Models\CustomChat;
@@ -45,7 +47,7 @@ class ChatController extends Controller
             return [
                 "id" => $item->id,
                 "msg" => $item->msg,
-                "image" => url("storage/", $item->image),
+                "image" => url("storage/" . $item->image),
                 "is_read" => $item->is_read,
                 "user_sent" => $item->user_sent,
                 "date" => $item->created_at->format("Y-m-d"),
@@ -63,6 +65,19 @@ class ChatController extends Controller
         where("user_id", $request->user()->id)
         ->where("custom_user_id", $custom_user_id)
         ->where("user_sent", true)
+        ->update([
+            "is_read" => true
+        ]);
+
+        return response()->json([
+            "success" => "You read msg success"
+        ]);
+    }
+
+    public function custom_msg_vistor_read(Request $request, $custom_user_id){ 
+        $chat = CustomChat:: 
+        where("custom_user_id", $custom_user_id)
+        ->where("user_sent", false)
         ->update([
             "is_read" => true
         ]);
@@ -97,7 +112,7 @@ class ChatController extends Controller
         if( $request->image){
             $image = $this->upload($request, "image", "custom_chat");
         }
-        CustomChat::create([
+        $custom_chat = CustomChat::create([
             'msg' => $msg,
             'image' => $image,
             'user_id' => $request->user()->id,
@@ -105,7 +120,8 @@ class ChatController extends Controller
             'custom_event_id' => $custom_event_id,
             'user_sent' => true,
             'is_read' => false,
-        ]);
+        ]); 
+        CustomChatEvent::dispatch($custom_chat);
 
         return response()->json([
             "success" => "You send msg success"
@@ -224,6 +240,19 @@ class ChatController extends Controller
         ]);
     }
 
+    public function event_msg_vistor_read(Request $request, $event_user_id){ 
+        $chat = EventChat:: 
+        where("event_user_id", $event_user_id)
+        ->where("user_sent", false)
+        ->update([
+            "is_read" => true
+        ]);
+
+        return response()->json([
+            "success" => "You read msg success"
+        ]);
+    }
+
     public function user_send_event_msg(Request $request){ 
         $validator = Validator::make($request->all(), [
             'msg' => ["sometimes"], 
@@ -249,7 +278,7 @@ class ChatController extends Controller
         if( $request->image){
             $image = $this->upload($request, "image", "event_chat");
         }
-        EventChat::create([
+        $chat = EventChat::create([
             'msg' => $msg,
             'image' => $image,
             'user_id' => $request->user()->id,
@@ -258,6 +287,7 @@ class ChatController extends Controller
             'user_sent' => true,
             'is_read' => false,
         ]);
+        ChatEvent::dispatch($chat);
 
         return response()->json([
             "success" => "You send msg success"

@@ -1,20 +1,30 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Models\Admin;
-
-use App\Http\Controllers\Api\CustomEvent\PackageController;
-
 use App\Http\Controllers\Admin\EventUersController;
+use App\Http\Controllers\Api\CustomEvent\PackageController;
+use App\Models\Admin;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Route;
 use Login\LoginController;
 
+ 
 //////////// User
 Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         
     Route::controller('Api\CustomEvent\ChatController')
     ->prefix("chat")->group(function () {
-
+        Route::get('/custom_users/{id}', 'custom_users');
+        Route::get('/custom_msgs/{id}', 'custom_msgs');
+        Route::get('/custom_msg_read/{id}', 'custom_msg_read');
+        Route::post('/user_send_custom_msg', 'user_send_custom_msg');
+        Route::post('/event_user_send_custom_msg', 'event_user_send_custom_msg')->withoutMiddleware(['auth', 'throttle']);
+        
+        Route::get('/event_users/{id}', 'event_users');
+        Route::get('/event_msgs/{id}', 'event_msgs');
+        Route::get('/event_msg_read/{id}', 'event_msg_read');
+        Route::post('/user_send_event_msg', 'user_send_event_msg');
+        Route::post('/event_user_send_event_msg', 'event_user_send_event_msg')->withoutMiddleware(['auth', 'throttle']);
     });
  
     Route::post('/custom_event/{id}', 'Api\CustomEvent\CustomEventController@update');

@@ -45,63 +45,57 @@
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
 <script>
-// الإعداد المصحح للاتصال عبر HTTPS و Nginx Proxy
-window.Echo = new Echo({
-    broadcaster: 'socket.io',
-    // تحديد العنوان كاملاً مع البروتوكول لضمان عدم حدوث Redirect Loops
-    host: 'https://mazoom.online', 
-    transports: ['websocket', 'polling'],
-    forceTLS: true,
-    path: '/socket.io',
-    // إضافة الإعدادات الضرورية لتجاوز مشاكل CORS أو التوثيق في الاختبار
-    client: io
-});
+    // جلب الـ ID من الرابط (مثلاً لو الرابط mazoom.online/test?id=5)
+    const urlParams = new URLSearchParams(window.location.search);
+    const event_user_id = {{ $event_user_id }}; 
 
-const statusEl = document.getElementById('connection-status');
-const container = document.getElementById('messages-container');
+    window.Echo = new Echo({
+        broadcaster: 'socket.io',
+        host: 'https://mazoom.online', 
+        transports: ['websocket', 'polling'],
+        forceTLS: true,
+        path: '/socket.io',
+        client: io
+    });
 
-// مراقبة الاتصال
-window.Echo.connector.socket.on('connect', () => {
-    statusEl.innerText = "متصل بنجاح ✅";
-    statusEl.className = "status-online";
-    console.log("Connected successfully to mazoom-socket!");
-});
+    const statusEl = document.getElementById('connection-status');
+    const container = document.getElementById('messages-container');
 
-window.Echo.connector.socket.on('connect_error', (error) => {
-    console.error("Connection Error Details:", error);
-    statusEl.innerText = "خطأ في الاتصال ⚠️";
-    statusEl.className = "status-offline";
-});
+    if (event_user_id) {
+        // الاستماع للقناة الخاصة بالـ ID الممرر فقط
+        window.Echo.channel(`chat.${event_user_id}`)
+            .listen('.custom_chat_event', (data) => {
+                console.log("وصلت بيانات لهذا المستخدم:", data);
+                
+                if(container.querySelector('.text-muted')) {
+                    container.innerHTML = '';
+                }
 
-window.Echo.connector.socket.on('disconnect', () => {
-    statusEl.innerText = "انقطع الاتصال ❌";
-    statusEl.className = "status-offline";
-});
+                const newMessage = document.createElement('div');
+                newMessage.className = 'message-item shadow-sm';
+                
+                // بناء محتوى الرسالة من البيانات القادمة من broadcastWith
+                newMessage.innerHTML = `
+                    <strong>الرسالة المستلمة (ID: ${data.id}):</strong> 
+                    <div class="mt-1">${data.msg}</div>
+                    ${data.image ? `<img src="${data.image}" class="img-fluid mt-2 rounded" style="max-height:150px">` : ''}
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>بواسطة: ${data.user_sent}</span>
+                        <span>${data.date} ${data.time}</span>
+                    </div>
+                `;
+                
+                container.prepend(newMessage);
+            });
+    } else {
+        statusEl.innerText = "خطأ: الـ ID غير موجود في الرابط ⚠️";
+    }
 
-// الاستماع للقناة
-// ملاحظة: تأكد أن اسم القناة في Laravel هو ChatEvent بدون سوابق إضافية إذا لم يشتغل
-window.Echo.channel('laravel_database_ChatEvent')
-    .listen('.chat_event', (data) => {
-        console.log("وصلت بيانات جديدة:", data);
-        const messageBox = document.querySelector('.messages'); // افترضنا أن هذا اسم الكلاس
-        messageBox.innerHTML += `<p>${e.message}</p>`;
-        if(container.querySelector('.text-muted')) {
-            container.innerHTML = '';
-        }
-
-        const newMessage = document.createElement('div');
-        newMessage.className = 'message-item shadow-sm';
-        
-        const content = data.message ? data.message : (typeof data === 'string' ? data : JSON.stringify(data));
-        
-        newMessage.innerHTML = `
-            <strong>الرسالة المستلمة:</strong> 
-            <div class="mt-1">${content}</div>
-            <hr class="my-2">
-            <small class="text-muted">${new Date().toLocaleTimeString('ar-EG')}</small>
-        `;
-        
-        container.prepend(newMessage);
+    // مراقبة حالة الاتصال
+    window.Echo.connector.socket.on('connect', () => {
+        statusEl.innerText = `متصل (مراقب للـ ID: ${event_user_id}) ✅`;
+        statusEl.className = "status-online";
     });
 </script>
 

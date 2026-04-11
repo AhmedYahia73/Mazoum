@@ -10,6 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class CustomChatEvent implements ShouldBroadcastNow
 {
@@ -24,12 +25,28 @@ class CustomChatEvent implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        // return new PrivateChannel('channel-name');
-        return new Channel('CustomChatEvent');
+        return new Channel('chat.' . $this->message->custom_user_id);
     }
     
     public function broadcastAs()
     {
         return "custom_chat_event";
+    }
+
+    public function broadcastWith(): array
+    {
+        $data = [
+            'id' => $this->message->id,
+            'msg' => $this->message->msg,
+            'image' => url("storage/" . $this->message->image),
+            'user_sent' => $this->message->user_sent,
+            'is_read' => $this->message->is_read,
+            "date" => $this->message->created_at->format("Y-m-d"),
+            "time" => $this->message->created_at->format("h:i:s A"),
+        ];
+        
+        Log::info('📦 Broadcasting Data:', $data);
+        
+        return $data;
     }
 }

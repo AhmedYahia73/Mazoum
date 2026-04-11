@@ -17,7 +17,7 @@ use App\Http\Controllers\HomeController;
 
 
 Route::get('test/{event_user_id}', function ($event_user_id) {
-    return view("welcome", $event_user_id);
+    return view("welcome", compact('event_user_id'));
 });
 Route::get('event-login/{id}', 'EventUserActionsController@event_login');
 

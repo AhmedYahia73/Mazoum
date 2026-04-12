@@ -20,6 +20,8 @@ class PaymentMethod extends Model
     protected $appends = ["icon_url"];
 
     public function getIconUrlAttribute(){
-        return url("storage/" . $this->attributes['icon']);
+        if(isset($this->attributes['icon'])){
+            return url("storage/" . $this->attributes['icon']);
+        }
     }
 }

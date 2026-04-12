@@ -18,10 +18,22 @@ class CustomEvent extends Model
         'address' , 'date' , 'time', "send_type",
         "name_qr", "number_qr", "qr_height",
         "qr_width", "qr_x", "qr_y", "lat", "lng",
-        'scan_assistant_id', "resend_qr"
+        'scan_assistant_id', "resend_qr", 
+        "video"
     ];
-    protected $appends = ["map"];
-
+    protected $appends = ["map", "image_url", "video_url"];
+ 
+    public function getImageUrlAttribute(){
+        if(isset($this->attributes['image'])){
+            return url("storage/" . $this->attributes['image']);
+        }
+    }
+ 
+    public function getVideoUrlAttribute(){
+        if(isset($this->attributes['video'])){
+            return url("storage/" . $this->attributes['video']);
+        }
+    }
 
     public function getMapAttribute(){
         if(isset($this->attributes['lat']) && isset($this->attributes['lng'])){

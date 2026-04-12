@@ -21,14 +21,8 @@ class CustomEvent extends Model
         'scan_assistant_id', "resend_qr", 
         "video"
     ];
-    protected $appends = ["map", "image_url", "video_url"];
- 
-    public function getImageUrlAttribute(){
-        if(isset($this->attributes['image'])){
-            return url("storage/" . $this->attributes['image']);
-        }
-    }
- 
+    protected $appends = ["map", "video_url"];
+   
     public function getVideoUrlAttribute(){
         if(isset($this->attributes['video'])){
             return url("storage/" . $this->attributes['video']);

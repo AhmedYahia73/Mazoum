@@ -286,7 +286,7 @@ class ChatController extends Controller
             'image' => $image,
             'user_id' => $request->user()->id,
             'event_user_id' => $request->event_user_id,
-            'event_id' => $event_id,
+            // 'event_id' => $event_id,
             'user_sent' => true,
             'is_read' => false,
         ]);
@@ -339,7 +339,7 @@ class ChatController extends Controller
             'image' => $image,
             'user_id' => $user_id,
             'event_user_id' => $request->event_user_id,
-            'event_id' => $event_id,
+            // 'event_id' => $event_id,
             'user_sent' => false,
             'is_read' => false,
         ]);

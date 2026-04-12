@@ -52,8 +52,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::get('/my_custom_events', 'my_custom_events');
         // new
         Route::put('/attend_event/{id}', 'attend_event');
-        Route::put('/event_open_users/{id}', 'event_open_users');
-        Route::put('/custom_open_users/{id}', 'custom_open_users');
+        Route::get('/event_open_users/{id}', 'event_open_users');
+        Route::get('/custom_open_users/{id}', 'custom_open_users');
 
         Route::put('/attend_custom_event/{id}', 'attend_custom_event');
         Route::post('/save_event_users', 'save_event_users');

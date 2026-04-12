@@ -25,7 +25,7 @@ class CustomEvent extends Model
    
     public function getVideoUrlAttribute(){
         if(isset($this->attributes['video'])){
-            return url("storage/" . $this->attributes['video']);
+            return Image_Path($this->attributes['video']);
         }
     }
 

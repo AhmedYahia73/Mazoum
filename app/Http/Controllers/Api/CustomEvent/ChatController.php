@@ -334,7 +334,7 @@ class ChatController extends Controller
         if( $request->image){
             $image = $this->upload($request, "image", "custom_chat");
         }
-        EventChat::create([
+        $chat = EventChat::create([
             'msg' => $msg,
             'image' => $image,
             'user_id' => $user_id,
@@ -343,6 +343,7 @@ class ChatController extends Controller
             'user_sent' => false,
             'is_read' => false,
         ]);
+        ChatEvent::dispatch($chat);
 
         return response()->json([
             "success" => "You send msg success"

@@ -571,6 +571,15 @@ class CustomEventController extends Controller
             $input['image'] = $filename;
         }
 
+        if($request->file('video') != null) {
+
+            $extension = $request->file('video')->extension();
+            $filename = uniqid() . '.' . $extension;
+            $request->file('video')->move($path, $filename);
+
+            $input['video'] = $filename;
+        }
+
         return  $input;
     }
 

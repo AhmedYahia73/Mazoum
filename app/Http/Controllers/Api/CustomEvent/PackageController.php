@@ -347,6 +347,7 @@ class PackageController extends Controller
     public function event_open_users(Request $request, $id){
         $enter_event = EnterUserEvent::
         where("event_user_id", $id)
+        ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,
@@ -364,6 +365,7 @@ class PackageController extends Controller
     public function custom_open_users(Request $request, $id){
         $enter_event = EnterUserCustomEvent::
         where("custom_user_id", $id)
+        ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,

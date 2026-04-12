@@ -28,6 +28,14 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/user_send_event_msg', 'user_send_event_msg');
         Route::post('/event_user_send_event_msg', 'event_user_send_event_msg')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });
+    
+    Route::controller('Api\CustomEvent\MemoryController')
+    ->prefix("memories")->group(function () {
+        Route::get('/custom_memories/{id}', 'custom_memories');
+        Route::get('/memories/{id}', 'memories');
+        Route::post('/send_custom_memories', 'send_custom_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/send_memories', 'send_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+    });
  
     Route::post('/custom_event/{id}', 'Api\CustomEvent\CustomEventController@update');
     Route::resource('custom_event','Api\CustomEvent\CustomEventController',['names' => 'user.custom_event']);

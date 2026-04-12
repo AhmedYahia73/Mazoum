@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
-use App\Models\Pricing;
-use App\Models\Orders;
+use App\Models\EnterUserCustomEvent;
+use App\Models\EnterUserEvent;
+use App\Models\EventUsers;
 use App\Models\Negotaition;
+use App\Models\Orders;
 use App\Models\Payment;
+use App\Models\Pricing;
 use App\Models\User;
 use App\Traits\imageTrait;
 use Carbon\Carbon;
@@ -299,11 +302,79 @@ class PackageController extends Controller
         $attendance = CustomEventUsers::
         where('id',$id)
         ->update([
-            "scan_count" => $request->scan_count
+            "scan_count" => $request->scan_count,
+            'scan' => 'yes',
+            'scan_at' => now(),
         ]);
-
+        EnterUserCustomEvent::create([
+            "custom_user_id" => $id,
+            "count" => $request->scan_count
+        ]);
+        
         return response()->json([
             "success" => "You attend success"
+        ]);
+    }
+
+    public function attend_event(Request $request, $id){
+        
+
+        $validator = Validator::make($request->all(), [
+            'scan_count' => 'required|numeric',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        $attendance = EventUsers::
+        where('id',$id)
+        ->update([
+            "scan_count" => $request->scan_count,
+            'scan' => 'yes',
+            'scan_at' => now(),
+        ]);
+        EnterUserEvent::create([
+            "event_user_id" => $id,
+            "count" => $request->scan_count
+        ]);
+        
+        return response()->json([
+            "success" => "You attend success"
+        ]);
+    }
+
+    public function event_open_users(Request $request, $id){
+        $enter_event = EnterUserEvent::
+        where("event_user_id", $id)
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "count" => $item->count,
+                "date" => $item->created_at->format("Y-m-d"),
+                "id" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "enter_event" => $enter_event
+        ]);
+    }
+
+    public function custom_open_users(Request $request, $id){
+        $enter_event = EnterUserCustomEvent::
+        where("custom_user_id", $id)
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "count" => $item->count,
+                "date" => $item->created_at->format("Y-m-d"),
+                "id" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "enter_event" => $enter_event
         ]);
     }
     

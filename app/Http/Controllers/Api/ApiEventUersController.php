@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\EventFamily;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\EventUsers as Model;
-use App\Models\Events;
-use App\Models\EventUsers;
-use App\Models\Setting;
-use App\Models\User;
-use App\Models\EventMessages;
-use App\Models\CongratulationMessages;
 use App\Http\Resources\APiResource\CongratulationMessagesResource;
 use App\Http\Resources\APiResource\EventMessagesResource;
 use App\Http\Resources\APiResource\UserEvents_Data;
 use App\Http\Resources\APiResource\UserEventsData_V2;
-use App\Traits\GeneralTrait;
-use Response;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Qr_Code;
-use Carbon\Carbon;
-use PDF;
-use Intervention\Image\ImageManagerStatic as Image;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\CongratulationMessages;
+use App\Models\EnterUserEvent;
+use App\Models\EventFamily;
+use App\Models\EventMessages;
+use App\Models\Events;
+use App\Models\EventUsers as Model;
+use App\Models\EventUsers;
 use App\Models\Notifications;
+use App\Models\Qr_Code;
+use App\Models\Setting;
+use App\Models\User;
+use App\Traits\GeneralTrait;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Intervention\Image\ImageManagerStatic as Image;
+use PDF;
+use Response;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class ApiEventUersController extends Controller
@@ -105,12 +106,16 @@ class ApiEventUersController extends Controller
         }
 
          $user_event = Model::where('id', $id)->first();
-
+        
         if ($user_event != null) {
 
             $now = Carbon::now();
 
             $user_event->update(['scan' => 'yes','scan_at' => $now]);
+            EnterUserEvent::create([
+                "event_user_id" => $id,
+                "count" => $user_event->users_count
+            ]);
 
             return $this->returnSuccessMessage('تم عمل QR Scan  بنجاح');
 

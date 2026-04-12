@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers\Assistant;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\EventUsers as Model;
-use App\Models\Events;
-use App\Models\EventUsers;
-use App\Models\Setting;
-use App\Models\EventUserLogs;
-use App\Models\Qr_Code;
-use App\Models\EventMessages;
 use App\Models\CongratulationMessages;
+use App\Models\EnterUserEvent;
 use App\Models\EventFamily;
-use Carbon\Carbon;
-use Response;
-use PDF;
-use Intervention\Image\ImageManagerStatic as Image;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\EventMessages;
+use App\Models\Events;
+use App\Models\EventUserLogs;
+use App\Models\EventUsers as Model;
+use App\Models\EventUsers;
 use App\Models\Notifications;
+use App\Models\Qr_Code;
+use App\Models\Setting;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Intervention\Image\ImageManagerStatic as Image;
+use PDF;
+use Response;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class EventUersController extends Controller
@@ -828,6 +829,10 @@ class EventUersController extends Controller
             $Item->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $Item->scan_count + 1]);
         }
 
+        EnterUserEvent::create([
+            "event_user_id" => $id,
+            "count" => $request->users_count
+        ]);
         //$Item->update(['scan' => 'yes','scan_at' => $now]);
 
         return redirect()->back()->with('success','تم عمل QR Scan  بنجاح');

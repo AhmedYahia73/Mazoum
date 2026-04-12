@@ -5,18 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\APiResource\UserItemResource;
 use App\Models\CustomEventUsers;
-use Illuminate\Http\Request;
-use App\Models\Qr_Code;
-use App\Models\User;
+use App\Models\EnterUserCustomEvent;
+use App\Models\EnterUserEvent;
 use App\Models\EventUsers;
 use App\Models\Orders;
 use App\Models\Packages;
+use App\Models\Qr_Code;
 use App\Models\Setting;
+use App\Models\User;
 use App\Traits\GeneralTrait;
-use Exception;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 
 class AuthController extends Controller
@@ -597,6 +599,11 @@ class AuthController extends Controller
 
         if($user_event->scan_count < $user_event->users_count) {
             $user_event->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $user_event->scan_count + 1]);
+            
+            EnterUserEvent::create([
+                "event_user_id" => $user_event->id,
+                "count" => 1
+            ]);
             $Item->update(['counter' => $Item->counter + 1]);
             $msg = 'welcome '.$user_event->name;
           	$data['check'] = 'ok';
@@ -688,6 +695,10 @@ class AuthController extends Controller
 
         if($user_event->scan_count < $user_event->users_count) {
             $user_event->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $user_event->scan_count + 1]);
+            EnterUserCustomEvent::create([
+                "custom_user_id" => $user_event->id,
+                "count" => 1
+            ]);
             $msg = 'welcome '.$user_event->name;
           	$data['check'] = 'ok';
           	$data['users_count'] = $user_event->users_count;

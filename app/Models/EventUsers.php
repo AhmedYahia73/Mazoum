@@ -22,6 +22,11 @@ class EventUsers extends Model
         "send_time", "accept_time"
     ];
 
+    public function enter()
+    {
+        return $this->belongsTo('App\Models\EnterUserEvent', 'event_user_id');
+    }
+
     public function msgs(){
         return $this->hasMany(EventChat::class, "event_user_id");
     }

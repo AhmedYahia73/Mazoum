@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\EventUserActions;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use App\Models\EventUsers as Model;
-use App\Models\Events;
-use App\Models\EventUsers;
-use App\Models\Setting;
-use App\Models\EventUserLogs;
-use App\Models\Qr_Code;
-use App\Models\EventMessages;
-use App\Models\CongratulationMessages;
-use App\Models\EventFamily;
-use Carbon\Carbon;
-use Response;
-use PDF;
-use Intervention\Image\ImageManagerStatic as Image;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use App\Models\Notifications;
-
-use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\EventUserImport;
+use App\Models\CongratulationMessages;
+use App\Models\EnterUserEvent;
+use App\Models\EventFamily;
+use App\Models\EventMessages;
+use App\Models\Events;
+use App\Models\EventUserActions;
+use App\Models\EventUserLogs;
+use App\Models\EventUsers as Model;
+use App\Models\EventUsers;
+use App\Models\Notifications;
+use App\Models\Qr_Code;
+use App\Models\Setting;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Intervention\Image\ImageManagerStatic as Image;
+use Maatwebsite\Excel\Facades\Excel;
+use PDF;
+use Response;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class EventUersController extends Controller
@@ -2469,6 +2469,11 @@ class EventUersController extends Controller
         for($i = 1;$i <= $request->users_count;$i++) {
             $Item->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $Item->scan_count + 1]);
         }
+        EnterUserEvent::create([
+            "event_user_id" => $id,
+            "count" => $request->users_count
+        ]);
+
 
         //$Item->update(['scan' => 'yes','scan_at' => $now]);
 

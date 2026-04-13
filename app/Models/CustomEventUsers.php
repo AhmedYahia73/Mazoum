@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomEventUsers extends Model
 {
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $table = 'custom_event_users';
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomEventUsers extends Model
 {
-    // use SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'custom_event_users';
 
@@ -44,13 +44,13 @@ class CustomEventUsers extends Model
 
 
     public function un_read_user_msgs(){
-        return $this->hasMany(CustomChat::class, "event_user_id")
+        return $this->hasMany(CustomChat::class, "custom_user_id")
         ->where("is_read", false)
         ->where("user_sent", 1);
     }
 
     public function un_read_vistor_msgs(){
-        return $this->hasMany(CustomChat::class, "event_user_id")
+        return $this->hasMany(CustomChat::class, "custom_user_id")
         ->where("is_read", false)
         ->where("user_sent", 0);
     }

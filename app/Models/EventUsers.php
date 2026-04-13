@@ -31,9 +31,16 @@ class EventUsers extends Model
         return $this->hasMany(EventChat::class, "event_user_id");
     }
 
-    public function un_read_msgs(){
+    public function un_read_user_msgs(){
         return $this->hasMany(EventChat::class, "event_user_id")
-        ->where("is_read", false);
+        ->where("is_read", false)
+        ->where("user_sent", 1);
+    }
+
+    public function un_read_vistor_msgs(){
+        return $this->hasMany(EventChat::class, "event_user_id")
+        ->where("is_read", false)
+        ->where("user_sent", 0);
     }
 
     protected $casts = [

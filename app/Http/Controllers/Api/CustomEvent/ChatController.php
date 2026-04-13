@@ -19,19 +19,27 @@ class ChatController extends Controller
     use imageTrait;
 
     public function custom_users(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            'type' => ["required", "in:user,visitor"], 
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
         $users = CustomEventUsers::
         where("custom_event_id", $id)
         ->whereHas("event", function($query){
             $query->where("user_id", auth()->user()->id);
         })
-        ->withCount("un_read_msgs")
+        ->withCount("un_read_" . $request->type . "_msgs")
         ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->mobile,
-                "un_read_msgs_count" => $item->un_read_msgs_count,
+                "un_read_msgs_count" => $item->un_read_user_msgs ?? $item->un_read_vistor_msgs,
             ];
         });
         $users = $users->sortByDesc("un_read_msgs_count")->values();
@@ -185,19 +193,27 @@ class ChatController extends Controller
     // _________________________________________________
     
     public function event_users(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            'type' => ["required", "in:user,visitor"], 
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
         $users = EventUsers::
         where("event_id", $id)
         ->whereHas("event", function($query){
             $query->where("user_id", auth()->user()->id);
         })
-        ->withCount("un_read_msgs")
+        ->withCount("un_read_" . $request->type . "_msgs")
         ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->code . $item->mobile,
-                "un_read_msgs_count" => $item->un_read_msgs_count,
+                "un_read_msgs_count" => $item->un_read_user_msgs_count ?? $item->un_read_visitor_msgs_count,
             ];
         });
         $users = $users->sortByDesc("un_read_msgs_count")->values();

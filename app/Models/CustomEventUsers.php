@@ -42,6 +42,19 @@ class CustomEventUsers extends Model
         return $this->hasMany(CustomChat::class, "custom_user_id");
     }
 
+
+    public function un_read_user_msgs(){
+        return $this->hasMany(CustomChat::class, "event_user_id")
+        ->where("is_read", false)
+        ->where("user_sent", 1);
+    }
+
+    public function un_read_vistor_msgs(){
+        return $this->hasMany(CustomChat::class, "event_user_id")
+        ->where("is_read", false)
+        ->where("user_sent", 0);
+    }
+
     public function un_read_msgs(){
         return $this->hasMany(CustomChat::class, "custom_user_id")
         ->where("is_read", false);

@@ -353,7 +353,7 @@ class PackageController extends Controller
                 "id" => $item->id,
                 "count" => $item->count,
                 "date" => $item->created_at->format("Y-m-d"),
-                "id" => $item->created_at->format("H:i A"),
+                "time" => $item->created_at->format("H:i A"),
             ];
         });
 
@@ -371,7 +371,7 @@ class PackageController extends Controller
                 "id" => $item->id,
                 "count" => $item->count,
                 "date" => $item->created_at->format("Y-m-d"),
-                "id" => $item->created_at->format("H:i A"),
+                "time" => $item->created_at->format("H:i A"),
             ];
         });
 

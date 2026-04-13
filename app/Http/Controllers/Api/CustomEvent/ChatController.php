@@ -39,7 +39,7 @@ class ChatController extends Controller
                 "id" => $item->id,
                 "name" => $item->name,
                 "mobile" => $item->mobile,
-                "un_read_msgs_count" => $item->un_read_user_msgs ?? $item->un_read_vistor_msgs,
+                "un_read_msgs_count" => $item->un_read_user_msgs_count ?? $item->un_read_vistor_msgs_count,
             ];
         });
         $users = $users->sortByDesc("un_read_msgs_count")->values();

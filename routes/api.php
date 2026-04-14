@@ -83,6 +83,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     ->prefix("user")->group(function () {
         Route::get('/', 'view');    
         Route::get('/lists', 'lists');    
+        Route::put('/update/{id}', 'update');    
         Route::post('/add', 'create');    
     });
 });

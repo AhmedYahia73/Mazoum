@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MobileCodes;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -41,7 +42,8 @@ class UserController extends Controller
           'mobile' => 'required',
           'name' => 'required',
           'custom_invetaion' => 'required|numeric',
-          "custom_event_id" => "required|exists:custom_event,id"
+          "custom_event_id" => "required|exists:custom_event,id",
+          "password" => "required"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -64,10 +66,32 @@ class UserController extends Controller
             "custom_invetaion" => $request->custom_invetaion,
             "user_id" => $request->user()->id,
             "custom_event_id" => $request->custom_event_id,
+            "password" => Hash::make($request->password)
         ]);
 
         return response()->json([
             "success" => "You add data success"
+        ]);
+    }
+
+    public function update(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+          "password" => "required"
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+  
+        User::
+        where("id", $id)
+        ->update([
+            "password" => Hash::make($request->password)
+        ]);
+
+        return response()->json([
+            "success" => "You update data success"
         ]);
     }
 }

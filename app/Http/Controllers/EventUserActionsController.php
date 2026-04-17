@@ -142,6 +142,7 @@ class EventUserActionsController extends Controller
                 $event_action = EventUserActions::
                 where("event_id", $user_event->event_id)
                 ->where("event_user_id", $user_event->id)
+                ->where("action", "accept_event")
                 ->first();
                 if ($event_action) {
                     $users_count += ($event_action->users_count ?? 0);

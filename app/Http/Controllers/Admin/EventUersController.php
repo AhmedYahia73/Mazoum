@@ -1231,7 +1231,7 @@ class EventUersController extends Controller
 
                 }
 
-                return redirect()->json(['success', 'تم الأرسال بنجاح']);
+                return response()->json(['success', 'تم الأرسال بنجاح']);
             }
 
         } catch(\Exception $e) {

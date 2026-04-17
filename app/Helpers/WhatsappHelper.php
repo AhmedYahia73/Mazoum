@@ -242,7 +242,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
             ],
             'json' => $arr,
         ]);
-
+        dd($response->json());
         return $response;
 
     }

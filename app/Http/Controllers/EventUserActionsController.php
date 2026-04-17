@@ -38,12 +38,23 @@ class EventUserActionsController extends Controller
         $check_receive_apology = EventUserActions::
         where('action', 'refuse_event')
         ->where('event_user_id',$event_user->id)->first();
-         
-        $qr_row = !$check_receive_apology ? Qr_Code::where('event_user_id',$event_user->id)->first() : null;        
         $accept_event = EventUserActions::
         where('event_user_id', $event_user->id)
         ->where('action','accept_event')
-        ->first(); 
+        ->first();
+        $btns_status = true;
+
+        if($check_receive_apology && $accept_event &&
+        $check_receive_apology->created_at < $accept_event->created_at ){
+            $qr_row = Qr_Code::
+            where('event_user_id',$event_user->id)
+            ->first();
+            $btns_status = false;
+        }
+        else{ 
+            $qr_row = !$check_receive_apology ? Qr_Code::where('event_user_id',$event_user->id)->first() : null;  
+        }      
+
                         //   CongratulationMessages::create([
                         //     'event_id' => $event->id,
                         //     'message_id' => $request->message_id,
@@ -100,7 +111,8 @@ class EventUserActionsController extends Controller
             // "yes_receive_apology" => $yes_receive_apology,
             "yes_reply_congratulation" => $yes_reply_congratulation?->message,
             "apologize_messages" => $apologize_messages,
-            "check_receive_apology" => !empty($check_receive_apology)
+            "check_receive_apology" => !empty($check_receive_apology),
+            "show_btns_status" => $btns_status,
         ]);
 
     }

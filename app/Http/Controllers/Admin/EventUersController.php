@@ -1077,7 +1077,7 @@ class EventUersController extends Controller
             ],400);
         }
 
-        $setting = Setting::first();
+
         $event_id = $request->event_id;
 
         $event = Events::where('id', $event_id)->firstOrFail();
@@ -1111,7 +1111,7 @@ class EventUersController extends Controller
                           	if(array_key_exists('users_count', $arr)) {
                                 $users_count = $arr['users_count'];
                             } else {
-								$users_count = $user_event->users_count;
+								                $users_count = $user_event->users_count;
                             }
 
                             $user_event->update([
@@ -1131,7 +1131,6 @@ class EventUersController extends Controller
                                 'error_title' => null,
                                 'error' => null,
                                 'log' => null,
-                                "send_type" => "meta",
                             ]);
 
                             $image_path = $event->file;
@@ -1149,24 +1148,42 @@ class EventUersController extends Controller
                             $image_url = $image_path;
                             $user_name = $user_event->name;
 
+                            $token          = get_whats_setting($event)['token'];
+                            $sender_id      = get_whats_setting($event)['sender_id'];
+                            $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-                            $phone_numer_id = $setting->phone_numer_id;
-                            $token          = $setting->access_token;
-
+                          	//dd($token,$sender_id,$phone_numer_id);
                             // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
-
-                            $sender_id = $setting->sender_id;
 
                             $param_1   = $user_name;
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                             $param_4   = $event->address;
-                            $param_5   = $event->time != null ? $event->time : '07:00 مساء';
+                            $param_5   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
 
-                            //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
-                            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+							              $param_6   = $users_count;
 
-                            $response = SendNewTemplateCodeV1($url);
+                          	/*
+                          	$phone_numer_id = '746157308570599';
+                            $sender_id      = '746157308570599';
+                            $token          = 'EABIy7zT1dfYBO304MlaYIQZBalGto0d1oPSCKHXEosSCsaLIdxE6QgftNNSLuhG37zirzBTMpK8HprkTRtlLyQZB1evrzBItZBW8y8LgZAYQ1pd6y64GtnMmKUZCjlY0QAZBhvu0VErD7fPzO8iz0cg0OrZBC8ovZA1F5ZCLzWa85nwaL1jWP8WYaa8yI1Ffkmvsy0QHjRrU5bSMJLS8b9bt7ZA2c0Ys8WYvlTMufprZCQ5ZCiAGTqGfzO9LcVY8S9CdpuY1PZBD1phEneQZDZD';
+                          	*/
+
+                            $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
+
+                            // if($event->country_code == 'kw') {
+
+                            //   //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
+                            //   //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+                            //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&param_6='.$param_6.'&image='.$image_url;
+
+                            //   $response = SendNewTemplateCodeV1($url);
+
+                            // } else {
+
+                            //   $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
+
+                            // }
 
                           	//dd($response,$response->getStatusCode());
 
@@ -1213,9 +1230,8 @@ class EventUersController extends Controller
                     }
 
                 }
- 
 
-                return response()->json(['success' => 'تم الأرسال بنجاح']);
+                return redirect()->back()->with('success', 'تم الأرسال بنجاح');
             }
 
         } catch(\Exception $e) {

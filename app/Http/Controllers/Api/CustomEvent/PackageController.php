@@ -260,7 +260,7 @@ class PackageController extends Controller
         ->sum('scan_count');
         $Item->invetations = $invetations;
         $Item->attendance = $attendance;
-        $waiting = $invetations - $attendance;
+        $waiting = $invetations - $send_qr;
         $Item->waiting = $waiting;
         $Item->send_qr = $send_qr;
 
@@ -300,9 +300,9 @@ class PackageController extends Controller
             ],400);
         }  
         $attendance = CustomEventUsers::
-        where('id',$id)
-        ->update([
-            "scan_count" => $request->scan_count,
+        findOrFail($id);
+        $attendance->update([
+            "scan_count" => $request->scan_count + $attendance->scan_count,
             'scan' => 'yes',
             'scan_at' => now(),
         ]);
@@ -328,9 +328,9 @@ class PackageController extends Controller
             ],400);
         }  
         $attendance = EventUsers::
-        where('id',$id)
-        ->update([
-            "scan_count" => $request->scan_count,
+        findOrFail($id);
+        $attendance->update([
+            "scan_count" => $request->scan_count + $attendance->scan_count,
             'scan' => 'yes',
             'scan_at' => now(),
         ]);

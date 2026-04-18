@@ -895,7 +895,7 @@ class PackageController extends Controller
     }
 
     private function update_qr($row, $uu_id) {
- $event = $row->event;
+        $event = $row->event;
         $bg = $event->image;
 
         // تأكد من وجود المجلد

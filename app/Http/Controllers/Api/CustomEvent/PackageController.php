@@ -421,7 +421,9 @@ class PackageController extends Controller
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
                         'uu_id' => $uu_id,
                         "user_id" => auth()->user()->id,
-                    ]); 
+                    ]);
+
+                    $this->update_qr($row,$uu_id); 
                 }
             }
 

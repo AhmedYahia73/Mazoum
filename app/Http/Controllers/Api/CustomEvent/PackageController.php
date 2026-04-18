@@ -438,7 +438,7 @@ class PackageController extends Controller
     public function event_visitors(Request $request, $id)
     { 
         $event_users = CustomEventUsers::
-        select("id", "mobile", "name", "scan_count", "users_count")
+        select("id", "mobile", "name", "scan_count", "users_count", "qr")
         ->where('custom_event_id', $id)
         ->when($request->search, function ($q) use ($request) {
 

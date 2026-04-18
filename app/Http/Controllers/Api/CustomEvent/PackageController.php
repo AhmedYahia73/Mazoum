@@ -718,6 +718,12 @@ class PackageController extends Controller
                 "errors" => "لقد ارسلت الدعوة سابقا"
             ], 400);
         }
+        if(!$event_user->send_qr){
+            auth()->user()->send_custom_invetaion += 1;
+            auth()->user()->save();
+        }
+        $event_user->send_qr = true;
+        $event_user->save();
 
         return response()->json([
             "success" => "You send qr success"

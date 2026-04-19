@@ -1187,7 +1187,6 @@ class EventUersController extends Controller
                           	//dd($response,$response->getStatusCode());
 
                             if ($response != null && $response->getStatusCode() == 200) {
-
                                 $user->update([
                                     'balance' => $user->balance - $users_count
                                 ]);
@@ -1211,7 +1210,8 @@ class EventUersController extends Controller
                                     'is_sent' => 'yes',
                                     'sent_from' => 'dashboard',
                                     'status' => 'sent',
-                                    'message_id' => $message_id
+                                    'message_id' => $message_id,
+                                    "send_type" => "meta"
                                 ]);
 
                             } else {
@@ -1229,7 +1229,7 @@ class EventUersController extends Controller
                     }
 
                 }
-
+                
                 return response()->json(['success', 'تم الأرسال بنجاح']);
             }
 
@@ -2531,10 +2531,10 @@ class EventUersController extends Controller
   
             // $api=$client->sendChatMessage($to,$body);
             $api2 = $client->sendLocationMessage($mobile,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
- 
+            $response = ["success"];
         }
 
-        if ($response && $response->getStatusCode() == 200) { // 200 OK
+        if ((isset($response[0]) && $response[0] == "success") || ($response && $response->getStatusCode() == 200)) { // 200 OK
 
             return response()->json([
                 'success' => 'تم الارسال بنجاح', 

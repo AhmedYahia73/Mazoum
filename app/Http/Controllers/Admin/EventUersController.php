@@ -2515,14 +2515,16 @@ class EventUersController extends Controller
         if($user_event->send_type == "meta"){ 
             $phone = $mobile;
             // $template_name = 'wedding_data_v7_ar';
-            $template_name = 'wedding_data_v15__';
+            $template_name = 'wedding_data_v15';
             $param_1 = $user_event->name;
-
+            $language = 'ar';
             $url_button = '?q=' . $event->lat . ',' . $event->long;
 
-            $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name.'&url_button='.$url_button;
+            // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name.'&url_button='.$url_button;
 
-            $response = SendNewTemplateCodeV1($url);
+            // $response = SendNewTemplateCodeV1($url);
+            
+            $response = SendWeddingDataV15Template($mobile,$template_name,$language,$url_button,$phone_numer_id,$token);
         }
         else{
             $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token

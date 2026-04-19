@@ -2534,7 +2534,7 @@ class EventUersController extends Controller
             $response = ["success"];
         }
 
-        if ((isset($response[0]) && $response[0] == "success") || ($response && $response->getStatusCode() == 200)) { // 200 OK
+        if ((is_array($response) && $response[0] == "success") || ($response && $response->getStatusCode() == 200)) { // 200 OK
 
             return response()->json([
                 'success' => 'تم الارسال بنجاح', 

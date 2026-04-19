@@ -734,8 +734,10 @@ class EventsController extends Controller
         //     $query->where('is_new_sent',1)
         //     ->orWhereNotNull('is_sent'); 
         // })
-        // ->sum('users_count');
-        $not_confirm = $invitees - $new_confirm_attend - $waiting;
+        // ->sum('users_count'); 
+        $not_confirm =  EventUsers:: 
+        where('is_accepted','yes')
+        ->sum('users_count');
         // $send_Qr = EventUsers::
         // where('event_id',$Item->id)
         // ->where('qr_sent','yes')

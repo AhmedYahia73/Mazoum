@@ -294,6 +294,19 @@ class ReservationController extends Controller
         ]); 
     }
 
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:reservation,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->delete();
+        return response()->json(['success' => 'تم حذف البيانات بنجاح']);
+    }
+
 
     private function gteInput($request,$modelClass) {
 

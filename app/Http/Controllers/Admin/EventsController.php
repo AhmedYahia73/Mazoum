@@ -1007,16 +1007,29 @@ class EventsController extends Controller
         CongratulationMessages::whereIn('mobile',$mobiles)->delete();
 
         $Item->delete();
-
-        // if($Item->country_code == 'kw') {
-        //     return redirect($this->redirect)->with('error', trans('home.delete_msg'));
-        // } else {
-        //     return redirect('admin/sa-events')->with('error', trans('home.delete_msg'));
-        // }
         
         return response()->json([
             'success' => 'You delete data success', 
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:events,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        $events = Model::withTrashed()->whereIn('id', $request->items)->get();
+        foreach ($events as $event) {
+            $mobiles = EventUsers::where('event_id', $event->id)->pluck('mobile')->toArray();
+            EventMessages::whereIn('mobile', $mobiles)->delete();
+            CongratulationMessages::whereIn('mobile', $mobiles)->delete();
+            $event->forceDelete();
+        }
+        return response()->json(['success' => 'You delete data success']);
     }
 
 

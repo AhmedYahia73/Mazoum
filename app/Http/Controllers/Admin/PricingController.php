@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pricing as Model;
 use App\Models\Currency;
 use Response;
+use Illuminate\Support\Facades\Validator;
 
 class PricingController extends Controller
 {
@@ -129,6 +130,19 @@ class PricingController extends Controller
         return response()->json([
             "success" => "You delete data success"
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:pricing,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->delete();
+        return response()->json(["success" => "You delete data success"]);
     }
 
 

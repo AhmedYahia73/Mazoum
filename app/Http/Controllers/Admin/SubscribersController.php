@@ -31,12 +31,24 @@ class SubscribersController extends Controller
 
     public function delete_subscriber(Request $request , $id)
     {
-
         $subscriber = Subscribers::findOrFail($id);
         $subscriber->delete();
         return response()->json([
             'success' =>  'deleted successfully', 
         ]); 
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:subscribers,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Subscribers::whereIn('id', $request->items)->delete();
+        return response()->json(['success' => 'deleted successfully']);
     }
 
 

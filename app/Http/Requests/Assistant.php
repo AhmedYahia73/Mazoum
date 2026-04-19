@@ -36,11 +36,14 @@ class Assistant extends FormRequest
 
             case 'POST':
                 return [
-                    'name'     => "required|unique:$table,name",
-                    'mobile'   => "required|numeric|unique:$table,mobile",
-                    'email'    => "required|email|unique:$table,email",
-                    'password' => "required|min:6",
-                    "user_type" => "required|in:employee,scan_employee",
+                    'name'             => "required|unique:$table,name",
+                    'mobile'           => "required|numeric|unique:$table,mobile",
+                    'email'            => "required|email|unique:$table,email",
+                    'password'         => "required|min:6",
+                    "user_type"        => "required|in:employee,scan_employee",
+                    'salary'           => "nullable|numeric|min:0",
+                    'appointment_from' => "required|date_format:H:i",
+                    'appointment_to'   => "required|date_format:H:i|after:appointment_from",
                 ];
 
             case 'PUT':
@@ -48,10 +51,13 @@ class Assistant extends FormRequest
                 $id = $this->route('id') ?? $this->id;
 
                 return [
-                    'name'     => "required|unique:$table,name,$id",
-                    'mobile'   => "required|numeric|unique:$table,mobile,$id",
-                    'email'    => "required|email|unique:$table,email,$id",
-                    'password' => "nullable|min:6", 
+                    'name'             => "required|unique:$table,name,$id",
+                    'mobile'           => "required|numeric|unique:$table,mobile,$id",
+                    'email'            => "required|email|unique:$table,email,$id",
+                    'password'         => "nullable|min:6",
+                    'salary'           => "nullable|numeric|min:0",
+                    'appointment_from' => "required|date_format:H:i",
+                    'appointment_to'   => "required|date_format:H:i|after:appointment_from",
                 ];
 
             default:
@@ -67,32 +73,44 @@ class Assistant extends FormRequest
 
         if ($lang === 'ar') {
             return [
-                'name.required'     => 'الأسم مطلوب',
-                'password.required' => 'كلمة المرور مطلوبة',
-                'mobile.required'   => 'رقم الموبايل مطلوب',
-                'mobile.numeric'    => 'رقم الموبايل يجب أن يحتوي على أرقام فقط',
-                'email.required'    => 'البريد الإلكتروني مطلوب',
-
-                'name.unique'       => 'هذا الاسم مستخدم مسبقاً',
-                'password.min'      => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
-                'email.email'       => 'يجب إدخال بريد إلكتروني صالح',
-                'email.unique'      => 'البريد الإلكتروني مستخدم مسبقاً',
-                'mobile.unique'     => 'رقم الموبايل مستخدم مسبقاً',
+                'name.required'                => 'الأسم مطلوب',
+                'password.required'            => 'كلمة المرور مطلوبة',
+                'mobile.required'              => 'رقم الموبايل مطلوب',
+                'mobile.numeric'               => 'رقم الموبايل يجب أن يحتوي على أرقام فقط',
+                'email.required'               => 'البريد الإلكتروني مطلوب',
+                'name.unique'                  => 'هذا الاسم مستخدم مسبقاً',
+                'password.min'                 => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
+                'email.email'                  => 'يجب إدخال بريد إلكتروني صالح',
+                'email.unique'                 => 'البريد الإلكتروني مستخدم مسبقاً',
+                'mobile.unique'                => 'رقم الموبايل مستخدم مسبقاً',
+                'appointment_from.required'    => 'وقت بداية الدوام مطلوب',
+                'appointment_from.date_format' => 'صيغة وقت البداية يجب أن تكون HH:MM مثال 07:00',
+                'appointment_to.required'      => 'وقت نهاية الدوام مطلوب',
+                'appointment_to.date_format'   => 'صيغة وقت النهاية يجب أن تكون HH:MM مثال 15:00',
+                'appointment_to.after'         => 'وقت النهاية يجب أن يكون بعد وقت البداية',
+                'salary.numeric'               => 'الراتب يجب أن يكون رقماً',
+                'salary.min'                   => 'الراتب يجب أن يكون أكبر من أو يساوي صفر',
             ];
         }
 
         return [
-            'name.required'     => 'name is required',
-            'password.required' => 'password is required',
-            'mobile.required'   => 'mobile is required',
-            'mobile.numeric'    => 'mobile must be numeric',
-            'email.required'    => 'email is required',
-
-            'name.unique'       => 'name must be unique',
-            'password.min'      => 'password must be at least 6 characters',
-            'email.email'       => 'email must be valid',
-            'email.unique'      => 'email must be unique',
-            'mobile.unique'     => 'mobile must be unique',
+            'name.required'                => 'name is required',
+            'password.required'            => 'password is required',
+            'mobile.required'              => 'mobile is required',
+            'mobile.numeric'               => 'mobile must be numeric',
+            'email.required'               => 'email is required',
+            'name.unique'                  => 'name must be unique',
+            'password.min'                 => 'password must be at least 6 characters',
+            'email.email'                  => 'email must be valid',
+            'email.unique'                 => 'email must be unique',
+            'mobile.unique'                => 'mobile must be unique',
+            'appointment_from.required'    => 'appointment from is required',
+            'appointment_from.date_format' => 'appointment from must be in HH:MM format e.g. 07:00',
+            'appointment_to.required'      => 'appointment to is required',
+            'appointment_to.date_format'   => 'appointment to must be in HH:MM format e.g. 15:00',
+            'appointment_to.after'         => 'appointment to must be after appointment from',
+            'salary.numeric'               => 'salary must be numeric',
+            'salary.min'                   => 'salary must be >= 0',
         ];
     }
 

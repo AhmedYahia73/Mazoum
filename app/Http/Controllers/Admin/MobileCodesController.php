@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\MobileCodes as modelRequest;
 use App\Http\Controllers\Controller;
 use App\Models\MobileCodes as Model;
+use Illuminate\Support\Facades\Validator;
 
 class MobileCodesController extends Controller
 {
@@ -124,6 +125,19 @@ class MobileCodesController extends Controller
         return response()->json([
             'success' =>  'تم حذف البيانات بنجاح', 
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:mobile_codes,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->delete();
+        return response()->json(['success' => 'تم حذف البيانات بنجاح']);
     }
 
 

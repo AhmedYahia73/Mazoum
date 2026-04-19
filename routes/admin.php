@@ -19,6 +19,7 @@ Route::resource(
 // Route::patch('manager/update_password/{id}', 'AdminController@UpdatePass')->name('admin.manager.UpdatePass');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
+Route::post('manager/multi_delete', 'AdminController@multi_delete');
 
 
 // Assistant
@@ -30,6 +31,7 @@ Route::resource(
 );
 
 Route::get('assistant/destroy/{id}', 'AssistantController@destroy');
+Route::post('assistant/multi_delete', 'AssistantController@multi_delete');
 
 
 
@@ -41,22 +43,26 @@ Route::post('setting', 'SettingController@update_setting');
 // Users
 Route::resource('users','UsersController',['names' => 'admin.users']);
 Route::get('users/destroy/{id}', 'UsersController@destroy');
+Route::post('users/multi_delete', 'UsersController@multi_delete');
 Route::get('user-invoice/destroy/{id}', 'UsersController@delete_invoice');
 
 
 // currency
 Route::resource('currency','CurrencyController',['names' => 'admin.currency']);
 Route::get('currency/destroy/{id}', 'CurrencyController@destroy');
+Route::post('currency/multi_delete', 'CurrencyController@multi_delete');
 
 
 // Packages
 Route::resource('packages','PackagesController',['names' => 'admin.packages',
     'except' => ['update']]);
 Route::get('packages/destroy/{id}', 'PackagesController@destroy');
+Route::post('packages/multi_delete', 'PackagesController@multi_delete');
 Route::post('packages/{id}', 'PackagesController@update')->name('admin.packages.update');
 
 // Payment Method
 Route::put('payment_method/status/{id}', 'PaymentMethodController@status')->name('admin.payment_method.status');
+Route::post('payment_method/multi_delete', 'PaymentMethodController@multi_delete');
 Route::post('payment_method/{id}', 'PaymentMethodController@update')->name('admin.payment_method.update');
 Route::resource('payment_method','PaymentMethodController',['names' => 'admin.payment_method']);
 
@@ -69,16 +75,19 @@ Route::put('negotation/status/{id}', 'NegotaitionController@status')->name('admi
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);
 Route::get('pricing/destroy/{id}', 'PricingController@destroy');
+Route::post('pricing/multi_delete', 'PricingController@multi_delete');
 
 
 // Uses
 Route::resource('uses', 'UsesController', ['names' => 'admin.uses']);
 Route::get('uses/destroy/{id}', 'UsesController@destroy');
+Route::post('uses/multi_delete', 'UsesController@multi_delete');
 
 
 // Desgins
 Route::resource('desgins', 'DesginsController', ['names' => 'admin.desgins']);
 Route::get('desgins/destroy/{id}', 'DesginsController@destroy');
+Route::post('desgins/multi_delete', 'DesginsController@multi_delete');
 Route::get('desgins/show-pdf/{id}', 'DesginsController@show_pdf');
 
 
@@ -95,6 +104,7 @@ Route::resource('web_desgins', 'WebDesginsController', [
 ]);
 Route::post('web_desgins/{id}', 'WebDesginsController@update');
 Route::get('web_desgins/destroy/{id}', 'WebDesginsController@destroy');
+Route::post('web_desgins/multi_delete', 'WebDesginsController@multi_delete');
 Route::get('web_desgins/show-pdf/{id}', 'WebDesginsController@show_pdf');
 
 // Events 
@@ -116,6 +126,7 @@ Route::patch('events/update_event_package/{id}', 'EventsController@update_event_
 
 
 Route::get('events/destroy/{id}', 'EventsController@destroy');
+Route::post('events/multi_delete', 'EventsController@multi_delete');
 Route::get('events/show-pdf/{id}', 'EventsController@show_pdf');
 
 Route::get('closed-events', 'EventsController@closed_events');
@@ -319,10 +330,12 @@ Route::post('delete_selected_users', 'UsersController@delete_selected_users');
 // mobile_codes
 Route::resource('mobile_codes','MobileCodesController',['names' => 'admin.mobile_codes']);
 Route::get('mobile_codes/destroy/{id}', 'MobileCodesController@destroy');
+Route::post('mobile_codes/multi_delete', 'MobileCodesController@multi_delete');
 
 
 Route::get('messages', 'MessageController@contact_messages');
 Route::get('messages/destroy/{id}', 'MessageController@delete_message');
+Route::post('messages/multi_delete', 'MessageController@multi_delete');
 Route::get('messages/seen/{id}', 'MessageController@seen1');
 
 
@@ -330,6 +343,7 @@ Route::get('messages/seen/{id}', 'MessageController@seen1');
 
  Route::get('subscribers', 'SubscribersController@subscribers');
  Route::get('subscribers/destroy/{id}', 'SubscribersController@delete_subscriber');
+ Route::post('subscribers/multi_delete', 'SubscribersController@multi_delete');
  Route::get('subscribers/seen/{id}', 'SubscribersController@seen');
 
 
@@ -341,6 +355,7 @@ Route::resource('reservation','ReservationController',[
 ]);
 Route::post('reservation/{id}', 'ReservationController@update');
 Route::get('reservation/destroy/{id}', 'ReservationController@destroy');
+Route::post('reservation/multi_delete', 'ReservationController@multi_delete');
 Route::post('send_reservation_to_paid', 'ReservationController@send_reservation_to_paid');
 Route::post('send_reservation_info_to_user', 'ReservationController@send_reservation_info_to_user');
 
@@ -353,6 +368,7 @@ Route::resource('custom_events', 'CustomEventController', [
 ]);
 Route::post('custom_events/{id}', 'CustomEventController@update');
 Route::get('custom_events/destroy/{id}', 'CustomEventController@destroy');
+Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 
 
 Route::get('custom_events/{id}/event-visitors', 'CustomEventController@event_visitors');
@@ -419,3 +435,18 @@ Route::get('custom_event_family/destroy/{id}', 'CustomEventController@delete_eve
 
 
 Route::get('open_custom_event_family/{id}', 'CustomEventController@open_event_family');
+
+
+// Attendance Data
+Route::resource('attendance_data', 'AttendanceDataController', [
+    'names' => 'admin.attendance_data'
+]);
+Route::post('attendance_data/multi_delete', 'AttendanceDataController@multi_delete');
+
+// Attendance
+Route::get('attendance/users_list', 'AttendanceController@users_list');
+Route::resource('attendance', 'AttendanceController', [
+    'names' => 'admin.attendance',
+]);
+Route::post('attendance/multi_delete', 'AttendanceController@multi_delete');
+

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Packages as modelRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Packages as Model;
+use Illuminate\Support\Facades\Validator;
 
 
 class PackagesController extends Controller
@@ -126,6 +127,19 @@ class PackagesController extends Controller
         return response()->json([
             "success" => "You delete data success"
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:packages,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->delete();
+        return response()->json(["success" => "You delete data success"]);
     }
 
 

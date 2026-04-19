@@ -7,6 +7,7 @@ use App\Http\Requests\Uses as modelRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Uses as Model;
 use Response;
+use Illuminate\Support\Facades\Validator;
 
 class UsesController extends Controller
 {
@@ -127,6 +128,19 @@ class UsesController extends Controller
         return response()->json([
             "success" => "You delete data success"
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:uses,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->delete();
+        return response()->json(["success" => "You delete data success"]);
     }
 
 

@@ -400,6 +400,19 @@ class UsersController extends Controller
         ]);
     }
 
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:users,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->forceDelete();
+        return response()->json(['success' => 'تم حذف البيانات بنجاح']);
+    }
+
     private function gteInput($request, $modelClass)
     {
         $input = $request->only([

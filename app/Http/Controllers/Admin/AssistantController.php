@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User as Model;
 use App\Models\Assistant;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class AssistantController extends Controller
 {
@@ -20,11 +21,11 @@ class AssistantController extends Controller
      */
     public function index()
     {
-        
         $Item = Model::
         WhereIn("user_type", ["scan_employee", "employee"])->get([
             'id', 'name', 'mobile', 'email', 'status',
-            'employee_gender', 'mobile_code', 'user_type'
+            'employee_gender', 'mobile_code', 'user_type',
+            'salary', 'appointment_from', 'appointment_to',
         ]);
         return response()->json([
             'assistants' => $Item
@@ -67,7 +68,8 @@ class AssistantController extends Controller
     {
         $Item = Model::
         select('id', 'name', 'mobile', 'email', 'status',
-        'employee_gender', 'mobile_code', "user_type")
+        'employee_gender', 'mobile_code', "user_type",
+        'salary', 'appointment_from', 'appointment_to')
         ->findOrFail($id);
         return response()->json([
             'Item' => $Item
@@ -119,11 +121,26 @@ class AssistantController extends Controller
         ]);
     }
 
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:users,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->forceDelete();
+        return response()->json(['success' => 'You delete data success']);
+    }
+
 
     private function gteInput($request,$modelClass) {
 
-        $input = $request->only(['name','email' ,'mobile','email','mobile_code', 'user_type']);
-       
+        $input = $request->only([
+            'name', 'email', 'mobile', 'mobile_code', 'user_type',
+            'salary', 'appointment_from', 'appointment_to',
+        ]);
 
         if(isset($modelClass) ) {
 

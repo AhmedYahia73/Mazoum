@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin as Model;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
@@ -129,6 +130,19 @@ class AdminController extends Controller
         return response()->json([
             "success" => "You delete data success"
         ]);
+    }
+
+    public function multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:admin,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        Model::whereIn('id', $request->items)->forceDelete();
+        return response()->json(["success" => "You delete data success"]);
     }
 
 

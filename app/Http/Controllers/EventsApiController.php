@@ -55,13 +55,13 @@ class EventsApiController extends Controller
             	'add_by'         => 'event_user',
                 'user_id'        => $user_event != null ? $user_event->id : 0,
                 'send_to_type'   => 'user',
-                'send_to_id'     => $user_event->event->user_id,
-                'en_title'       => $user_event->event->title,
-                'ar_title'       => $user_event->event->title,
+                'send_to_id'     => $user_event?->event?->user_id,
+                'en_title'       => $user_event?->event?->title,
+                'ar_title'       => $user_event?->event?->title,
                 'en_description' => $user_event->name,
                 'ar_description' => $user_event->name,
                 'type'           => 'accept_event',
-                'item_id'        => $user_event->event->id,
+                'item_id'        => $user_event?->event?->id,
                 'user_event_id'  => $user_event != null ? $user_event->id : 0,
                 'status'         => 'accept_event',
             ]);
@@ -90,7 +90,7 @@ class EventsApiController extends Controller
 
             $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
 
-            $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+            $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
 
             if($event != null && $event->showing_qr == 'yes') {
 
@@ -243,7 +243,7 @@ class EventsApiController extends Controller
 
             $user_event->update([ 'is_accepted' => 'yes'  ]);
 
-            $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+            $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
 
               if($event != null && $event->showing_qr == 'yes') {
 
@@ -355,13 +355,13 @@ class EventsApiController extends Controller
             	'add_by'         => 'event_user',
                 'user_id'        => $user_event != null ? $user_event->id : 0,
                 'send_to_type'   => 'user',
-                'send_to_id'     => $user_event->event->user_id,
-                'en_title'       => $user_event->event->title,
-                'ar_title'       => $user_event->event->title,
+                'send_to_id'     => $user_event?->event?->user_id,
+                'en_title'       => $user_event?->event?->title,
+                'ar_title'       => $user_event?->event?->title,
                 'en_description' => $user_event->name,
                 'ar_description' => $user_event->name,
                 'type'           => 'refuse_event',
-                'item_id'        => $user_event->event->id,
+                'item_id'        => $user_event?->event?->id,
                 'user_event_id'  => $user_event != null ? $user_event->id : 0,
                 'status'         => 'refuse_event',
             ]);
@@ -421,13 +421,13 @@ class EventsApiController extends Controller
               'add_by'         => 'event_user',
               'user_id'        => $user_event != null ? $user_event->id : 0,
               'send_to_type'   => 'user',
-              'send_to_id'     => $user_event->event->user_id,
-              'en_title'       => $user_event->event->title,
-              'ar_title'       => $user_event->event->title,
+              'send_to_id'     => $user_event?->event?->user_id,
+              'en_title'       => $user_event?->event?->title,
+              'ar_title'       => $user_event?->event?->title,
               'en_description' => $request->msg,
               'ar_description' => $request->msg,
               'type'           => 'event-msg',
-              'item_id'        => $user_event->event->id,
+              'item_id'        => $user_event?->event?->id,
               'user_event_id'  => $user_event != null ? $user_event->id : 0,
               'status'         => 'new_msg',
             ]);
@@ -463,13 +463,13 @@ class EventsApiController extends Controller
               'add_by'         => 'event_user',
               'user_id'        => $user_event != null ? $user_event->id : 0,
               'send_to_type'   => 'user',
-              'send_to_id'     => $user_event->event->user_id,
-              'en_title'       => $user_event->event->title,
-              'ar_title'       => $user_event->event->title,
+              'send_to_id'     => $user_event?->event?->user_id,
+              'en_title'       => $user_event?->event?->title,
+              'ar_title'       => $user_event?->event?->title,
               'en_description' => $request->msg,
               'ar_description' => $request->msg,
               'type'           => 'event-msg',
-              'item_id'        => $user_event->event->id,
+              'item_id'        => $user_event?->event?->id,
               'user_event_id'  => $user_event != null ? $user_event->id : 0,
               'status'         => 'new_msg',
             ]);

@@ -222,7 +222,7 @@ class ApiEventUersController extends Controller
 
         $to = str_replace("+","",$to);
 
-        $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+        $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
 
         $sender_id = $setting->sender_id;
 
@@ -230,6 +230,13 @@ class ApiEventUersController extends Controller
 
         $response = SendNewTemplateCodeV1($url);
 
+        $template_name = 'wedding_data_v1_ar';
+        $title = $user_event?->event?->title;
+        $address = $user_event?->event?->address;
+        $time = $user_event?->event?->time;
+        $date   = Carbon::parse($user_event?->event?->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+        $users_count = $user_event->users_count;
+        $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
       	//dd($response);
 
         if ($response != null && $response->getStatusCode() == 200) {
@@ -622,6 +629,13 @@ class ApiEventUersController extends Controller
 
                                     $response = SendNewTemplateCodeV1($url);
 
+                                    $template_name = 'wedding_data_v1_ar';
+                                    $title = $user_event?->event?->title;
+                                    $address = $user_event?->event?->address;
+                                    $time = $user_event?->event?->time;
+                                    $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                                    $users_count = $user_event->users_count;
+                                    $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
                                     if ($response != null && $response->getStatusCode() == 200) {
 
                                         $user->update([
@@ -857,6 +871,13 @@ class ApiEventUersController extends Controller
 
                         $response = SendNewTemplateCodeV1($url);
 
+                        $template_name = 'wedding_data_v1_ar';
+                        $title = $user_event?->event?->title;
+                        $address = $user_event?->event?->address;
+                        $time = $user_event?->event?->time;
+                        $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                        $users_count = $user_event->users_count;
+                        $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
                         if ($response != null && $response->getStatusCode() == 200) {
 
                             // $user->update([

@@ -1367,7 +1367,7 @@ class EventUersController extends Controller
 
         $to = str_replace("+","",$to);
 
-        $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+        $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
 
         // $sender_id = $setting->sender_id;
         $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
@@ -1544,13 +1544,13 @@ class EventUersController extends Controller
           'add_by'         => 'admin',
           'user_id'        => 1,
           'send_to_type'   => 'user',
-          'send_to_id'     => $user_event->event->user_id,
-          'en_title'       => 'accept event : ' . $user_event->event->title,
-          'ar_title'       => 'قبول الدعوه  : ' . $user_event->event->title,
-          'en_description' => 'user : ' . $user_event->name . ' accept event : ' . $user_event->event->title,
-          'ar_description' => 'المستخدم : ' . $user_event->name . ' قبل الدعوه  : ' . $user_event->event->title,
+          'send_to_id'     => $user_event?->event?->user_id,
+          'en_title'       => 'accept event : ' . $user_event?->event?->title,
+          'ar_title'       => 'قبول الدعوه  : ' . $user_event?->event?->title,
+          'en_description' => 'user : ' . $user_event->name . ' accept event : ' . $user_event?->event?->title,
+          'ar_description' => 'المستخدم : ' . $user_event->name . ' قبل الدعوه  : ' . $user_event?->event?->title,
           'type'           => 'event',
-          'item_id'        => $user_event->event->id,
+          'item_id'        => $user_event?->event?->id,
           'user_event_id'  => $user_event != null ? $user_event->id : 0,
           'status'         => 'accept_event',
         ]);
@@ -1627,13 +1627,13 @@ class EventUersController extends Controller
             	'add_by'         => 'admin',
                 'user_id'        => 1,
                 'send_to_type'   => 'user',
-                'send_to_id'     => $user_event->event->user_id,
-                'en_title'       => 'refuse event : ' . $user_event->event->title,
-                'ar_title'       => 'رفض الدعوه  : ' . $user_event->event->title,
-                'en_description' => 'user : ' . $user_event->name . ' refuse event : ' . $user_event->event->title,
-                'ar_description' => 'المستخدم : ' . $user_event->name . ' رفض الدعوه  : ' . $user_event->event->title,
+                'send_to_id'     => $user_event?->event?->user_id,
+                'en_title'       => 'refuse event : ' . $user_event?->event?->title,
+                'ar_title'       => 'رفض الدعوه  : ' . $user_event?->event?->title,
+                'en_description' => 'user : ' . $user_event->name . ' refuse event : ' . $user_event?->event?->title,
+                'ar_description' => 'المستخدم : ' . $user_event->name . ' رفض الدعوه  : ' . $user_event?->event?->title,
                 'type'           => 'event',
-                'item_id'        => $user_event->event->id,
+                'item_id'        => $user_event?->event?->id,
                 'user_event_id'  => $user_event != null ? $user_event->id : 0,
                 'status'         => 'refuse_event',
             ]);
@@ -2597,13 +2597,13 @@ class EventUersController extends Controller
               'add_by'         => 'admin',
               'user_id'        => 1,
               'send_to_type'   => 'user',
-              'send_to_id'     => $user_event->event->user_id,
-              'en_title'       => 'new congratulation msg to event : ' . $user_event->event->title,
-              'ar_title'       => 'تهنئه جديده للدعوه   : ' . $user_event->event->title,
+              'send_to_id'     => $user_event?->event?->user_id,
+              'en_title'       => 'new congratulation msg to event : ' . $user_event?->event?->title,
+              'ar_title'       => 'تهنئه جديده للدعوه   : ' . $user_event?->event?->title,
               'en_description' => 'user : ' . $user_event->name . ' send congratulation message : ' . $request->msg1,
               'ar_description' => 'المستخدم : ' . $user_event->name . '  أرسل التهنئة  : ' . $request->msg1,
               'type'           => 'event-msg',
-              'item_id'        => $user_event->event->id,
+              'item_id'        => $user_event?->event?->id,
               'user_event_id'  => $user_event != null ? $user_event->id : 0,
               'status'         => 'new_msg',
             ]);
@@ -2853,13 +2853,13 @@ class EventUersController extends Controller
               'add_by'         => 'admin',
               'user_id'        => 1,
               'send_to_type'   => 'user',
-              'send_to_id'     => $user_event->event->user_id,
-              'en_title'       => 'new apology msg to event : ' . $user_event->event->title,
-              'ar_title'       => 'اعتذار جديد للدعوه   : ' . $user_event->event->title,
+              'send_to_id'     => $user_event?->event?->user_id,
+              'en_title'       => 'new apology msg to event : ' . $user_event?->event?->title,
+              'ar_title'       => 'اعتذار جديد للدعوه   : ' . $user_event?->event?->title,
               'en_description' => 'user : ' . $user_event->name . ' send apology message : ' . $request->msg2,
               'ar_description' => 'المستخدم : ' . $user_event->name . '  أرسل الأعتذار  : ' . $request->msg2,
               'type'           => 'event-msg',
-              'item_id'        => $user_event->event->id,
+              'item_id'        => $user_event?->event?->id,
               'user_event_id'  => $user_event != null ? $user_event->id : 0,
               'status'         => 'new_msg',
             ]);

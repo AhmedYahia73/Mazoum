@@ -87,6 +87,26 @@ class PackageController extends Controller
         ]); 
     }
 
+    public function custom_details($id){
+        $custom_event_user = CustomEventUsers::where("id", $id)
+        ->firstOrFail();
+        $event = $custom_event_user->event;
+
+        return response()->json([
+            "event" => $event
+        ]); 
+    }
+
+    public function event_details($id){
+        $event_user = EventUsers::where("id", $id)
+        ->firstOrFail();
+        $event = $event_user->event;
+        
+        return response()->json([
+            "event" => $event
+        ]); 
+    }
+
     public function negotaition(Request $request){
         $validator = Validator::make($request->all(), [
             'package_id' => 'required|exists:pricing,id',

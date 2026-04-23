@@ -46,6 +46,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/negotaition', 'negotaition');
         Route::get('/custom_template/{id}', 'custom_template');
         Route::get('/event_template/{id}', 'event_template');
+        Route::get('/custom_details/{id}', 'custom_details');
+        Route::get('/event_details/{id}', 'event_details');
         Route::post('/create_qr', 'create_qr');
         Route::get('/orders_list', 'orders_list');
         Route::get('/orders_history', 'orders_history');

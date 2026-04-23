@@ -13,7 +13,7 @@ class LoginController extends Controller
 {
     public function login_admin(Request $request){
         $validation = Validator::make($request->all(), [
-            'email' => 'required|email', 
+            'email' => 'required', 
             'password' => 'required', 
         ]);
         if ($validation->fails()) {
@@ -22,6 +22,7 @@ class LoginController extends Controller
 
         $user = Admin::
         where('email', $request->email)
+        ->orWhere('mobile', $request->email)
         ->first(); 
         if ($user && password_verify($request->input('password'), $user->password)) {
             $user->token = $user->createToken('admin')->plainTextToken;

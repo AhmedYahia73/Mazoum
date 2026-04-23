@@ -34,9 +34,9 @@ class CheckPassword
             	$api_password = null;	
             }
 
-            if ($api_password != env('API_PASSWORD', '123456')) {
-                return $this->returnError('401', 'Unauthorized User #1237');
-            }
+            // if ($api_password != env('API_PASSWORD', '123456')) {
+            //     return $this->returnError('401', 'Unauthorized User #1237');
+            // }
 
             return $next($request);
         } else {

@@ -19,7 +19,7 @@ class Events extends Model
     protected $fillable = [
         'title', 'file', 'lat', 'long', 'address', 'showing_qr', 'add_by', 'user_id',
         'first_name' , 'last_name' , 'date' , 'time', 'assistant_id','have_reminder' , 'sent_remember',
-        'country','location','can_replay_messages' , 'is_open' , 'gender','enable_resend_again',
+        'country','location','can_replay_messages' , 'is_open' , 'gender',
         'sending_type','phone','invitation_count','reservation_date','package_price','payment_type',
         'is_paid','employee_gender','color','image','video', 'country_code', 'scan_assistant_id',
         'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',

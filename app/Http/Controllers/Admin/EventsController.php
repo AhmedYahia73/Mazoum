@@ -929,7 +929,6 @@ class EventsController extends Controller
             "first_name"=> $Item->first_name,
             "last_name"=> $Item->last_name,
             "is_open"=> $Item->is_open,
-            "enable_resend_again"=> $Item->enable_resend_again,
             "sending_type"=> $Item->sending_type,
             "phone"=> $Item?->user?->mobile_code . $Item?->user?->mobile,
             "invitation_count"=> $Item?->user?->order?->users_count,
@@ -1096,7 +1095,7 @@ class EventsController extends Controller
 
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr', 'user_id' ,
-            'date','time','enable_resend_again', 'assistant_id','have_reminder',
+            'date','time', 'assistant_id','have_reminder',
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
             'country_code', 'scan_assistant_id',
             'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',

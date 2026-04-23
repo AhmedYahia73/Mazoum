@@ -80,7 +80,7 @@ class ApiEventsController extends Controller
         $Item = Model::where('id', $id)->where(function ($query) use ($user) {
               $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
         })->select([
-            'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','enable_resend_again','sending_type'
+            'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type'
         ])->first();
 
         if ($Item != null) {
@@ -289,7 +289,7 @@ class ApiEventsController extends Controller
 
         $Item = Model::where(function ($query) use ($user) {
               $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
-        })->get(['id','title','address','file as image','date','time','enable_resend_again','sending_type']);
+        })->get(['id','title','address','file as image','date','time','sending_type']);
 
         if($Item != null && $Item->count() > 0) {
             $data = UserEventsData_V2::collection($Item);
@@ -351,7 +351,6 @@ class ApiEventsController extends Controller
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
-            'enable_resend_again' => 'required|in:yes,no',
             // 'sending_type' => 'required', 
             'name_qr' => 'required',
             'number_qr' => 'required',
@@ -376,7 +375,6 @@ class ApiEventsController extends Controller
 
             'date.required' => 'تاريخ الحدث مطلوب',
             'time.required' => 'وقت الحدث مطلوب',
-            'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
             // 'sending_type.required' => 'نوع الإرسال مطلوب', 
             'name_qr.required' => 'اسم QR مطلوب',
             'number_qr.required' => 'رقم QR مطلوب',
@@ -456,7 +454,7 @@ class ApiEventsController extends Controller
         }
 
         $Item = Model::where('id', $id)->where('user_id', $user->id)->select([
-            'id', 'title', 'file as image', 'lat', 'long', 'address', 'showing_qr','enable_resend_again','sending_type'
+            'id', 'title', 'file as image', 'lat', 'long', 'address', 'showing_qr','sending_type'
         ])->first();
 
         if ($Item != null) {
@@ -512,7 +510,6 @@ class ApiEventsController extends Controller
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
-            'enable_resend_again' => 'required|in:yes,no', 
             'send_type' => 'required',
             'name_qr' => 'required',
             'number_qr' => 'required',
@@ -535,7 +532,6 @@ class ApiEventsController extends Controller
 
             'date.required' => 'تاريخ الحدث مطلوب',
             'time.required' => 'وقت الحدث مطلوب',
-            'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
             // 'sending_type.required' => 'نوع الإرسال مطلوب', 
             'name_qr.required' => 'اسم QR مطلوب',
             'number_qr.required' => 'رقم QR مطلوب',
@@ -639,7 +635,7 @@ class ApiEventsController extends Controller
     {
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr',
-            'first_name','last_name','lat','long','date','time','enable_resend_again',
+            'first_name','last_name','lat','long','date','time',
             'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         ]);
 

@@ -61,8 +61,7 @@ class CustomEventController extends Controller
             "qr_x" => ["required", "numeric"],
             "qr_y" => ["required", "numeric"],
             "lat" => ["required", "numeric"],
-            "lng" => ["required", "numeric"],
-            "send_type" => ["required", "in:all,watts,msg"],
+            "lng" => ["required", "numeric"], 
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -114,8 +113,7 @@ class CustomEventController extends Controller
             "qr_x" => ["required", "numeric"],
             "qr_y" => ["required", "numeric"],
             "lat" => ["required", "numeric"],
-            "lng" => ["required", "numeric"],
-            "send_type" => ["required", "in:all,watts,msg"],
+            "lng" => ["required", "numeric"], 
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

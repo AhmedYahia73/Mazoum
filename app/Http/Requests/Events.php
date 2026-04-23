@@ -38,14 +38,14 @@ class Events extends FormRequest
                 'time' => 'required',
                 'enable_resend_again' => 'required|in:yes,no',
                 'sending_type' => 'required|in:old_send,new_send,not_available',
-                'send_type' => 'required',
+                'send_type' => 'required|in:watts,msg,all',
                 'name_qr' => 'required',
                 'number_qr' => 'required',
                 'qr_height' => 'required',
                 'qr_width' => 'required',
                 'qr_x' => 'required',
                 'qr_y' => 'required',
-                'resend_qr' => 'required',
+                'resend_qr' => 'required|boolean',
             ];
         }
 

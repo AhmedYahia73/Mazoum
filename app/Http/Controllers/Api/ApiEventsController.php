@@ -352,8 +352,7 @@ class ApiEventsController extends Controller
             'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
             'enable_resend_again' => 'required|in:yes,no',
-            'sending_type' => 'required',
-            'send_type' => 'required',
+            // 'sending_type' => 'required', 
             'name_qr' => 'required',
             'number_qr' => 'required',
             'qr_height' => 'required',
@@ -378,8 +377,7 @@ class ApiEventsController extends Controller
             'date.required' => 'تاريخ الحدث مطلوب',
             'time.required' => 'وقت الحدث مطلوب',
             'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
-            'sending_type.required' => 'نوع الإرسال مطلوب',
-            'send_type.required' => 'نوع الإرسال مطلوب',
+            // 'sending_type.required' => 'نوع الإرسال مطلوب', 
             'name_qr.required' => 'اسم QR مطلوب',
             'number_qr.required' => 'رقم QR مطلوب',
             'qr_height.required' => 'ارتفاع QR مطلوب',
@@ -401,6 +399,9 @@ class ApiEventsController extends Controller
             return $this->returnValidationError($code, $validator);
         }
 
+        $request->merge([
+            "send_type" => "watts"
+        ]);
         $arr = $this->gteInput($request, null);
 
         $Item = Model::create($arr);
@@ -511,8 +512,7 @@ class ApiEventsController extends Controller
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
-            'enable_resend_again' => 'required|in:yes,no',
-            'sending_type' => 'required',
+            'enable_resend_again' => 'required|in:yes,no', 
             'send_type' => 'required',
             'name_qr' => 'required',
             'number_qr' => 'required',
@@ -537,8 +537,7 @@ class ApiEventsController extends Controller
             'date.required' => 'تاريخ الحدث مطلوب',
             'time.required' => 'وقت الحدث مطلوب',
             'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
-            'sending_type.required' => 'نوع الإرسال مطلوب',
-            'send_type.required' => 'نوع الإرسال مطلوب',
+            // 'sending_type.required' => 'نوع الإرسال مطلوب', 
             'name_qr.required' => 'اسم QR مطلوب',
             'number_qr.required' => 'رقم QR مطلوب',
             'qr_height.required' => 'ارتفاع QR مطلوب',
@@ -553,7 +552,9 @@ class ApiEventsController extends Controller
         } else {
             $validator = Validator::make($request->all(), $validated_arr);
         }
-
+        $request->merge([
+            "send_type" => "watts"
+        ]);
         //Send failed response if request is not valid
         if ($validator->fails()) {
             $code = $this->returnCodeAccordingToInput($validator);
@@ -639,7 +640,7 @@ class ApiEventsController extends Controller
     {
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr',
-            'first_name','last_name','lat','long','date','time','enable_resend_again','sending_type',
+            'first_name','last_name','lat','long','date','time','enable_resend_again',
             'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         ]);
 

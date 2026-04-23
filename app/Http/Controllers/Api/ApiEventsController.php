@@ -344,19 +344,30 @@ class ApiEventsController extends Controller
             'title' => 'required',
             'address' => 'required',
             'file' => 'required|mimes:pdf,jpg,png,jpeg',
+            'image' => 'nullable|mimes:jpg,png,jpeg',
+            'video' => 'nullable',
             'showing_qr' => 'required',
             'lat' => 'required',
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
-            'time' => 'nullable',
-            'enable_resend_again' => 'nullable|in:yes,no',
+            'time' => 'required',
+            'enable_resend_again' => 'required|in:yes,no',
+            'sending_type' => 'required',
+            'send_type' => 'required',
+            'name_qr' => 'required',
+            'number_qr' => 'required',
+            'qr_height' => 'required',
+            'qr_width' => 'required',
+            'qr_x' => 'required',
+            'qr_y' => 'required',
+            'resend_qr' => 'required',
         ];
 
 
         $custom_messages = [
             'title.required' => ' عنوان الحدث مطلوب ',
             'address.required' => 'موقع الحدث مطلوب',
-            'showing_qr' => 'اظهار كود ال qr  مطلوب',
+            'showing_qr.required' => 'اظهار كود ال qr  مطلوب',
 
             'file.required' =>  'المرفق مطلوب',
             'file.mimes' =>  'يجب أن يكون امتداد الصوره jpg و png و jpeg ',
@@ -364,8 +375,18 @@ class ApiEventsController extends Controller
             'lat.required' => ' دوائر العرض مطلوبه',
             'long.required' => ' خطوط الطول مطلوبه',
 
-            'first_name.required' => 'أسم العريس مطلوب',
-            'last_name.required' => 'أسم العروسة مطلوب',
+            'date.required' => 'تاريخ الحدث مطلوب',
+            'time.required' => 'وقت الحدث مطلوب',
+            'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
+            'sending_type.required' => 'نوع الإرسال مطلوب',
+            'send_type.required' => 'نوع الإرسال مطلوب',
+            'name_qr.required' => 'اسم QR مطلوب',
+            'number_qr.required' => 'رقم QR مطلوب',
+            'qr_height.required' => 'ارتفاع QR مطلوب',
+            'qr_width.required' => 'عرض QR مطلوب',
+            'qr_x.required' => 'موضع QR أفقي مطلوب',
+            'qr_y.required' => 'موضع QR رأسي مطلوب',
+            'resend_qr.required' => 'حقل إعادة إرسال QR مطلوب',
         ];
 
         if ($lang == 'ar') {
@@ -483,27 +504,48 @@ class ApiEventsController extends Controller
             'title' => 'required',
             'address' => 'required',
             'file' => 'required|mimes:pdf,jpg,png,jpeg',
+            'image' => 'nullable|mimes:jpg,png,jpeg',
+            'video' => 'nullable',
             'showing_qr' => 'required',
             'lat' => 'required',
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
-            'time' => 'nullable',
-            'enable_resend_again' => 'nullable|in:yes,no',
+            'time' => 'required',
+            'enable_resend_again' => 'required|in:yes,no',
+            'sending_type' => 'required',
+            'send_type' => 'required',
+            'name_qr' => 'required',
+            'number_qr' => 'required',
+            'qr_height' => 'required',
+            'qr_width' => 'required',
+            'qr_x' => 'required',
+            'qr_y' => 'required',
+            'resend_qr' => 'required',
         ];
 
         $custom_messages = [
             'event_id.required' => 'رقم الحدث مطلوب',
             'title.required' => ' عنوان الحدث مطلوب ',
             'address.required' => 'موقع الحدث مطلوب',
-            'showing_qr' => 'اظهار كود ال qr  مطلوب',
+            'showing_qr.required' => 'اظهار كود ال qr  مطلوب',
             'file.required' =>  'المرفق مطلوب',
             'file.mimes' =>  'يجب أن يكون امتداد الصورة jpg و png و jpeg ',
 
             'lat.required' => ' دوائر العرض مطلوبه',
             'long.required' => ' خطوط الطول مطلوبه',
 
-            'first_name.required' => 'أسم العريس مطلوب',
-            'last_name.required' => 'أسم العروسة مطلوب',
+            'date.required' => 'تاريخ الحدث مطلوب',
+            'time.required' => 'وقت الحدث مطلوب',
+            'enable_resend_again.required' => 'حقل إعادة الإرسال مطلوب',
+            'sending_type.required' => 'نوع الإرسال مطلوب',
+            'send_type.required' => 'نوع الإرسال مطلوب',
+            'name_qr.required' => 'اسم QR مطلوب',
+            'number_qr.required' => 'رقم QR مطلوب',
+            'qr_height.required' => 'ارتفاع QR مطلوب',
+            'qr_width.required' => 'عرض QR مطلوب',
+            'qr_x.required' => 'موضع QR أفقي مطلوب',
+            'qr_y.required' => 'موضع QR رأسي مطلوب',
+            'resend_qr.required' => 'حقل إعادة إرسال QR مطلوب',
         ];
 
         if ($lang == 'ar') {
@@ -626,6 +668,22 @@ class ApiEventsController extends Controller
             $request->file('file')->move($path, $filename);
 
             $input['file'] = $filename;
+        }
+
+        if ($request->file('image') != null) {
+            $extension2 = $request->file('image')->extension();
+            $image_name = uniqid() . '.' . $extension2;
+            $request->file('image')->move($path, $image_name);
+
+            $input['image'] = $image_name;
+        }
+
+        if ($request->file('video') != null) {
+            $extension3 = $request->file('video')->extension();
+            $video_name = uniqid() . '.' . $extension3;
+            $request->file('video')->move($path, $video_name);
+
+            $input['video'] = $video_name;
         }
 
         return  $input;

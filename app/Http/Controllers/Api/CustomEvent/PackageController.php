@@ -45,6 +45,48 @@ class PackageController extends Controller
         ]);
     }
 
+    public function custom_template($id){
+        $custom_event_user = CustomEventUsers::where("id", $id)
+        ->firstOrFail();
+        $event = $custom_event_user->event;
+        $day_name   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
+        $invitation_text = 
+                        $custom_event_user->name . "\n"
+                        . "بارك الله لهما وجمع بينهم في خير .\n"
+                        . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
+                        . "الموافق " . $event->date . "\n"
+                        . "وقت الاستقبال " . $event->time . " مساءً\n"
+                        . "مكان الحفل " . $event->address . "\n"
+                        . "عدد الدعوات " . $custom_event_user->users_count;
+
+        // لطباعة النص كما هو في الـ Terminal أو داخل ملف نصي
+        
+        return response()->json([
+            "invitation_text" => $invitation_text
+        ]); 
+    }
+
+    public function event_template($id){
+        $event_user = EventUsers::where("id", $id)
+        ->firstOrFail();
+        $event = $event_user->event;
+        $day_name   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
+        $invitation_text = 
+                        $event_user->name . "\n"
+                        . "بارك الله لهما وجمع بينهم في خير .\n"
+                        . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
+                        . "الموافق " . $event->date . "\n"
+                        . "وقت الاستقبال " . $event->time . " مساءً\n"
+                        . "مكان الحفل " . $event->address . "\n"
+                        . "عدد الدعوات " . $event_user->users_count;
+
+        // لطباعة النص كما هو في الـ Terminal أو داخل ملف نصي
+        
+        return response()->json([
+            "invitation_text" => $invitation_text
+        ]); 
+    }
+
     public function negotaition(Request $request){
         $validator = Validator::make($request->all(), [
             'package_id' => 'required|exists:pricing,id',

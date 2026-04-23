@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api\CustomEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CustomEvent as Model;
-use App\Models\CustomEventUsers;
+use App\Models\CustomEventUsers; 
+use App\Models\EventUsers;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -34,27 +35,6 @@ class CustomEventController extends Controller
 
         return response()->json([
             'Item' => $Item,
-        ]); 
-    }
-
-    public function template($id){
-        $custom_event_user = CustomEventUsers::where("id", $id)
-        ->firstOrFail();
-        $event = $custom_event_user->event;
-        $day_name   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
-        $invitation_text = 
-                        $custom_event_user->name . "\n"
-                        . "بارك الله لهما وجمع بينهم في خير .\n"
-                        . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
-                        . "الموافق " . $event->date . "\n"
-                        . "وقت الاستقبال " . $event->time . " مساءً\n"
-                        . "مكان الحفل " . $event->address . "\n"
-                        . "عدد الدعوات " . $custom_event_user->users_count;
-
-        // لطباعة النص كما هو في الـ Terminal أو داخل ملف نصي
-        
-        return response()->json([
-            "invitation_text" => $invitation_text
         ]); 
     }
   

@@ -2879,98 +2879,105 @@ class EventUersController extends Controller
 
         $color = $this->hexToRgb($event->color);
 
- 
+        $name_qr   = $event->name_qr;
+        $number_qr = $event->number_qr;
+        $qr_height = $event->qr_height;
+        $qr_width  = $event->qr_width;
+        $qr_x      = $event->qr_x;
+        $qr_y      = $event->qr_y;
+
         if ($event->image != null) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            // $link        = asset('mobile-scan-qr/' . $uu_id);
-            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name); // مؤقت للـ QR
-            $final_path  = public_path('qr_code/' . $image_name);     // الصورة النهائية
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
 
-            // ① إنشاء QR في ملف مؤقت
+            $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
+
             QrCode::format('png')
-                ->size(300)
+                ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
                 ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
-            // ② فتح الخلفية
             $background = Image::make($event->image);
+            $qr         = Image::make($qr_tmp_path);
 
-            // ③ فتح الـ QR من الملف المؤقت
-            $qr = Image::make($qr_tmp_path);
+            if ($qr_width > 0 && $qr_height > 0) {
+                $qr->resize($qr_width, $qr_height);
+            }
 
-            // ① صغّر الـ QR عشان يتناسب مع الخلفية
-            $qr_size = intval($background->height() * 0.6); // 60% من ارتفاع الخلفية
-            $qr->resize($qr_size, $qr_size);
+            // موضع QR: إذا حُدد x,y استخدمهم، وإلا وسّط
+            $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
+            $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
 
-            // ② حساب الموضع الصح
-            $x = intval(($background->width() - $qr->width()) / 2);   // وسط أفقي
-            $y = intval(($background->height() - $qr->height()) / 2); // وسط عمودي
-
-            // ③ دمج
             $background->insert($qr, 'top-left', $x, $y);
-    
 
-            // ⑥ إضافة النص لو users_count > 1
-            if ($user_event->users_count > 1) {
-                $center_x = intval($background->width() / 2);
-                $text_y   = $y + $qr->height() + 40;
+            $center_x = intval($background->width() / 2);
+            $text_y   = $y + $qr->height() + 15;
 
-                $background->text($user_event->users_count, $center_x, $text_y, function ($font) {
-                    $font->file(public_path('font/OpenSans.ttf'));
-                    $font->size(26);
+            if ($event->language == 'ar') {
+                $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
+                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $name      = $Arabic->utf8Glyphs($user_event->name);
+                $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
+                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
+            } else {
+                $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+                $name      = $user_event->name;
+                $name2     = 'Entered Users ' . $user_event->users_count;
+            }
+
+            if ($name_qr) {
+                $background->text($name, $center_x, $text_y, function ($font) use ($font_path) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color('#000');
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += 25;
+            }
+
+            if ($number_qr && $user_event->users_count > 1) {
+                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path) {
+                    $font->file($font_path);
+                    $font->size(20);
                     $font->color('#000');
                     $font->align('center');
                     $font->valign('top');
                 });
             }
 
-            // ⑦ حفظ الصورة النهائية
             $background->save($final_path, 100);
-            // ⑧ حذف الـ QR المؤقت
+
             if (file_exists($qr_tmp_path)) {
                 unlink($qr_tmp_path);
             }
 
-        }else {
+        } else {
 
-                $bg = 'qr-image-v9.jpg';
+            $bg           = 'qr-image-v9.jpg';
+            $link         = asset('scan-qr/' . $uu_id);
+            $qr_code_path = 'qr_code/' . $image_name;
 
-                $link = asset('scan-qr/' . $uu_id);
-                // $link = asset('mobile-scan-qr/' . $uu_id);
-                $qr_code_path = 'qr_code/' . $image_name;
-                QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
-                Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+            $destination = public_path($qr_code_path);
+            $new_img     = Image::make($destination);
 
-                $destination = public_path($qr_code_path);
-
-                $new_img = Image::make($destination);
-
-                if($user_event->users_count > 1) {
+            if ($user_event->users_count > 1) {
                 $new_img->text($user_event->users_count, 115, 412, function ($font) {
                     $font->file(public_path('font/OpenSans-Italic.ttf'));
                     $font->size(25);
                     $font->color('#000');
                 });
-                }
-
-                /*
-                $new_img->text($user_event->mobile, 190, 680, function ($font) {
-                $font->file(public_path('font/OpenSans-Italic.ttf'));
-                $font->size(30);
-                $font->color('#000');
-                //$font->align('right'); // Adjust alignment if necessary
-                });
-                */
-
-                $new_img->save($destination);
-
             }
 
-
+            $new_img->save($destination);
+        }
     }
 
 

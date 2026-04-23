@@ -1098,7 +1098,8 @@ class EventsController extends Controller
             'title','lat', 'long', 'address', 'showing_qr', 'user_id' ,
             'date','time','enable_resend_again', 'assistant_id','have_reminder',
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
-            'country_code', 'scan_assistant_id'
+            'country_code', 'scan_assistant_id',
+            'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         ]);
 
         if(! isset($modelClass)) {

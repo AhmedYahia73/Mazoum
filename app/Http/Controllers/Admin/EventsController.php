@@ -1108,7 +1108,7 @@ class EventsController extends Controller
             $input['add_by'] = $modelClass->add_by;
         }
 
-        $path = 'images';
+        $path = 'public/images';
 
         if($request->file('file') != null) {
 

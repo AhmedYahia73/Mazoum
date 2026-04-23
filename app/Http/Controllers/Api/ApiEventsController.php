@@ -529,7 +529,6 @@ class ApiEventsController extends Controller
             'address.required' => 'موقع الحدث مطلوب',
             'showing_qr.required' => 'اظهار كود ال qr  مطلوب',
             'file.required' =>  'المرفق مطلوب',
-            'file.mimes' =>  'يجب أن يكون امتداد الصورة jpg و png و jpeg ',
 
             'lat.required' => ' دوائر العرض مطلوبه',
             'long.required' => ' خطوط الطول مطلوبه',
@@ -661,7 +660,7 @@ class ApiEventsController extends Controller
         $input['user_id'] = $user_id;
         //////////////////////////////////////////////////
 
-        $path = 'images';
+        $path = 'public/images';
 
         if ($request->file('file') != null) {
             $extension = $request->file('file')->extension();

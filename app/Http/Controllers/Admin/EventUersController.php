@@ -24,7 +24,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Response;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
+use Illuminate\Support\Facades\DB;
 
 class EventUersController extends Controller
 {
@@ -2156,15 +2156,31 @@ $data = EventUsers::where('event_id', $Item->id)
             "users_count" => $user_count, 
             'event_id' => $item->event_id,
             'uu_id' => $item->uu_id,
+            'message_id' => $item->message_id,
             'name' => $item->name,
             'mobile' => $item->mobile,
             'status' => $item->status,
             'scan' => $item->scan,
             'scan_at' => $item->scan_at,
+            'get_location' => $item->get_location,
+            'is_sent' => $item->is_sent,
+            'is_delivered' => $item->is_delivered,
+            'qr_sent' => $item->qr_sent,
             'is_accepted' => $item->is_accepted,
             'is_refused' => $item->is_refused,
+            'log' => $item->log,
+            'sent_from' => $item->sent_from,
+            'is_read' => $item->is_read,
+            'error_title' => $item->error_title,
+            'error' => $item->error,
+            'confirmed_at' => $item->confirmed_at,
+            'is_open' => $item->is_open,
+            'is_new_sent' => $item->is_new_sent,
             'scan_count' => $item->scan_count,
-            // ... باقي الحقول التي تحتاجها
+            'is_send_congratulation' => $item->is_send_congratulation,
+            'code' => $item->code,
+            "send_time" => $item->send_time,
+            "accept_time" => $item->accept_time
         ];
     });
 

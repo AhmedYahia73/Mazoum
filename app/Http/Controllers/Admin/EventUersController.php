@@ -2046,16 +2046,17 @@ class EventUersController extends Controller
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         if($request->search){
             $data = EventUsers::
+
             where('event_id',$Item->id)
             ->where(function($q) { 
                 $q->where('status','sent')
                 ->orWhere('is_new_sent',1); 
             })->whereNull('is_accepted')
             ->whereNull('is_refused')
-            ->where(function($query) { 
+            ->where(function($query) {
                 $query->where('is_new_sent',1)
                 ->orWhereNotNull('is_sent'); 
-            })->orWhereNull('is_sent')
+            })
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2067,6 +2068,7 @@ class EventUersController extends Controller
         }
         else{
             $data = EventUsers::
+
             where('event_id',$Item->id)
             ->where(function($q) { 
                 $q->where('status','sent')
@@ -2076,7 +2078,7 @@ class EventUersController extends Controller
             ->where(function($query) {
                 $query->where('is_new_sent',1)
                 ->orWhereNotNull('is_sent'); 
-            })->orWhereNull('is_sent')
+            })
             ->paginate(15);
         }
 

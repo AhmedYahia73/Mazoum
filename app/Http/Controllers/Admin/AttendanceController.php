@@ -12,8 +12,35 @@ class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
+        $query = Attendance::with('user:id,name,mobile');
+
+        if ($request->user_id) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->search) {
+            $s = $request->search;
+            $query->whereHas('user', function ($q) use ($s) {
+                $q->where('name', 'like', "%$s%")
+                  ->orWhere('mobile', 'like', "%$s%");
+            });
+        }
+
+        $items = $query->latest()->paginate(15);
+
+        return response()->json(['items' => $items]);
+    }
+
+    public function user_attendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id'   => 'required|exists:users,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
         $query = Attendance::with('user:id,name,mobile')
-            ->where('by_admin', true);
+            ->where("user_id", $request->user_id);
 
         if ($request->user_id) {
             $query->where('user_id', $request->user_id);

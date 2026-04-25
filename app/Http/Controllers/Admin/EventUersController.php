@@ -2073,8 +2073,8 @@ class EventUersController extends Controller
                 ->orWhere('is_new_sent',1); 
             })->whereNull('is_accepted')
             ->whereNull('is_refused')
-            ->where(function($query) { $
-                query->where('is_new_sent',1)
+            ->where(function($query) {
+                $query->where('is_new_sent',1)
                 ->orWhereNotNull('is_sent'); 
             })->orWhereNull('is_sent')
             ->paginate(15);

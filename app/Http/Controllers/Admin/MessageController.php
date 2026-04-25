@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Messages;
+use Illuminate\Support\Facades\Validator;
 
 
 
@@ -36,7 +37,7 @@ class MessageController extends Controller
 
     public function multi_delete(Request $request)
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'items'   => 'required|array',
             'items.*' => 'required|exists:messages,id',
         ]);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Requests\Currency as modelRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Currency as Model;
 
 class CurrencyController extends Controller

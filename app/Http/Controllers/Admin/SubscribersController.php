@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Subscribers;
+use Illuminate\Support\Facades\Validator;
 
 
 
@@ -40,7 +41,7 @@ class SubscribersController extends Controller
 
     public function multi_delete(Request $request)
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'items'   => 'required|array',
             'items.*' => 'required|exists:subscribers,id',
         ]);

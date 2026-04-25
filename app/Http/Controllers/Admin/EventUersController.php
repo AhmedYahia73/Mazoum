@@ -2142,8 +2142,8 @@ $data = EventUsers::where('event_id', $Item->id)
     ->withQueryString()
     ->through(function($item) {
         // الحسابات دي هتفضل زي ما هي عشان تتبعت في الـ JSON
-        $user_count = $item->event_action ? $item->event_action->sum("users_count") : 0;
-        $final_count = $user_count - $item->scan_count;
+        // $user_count = $item->event_action ? $item->event_action->sum("users_count") : 0;
+        $final_count = $item->user_count - $item->scan_count;
 
         return [
             "id" => $item->id,

@@ -33,7 +33,7 @@ class NegotaitionController extends Controller
     }
     
     public function history(Request $request){
-        $negotation = Negotaition::where("status", 1)
+        $negotation = Negotaition::where("status", "!=", "pending")
         ->with("package", "user")
         ->paginate(10)
         ->through(function($item){

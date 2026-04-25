@@ -2130,15 +2130,10 @@ class EventUersController extends Controller
             ->where('status', 'attend')
             ->whereNull('scan')
             ->whereNull('is_refused')
-            /* تصفية البيانات من قاعدة البيانات مباشرة:
-            نبحث عن السجلات التي يكون فيها (مجموع users_count في جدول event_action) 
-            أكبر من (عدد scan_count في جدول event_users)
-            */
-            ->whereRaw('
-                (SELECT COALESCE(SUM(users_count), 0) 
-                FROM event_action 
-                WHERE event_action.event_user_id = event_users.id) - scan_count > 0
-            ')
+            ->whereHas('event_action', function($q) {
+                $q->selectRaw('sum(users_count)')
+                ->havingRaw('sum(users_count) > scan_count'); // أو حسب طبيعة الجداول لديك
+            })
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2149,13 +2144,9 @@ class EventUersController extends Controller
             ->paginate(15)
             ->withQueryString()
             ->through(function($item) {
-                // حساب القيمة للعرض في الـ JSON
-                // سنقوم بجلب المجموع هنا لغرض العرض فقط
-                $total_action_users = \DB::table('event_action')
-                    ->where('event_user_id', $item->id)
-                    ->sum('users_count');
-                    
-                $user_count = $total_action_users - $item->scan_count;
+                // حساب الحقل المخصص للعرض فقط
+                $user_count = $item->event_action ? $item->event_action->sum("users_count") : 0;
+                $user_count = $user_count - $item->scan_count;
 
                 return [
                     "id" => $item->id,

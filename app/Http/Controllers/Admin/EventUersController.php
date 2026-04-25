@@ -1789,7 +1789,7 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->whereHas('event_action')
+        ->where('is_accepted','yes')
         ->with("event_action")
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
@@ -2046,8 +2046,9 @@ class EventUersController extends Controller
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         if($request->search){
             $data = EventUsers::where('event_id', $Item->id)
-            ->where('status', "!=", 'not-attend')
-            ->whereDoesntHave('event_action')
+            ->whereIn('status', ['sent'])
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused')
             ->where(function($query){
                 
                 $query->where('status','hold')
@@ -2065,7 +2066,9 @@ class EventUersController extends Controller
         }
         else{
             $data = EventUsers::where('event_id', $Item->id)
-            ->where('status', "!=", 'not-attend')
+            ->whereIn('status', ['sent'])
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused')
             // ->whereIn('status', ['sent'])
             
             ->where(function($query){
@@ -2125,7 +2128,9 @@ class EventUersController extends Controller
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         $data = EventUsers::where('event_id', $Item->id)
         //->where('status', 'attend')
-        ->whereNull('is_refused') 
+        ->where('status','attend')
+        ->whereNull('scan')
+        ->whereNull('is_refused')
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {
@@ -2172,7 +2177,7 @@ class EventUersController extends Controller
                 ];
             }
         });
-        $data->setCollection($data->getCollection()->filter());
+        $data->setCollection($data->getCollection()->filter()->values());
 
         $title = 'عدم الحضور فعليا';
 
@@ -2216,6 +2221,7 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
+        ->where('qr_sent','yes')
         //->where('qr_sent', 'yes')
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;

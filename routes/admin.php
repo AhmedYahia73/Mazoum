@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'AdminController@home');
 
+Route::get('manager/destroy/{id}', 'AdminController@destroy');
+
+Route::get('users_list', 'AttendanceController@users_list');
+Route::post('multi_delete', 'AttendanceController@multi_delete');
 Route::resource(
     'attendance',
     'AttendanceController',

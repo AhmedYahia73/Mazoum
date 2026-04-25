@@ -787,8 +787,8 @@ class EventsController extends Controller
             ->orWhere('is_new_sent',1); 
         })->whereNull('is_accepted')
         ->whereNull('is_refused')
-        ->where(function($query) { $
-            query->where('is_new_sent',1)
+        ->where(function($query) {
+            $query->where('is_new_sent',1)
              ->orWhereNotNull('is_sent'); 
         })->sum('users_count');
         $send_Qr = EventUsers::

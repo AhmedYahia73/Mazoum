@@ -26,6 +26,7 @@ class AssistantController extends Controller
             'id', 'name', 'mobile', 'email', 'status',
             'employee_gender', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
+            "holiday"
         ]);
         return response()->json([
             'assistants' => $Item
@@ -68,7 +69,7 @@ class AssistantController extends Controller
     {
         $Item = Model::
         select('id', 'name', 'mobile', 'email', 'status',
-        'employee_gender', 'mobile_code', "user_type",
+        'employee_gender', 'mobile_code', "user_type", "holiday",
         'salary', 'appointment_from', 'appointment_to')
         ->findOrFail($id);
         return response()->json([
@@ -140,6 +141,7 @@ class AssistantController extends Controller
         $input = $request->only([
             'name', 'email', 'mobile', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
+            "holiday"
         ]);
 
         if(isset($modelClass) ) {

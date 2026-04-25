@@ -8,8 +8,9 @@ Route::get('/', 'AdminController@home');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
 
-Route::get('users_list', 'AttendanceController@users_list');
-Route::post('multi_delete', 'AttendanceController@multi_delete');
+Route::get('attendance/users_list', 'AttendanceController@users_list');
+Route::post('attendance/user_attendance', 'AttendanceController@user_attendance');
+Route::post('attendance/multi_delete', 'AttendanceController@multi_delete');
 Route::resource(
     'attendance',
     'AttendanceController',

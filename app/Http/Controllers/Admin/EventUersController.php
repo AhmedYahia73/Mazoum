@@ -2123,20 +2123,14 @@ class EventUersController extends Controller
 
 
   	public function non_attendance_event_details(Request $request, $id)
-    {
-     $Item = Events::findOrFail($id);
+    {$Item = Events::findOrFail($id);
 
 $data = EventUsers::where('event_id', $Item->id)
     ->where('status', 'attend')
     ->whereNull('scan')
     ->whereNull('is_refused')
-    /* تعديل الشرط ليكون متوافق مع SQL Mode وبدون Error */
-    ->where(function($query) {
-        $query->whereHas('event_action', function($q) {
-            $q->selectRaw('SUM(users_count)');
-        }, '>', DB::raw('scan_count')); 
-        // ملاحظة: تأكد من عمل use Illuminate\Support\Facades\DB; في أعلى الملف
-    })
+    /* ده الجزء السحري: بنقارن مجموع الـ users_count بالـ scan_count مباشرة في الداتابيز */
+    ->whereRaw('(SELECT COALESCE(SUM(users_count), 0) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > scan_count')
     ->when($request->search, function ($q) use ($request) {
         $search = $request->search;
         $q->where(function ($sub) use ($search) {
@@ -2147,13 +2141,13 @@ $data = EventUsers::where('event_id', $Item->id)
     ->paginate(15)
     ->withQueryString()
     ->through(function($item) {
-        // الحسابات الخاصة بكل صف
+        // الحسابات دي هتفضل زي ما هي عشان تتبعت في الـ JSON
         $user_count = $item->event_action ? $item->event_action->sum("users_count") : 0;
-        $user_count = $user_count - $item->scan_count;
+        $final_count = $user_count - $item->scan_count;
 
         return [
             "id" => $item->id,
-            "users_count" => $user_count, 
+            "users_count" => $final_count, 
             'event_id' => $item->event_id,
             'uu_id' => $item->uu_id,
             'message_id' => $item->message_id,

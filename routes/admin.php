@@ -16,6 +16,13 @@ Route::resource(
     'AttendanceController',
     ['names' => 'admin.attendance']
 );
+
+Route::post('attendance/multi_delete', 'AttendanceDataController@multi_delete');
+Route::resource(
+    'attendance_data',
+    'AttendanceDataController',
+    ['names' => 'admin.attendance_data']
+);
    
  
 // Admins

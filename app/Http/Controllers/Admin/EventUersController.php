@@ -2045,16 +2045,17 @@ class EventUersController extends Controller
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         if($request->search){
-            $data = EventUsers::where('event_id', $Item->id)
-            ->whereIn('status', ['sent'])
-            ->whereNull('is_accepted')
+            $data = EventUsers::
+            where('event_id',$Item->id)
+            ->where(function($q) { 
+                $q->where('status','sent')
+                ->orWhere('is_new_sent',1); 
+            })->whereNull('is_accepted')
             ->whereNull('is_refused')
-            ->where(function($query){
-                
-                $query->where('status','hold')
-                ->orWhere('is_new_sent',0)
-                ->orWhereNull('is_sent');
-            })
+            ->where(function($query) { $
+                query->where('is_new_sent',1)
+                ->orWhereNotNull('is_sent'); 
+            })->orWhereNull('is_sent')
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2065,19 +2066,17 @@ class EventUersController extends Controller
             ->paginate(15);
         }
         else{
-            $data = EventUsers::where('event_id', $Item->id)
-            ->whereIn('status', ['sent'])
-            ->whereNull('is_accepted')
+            $data = EventUsers::
+            where('event_id',$Item->id)
+            ->where(function($q) { 
+                $q->where('status','sent')
+                ->orWhere('is_new_sent',1); 
+            })->whereNull('is_accepted')
             ->whereNull('is_refused')
-            // ->whereIn('status', ['sent'])
-            
-            ->where(function($query){
-                
-                $query->where('status', "!=", 'hold')
-                ->orWhere('is_new_sent', "!=", 0)
-                ->orWhereNotNull('is_sent');
-            })
-            ->whereDoesntHave('event_action')
+            ->where(function($query) { $
+                query->where('is_new_sent',1)
+                ->orWhereNotNull('is_sent'); 
+            })->orWhereNull('is_sent')
             ->paginate(15);
         }
 
@@ -2220,7 +2219,8 @@ class EventUersController extends Controller
   	public function qr_sent_event_details(Request $request, $id)
     {
         $Item = Events::findOrFail($id);
-        $data = EventUsers::where('event_id', $Item->id)
+        $data = EventUsers::
+        where('event_id',$Item->id)
         ->where('qr_sent','yes')
         //->where('qr_sent', 'yes')
         ->when($request->search, function ($q) use ($request) {
@@ -2230,9 +2230,9 @@ class EventUersController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
-        ->where(function($query) {
-            $query->whereRaw('(SELECT SUM(users_count) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > 0');
-        })
+        // ->where(function($query) {
+        //     $query->whereRaw('(SELECT SUM(users_count) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > 0');
+        // })
         ->paginate(15)
         ->withQueryString() 
         ->through(function($item) { 

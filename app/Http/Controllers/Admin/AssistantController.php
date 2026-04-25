@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AssistantController extends Controller
-{
-
-
+{ 
     /**
      * Display a listing of the resource.
      *
@@ -137,7 +135,6 @@ class AssistantController extends Controller
 
 
     private function gteInput($request,$modelClass) {
-
         $input = $request->only([
             'name', 'email', 'mobile', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
@@ -157,10 +154,5 @@ class AssistantController extends Controller
         }
 
         return  $input;
-    }
-
-
-
-
-
+    } 
 }

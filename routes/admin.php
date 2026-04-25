@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Route;
 // Home
 
 Route::get('/', 'AdminController@home');
+
+Route::resource(
+    'attendance',
+    'AttendanceController',
+    ['names' => 'admin.attendance']
+);
    
  
 // Admins

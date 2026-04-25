@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
 use App\Models\Negotaition;
 
 class NegotaitionController extends Controller
 {
+
     public function view(Request $request){
         $negotation = Negotaition::where("status", 0)
         ->with("package", "user")
@@ -16,6 +18,7 @@ class NegotaitionController extends Controller
         ->through(function($item){
             return [
                 "id" => $item?->id ?? null,
+                "user_id" => $item?->user_id ?? null,
                 "user_name" => $item?->user?->name ?? null,
                 "user_email" => $item?->user?->email ?? null,
                 "user_mobile" => ($item?->user?->mobile_code ?? null) . ($item?->user?->mobile ?? null),
@@ -81,10 +84,17 @@ class NegotaitionController extends Controller
     }
 
     public function status(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            'status'=> 'required|in:accept,reject',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
         Negotaition::
         where("id", $id) 
         ->update([
-            "status" => 1
+            "status" => $request->status
         ]);
 
         return response()->json([

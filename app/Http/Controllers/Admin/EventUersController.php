@@ -497,21 +497,27 @@ class EventUersController extends Controller
 
                             if($request->sending_type2 == 'old_send') {
 
-                                $template_name = 'car_msg3';
-                                $language = 'ar';
 
+                                $language = 'ar';
+                                $template_name = "car_msg3_";
                                 $token          = get_whats_setting($event)['token'];
                                 $sender_id      = get_whats_setting($event)['sender_id'];
                                 $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                                $param_1 = $message;
+                                $param_2 = $time;
+                                $param_3 = $date;
+
+                                $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
 
                                 // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
                                 //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&url_button='.$url_button.'&image='.$url_image;
                                 // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&url_button='.$url_button.'&image='.$url_image.'&url_button='.$url_button;
-                                $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&param_2='.$time.'&param_3='.$date.'&url_button='.$url_button.'&image='.$url_image;
+                                // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&param_2='.$time.'&param_3='.$date.'&url_button='.$url_button.'&image='.$url_image;
 
 
-                                $response = SendNewTemplateCodeV1($url);
+                                //$response = SendNewTemplateCodeV1($url);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
@@ -582,7 +588,119 @@ class EventUersController extends Controller
     }
 
 
-    // send_event_users
+
+    // // send_event_users
+    // public function send_custom_message(Request $request)
+    // {
+    //     $setting = Setting::first();
+
+    //     $request->validate([
+    //         'sending_type' => 'required|in:old_send,new_send',
+    //         'message' => 'required',
+    //         'file'  => 'nullable|image',
+    //         'event_id' => 'required|exists:events,id',
+    //         'users' => 'required',
+    //     ]);
+
+    //     $event_id = $request->event_id;
+
+    //     $event = Events::where('id', $event_id)->firstOrFail();
+
+    //   	$path = 'images';
+    //   	$filename = '';
+
+    //     if($request->file('file') != null && $request->file != null) {
+
+    //         $extension = $request->file('file')->extension();
+    //         $filename = uniqid() . '.' . $extension;
+    //         $request->file('file')->move($path, $filename);
+
+    //         $url_image = asset('images/'.$filename);
+
+    //     } else {
+    //         $url_image = $event->file;
+    //     }
+
+    //     /* ***************************************************************************** */
+
+    //     $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+    //     $instance_id="instance109805"; // Ultramsg.com instance id
+    //     $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+    //     $priority=0;
+    //     $referenceId="SDK";
+    //     $nocache=true;
+
+    //     /* ***************************************************************************** */
+
+    //     try {
+
+    //         $errors = 0;
+
+    //         if($request->users != null && ! empty($request->users)) {
+
+    //             foreach($request->users as $arr) {
+
+    //                 if(array_key_exists('id', $arr)) {
+
+    //                     $user_event = Model::withTrashed()->find($arr['id']);
+
+    //                     if($user_event != null) {
+
+    //                       	$user_name = $user_event->name;
+
+    //                         $mobile = $user_event->mobile;
+
+    //                         //$to = $code.$mobile;
+    //                         $to = $mobile;
+    //                         $to = str_replace("+","",$to);
+
+    //                         if($request->sending_type == 'old_send') {
+
+
+                                // if($event->country_code == 'kw') {
+
+                                //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&image='.$url_image;
+
+                                //   $response = SendNewTemplateCodeV1($url);
+
+                                // } else {
+                                //   //dd($user_name,$message);
+                                //   $response = SendCustomMessageTemplate($to,$template_name,$language,$user_name,$message,$number,$phone_numer_id,$token);
+                                // }
+
+
+                              	// dd($response);
+
+    //                             //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
+
+    //                             if ($response != null && $response->getStatusCode() == 200) {
+
+    //                                 $body = $response->getBody();
+    //                                 $data = json_decode($body, true);
+
+    //                             } else {
+    //                                 $user_event->update([
+    //                                     'status' => 'failed-v2',
+    //                                 ]);
+    //                             }
+
+    //                         } else {
+
+    //                             $caption = $user_event->name . PHP_EOL . $request->message;
+
+    //                             // $api=$client->sendChatMessage($to,$body);
+    //                             $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+
+    //                             // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
+
+    //                             if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+    //                                 // dd('ok');
+    //                             } else {
+    //                                 // dd('not ok',$api);
+    //                                 $errors = $errors + 1;
+                    
+    // // send_event_users
     public function send_custom_message(Request $request)
     {
        $validator = Validator::make($request->all(), [
@@ -666,10 +784,27 @@ class EventUersController extends Controller
 
                                 // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
-                                $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&image='.$url_image;
+                                // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&image='.$url_image;
 
-                                $response = SendNewTemplateCodeV1($url);
+                                // $response = SendNewTemplateCodeV1($url);
 
+                                $template_name = 'custom_message';
+                                $language = 'ar';
+
+                                $message = $request->message;
+
+                                $token          = get_whats_setting($event)['token'];
+                                $sender_id      = get_whats_setting($event)['sender_id'];
+                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                                $number = '966593907079';
+
+                                $param1 = $user_event->name;
+                                $param2 = $message;
+                                $image_url = $url_image;
+
+                                // $response = SendCustomMessageTemplate($to,$template_name,$language,$user_name,$message,$number,$phone_numer_id,$token);
+                                $response = SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token);
                               	// dd($response);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);

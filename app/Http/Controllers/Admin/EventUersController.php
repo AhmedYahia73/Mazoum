@@ -2127,8 +2127,8 @@ class EventUersController extends Controller
         $Item = Events::findOrFail($id);
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
-        $data = EventUsers::where('event_id', $Item->id)
-        //->where('status', 'attend')
+        $data = EventUsers::
+        where('event_id',$Item->id)
         ->where('status','attend')
         ->whereNull('scan')
         ->whereNull('is_refused')

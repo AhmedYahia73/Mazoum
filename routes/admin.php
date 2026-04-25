@@ -116,9 +116,9 @@ Route::resource('desgins', 'DesginsController', [
 ]);
 Route::post('desgins/{id}', 'DesginsController@update');
 
+Route::post('web_desgins/multi_delete', 'WebDesginsController@multi_delete');
 Route::post('web_desgins/{id}', 'WebDesginsController@update');
 Route::get('web_desgins/destroy/{id}', 'WebDesginsController@destroy');
-Route::post('web_desgins/multi_delete', 'WebDesginsController@multi_delete');
 Route::get('web_desgins/show-pdf/{id}', 'WebDesginsController@show_pdf');
 Route::resource('web_desgins', 'WebDesginsController', [
     'names' => 'admin.web_desgins',
@@ -371,9 +371,9 @@ Route::resource('reservation','ReservationController',[
     'names' => 'admin.reservation',
     'except' => ['update'],
 ]);
+Route::post('reservation/multi_delete', 'ReservationController@multi_delete');
 Route::post('reservation/{id}', 'ReservationController@update');
 Route::get('reservation/destroy/{id}', 'ReservationController@destroy');
-Route::post('reservation/multi_delete', 'ReservationController@multi_delete');
 Route::post('send_reservation_to_paid', 'ReservationController@send_reservation_to_paid');
 Route::post('send_reservation_info_to_user', 'ReservationController@send_reservation_info_to_user');
 
@@ -384,9 +384,9 @@ Route::resource('custom_events', 'CustomEventController', [
     'names' => 'admin.custom_events',
     'except' => ['update'],
 ]);
+Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 Route::post('custom_events/{id}', 'CustomEventController@update');
 Route::get('custom_events/destroy/{id}', 'CustomEventController@destroy');
-Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 
 
 Route::get('custom_events/{id}/event-visitors', 'CustomEventController@event_visitors');

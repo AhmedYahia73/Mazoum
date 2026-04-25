@@ -2130,10 +2130,15 @@ class EventUersController extends Controller
             ->where('status', 'attend')
             ->whereNull('scan')
             ->whereNull('is_refused')
-            // إضافة حساب user_count داخل الاستعلام
-            ->withSum('event_action as total_users', 'users_count') 
-            // تصفية السجلات التي يكون فيها (مجموع المستخدمين - عدد المسح) أكبر من 0
-            ->whereRaw('(SELECT COALESCE(SUM(users_count), 0) FROM event_actions WHERE event_actions.event_user_id = event_users.id) - scan_count > 0')
+            /* تصفية البيانات من قاعدة البيانات مباشرة:
+            نبحث عن السجلات التي يكون فيها (مجموع users_count في جدول event_action) 
+            أكبر من (عدد scan_count في جدول event_users)
+            */
+            ->whereRaw('
+                (SELECT COALESCE(SUM(users_count), 0) 
+                FROM event_action 
+                WHERE event_action.event_user_id = event_users.id) - scan_count > 0
+            ')
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2144,17 +2149,41 @@ class EventUersController extends Controller
             ->paginate(15)
             ->withQueryString()
             ->through(function($item) {
-                // حساب القيمة للعرض فقط
-                $user_count = ($item->total_users ?? 0) - $item->scan_count;
-                
+                // حساب القيمة للعرض في الـ JSON
+                // سنقوم بجلب المجموع هنا لغرض العرض فقط
+                $total_action_users = \DB::table('event_action')
+                    ->where('event_user_id', $item->id)
+                    ->sum('users_count');
+                    
+                $user_count = $total_action_users - $item->scan_count;
+
                 return [
                     "id" => $item->id,
-                    "users_count" => $user_count,
+                    "users_count" => $user_count, 
                     'event_id' => $item->event_id,
+                    'uu_id' => $item->uu_id,
+                    'message_id' => $item->message_id,
                     'name' => $item->name,
                     'mobile' => $item->mobile,
                     'status' => $item->status,
-                    // ... باقي الحقول الخاصة بك ...
+                    'scan' => $item->scan,
+                    'scan_at' => $item->scan_at,
+                    'get_location' => $item->get_location,
+                    'is_sent' => $item->is_sent,
+                    'is_delivered' => $item->is_delivered,
+                    'qr_sent' => $item->qr_sent,
+                    'is_accepted' => $item->is_accepted,
+                    'is_refused' => $item->is_refused,
+                    'log' => $item->log,
+                    'sent_from' => $item->sent_from,
+                    'is_read' => $item->is_read,
+                    'error_title' => $item->error_title,
+                    'error' => $item->error,
+                    'confirmed_at' => $item->confirmed_at,
+                    'is_open' => $item->is_open,
+                    'is_new_sent' => $item->is_new_sent,
+                    'scan_count' => $item->scan_count,
+                    'is_send_congratulation' => $item->is_send_congratulation,
                     'code' => $item->code,
                     "send_time" => $item->send_time,
                     "accept_time" => $item->accept_time

@@ -26,7 +26,7 @@ class AttendanceController extends Controller
             });
         }
 
-        $items = $query->latest()->paginate(15);
+        $items = $query->orderByDesc("id")->paginate(15);
 
         return response()->json(['items' => $items]);
     }
@@ -54,7 +54,7 @@ class AttendanceController extends Controller
             });
         }
 
-        $items = $query->latest()->paginate(15);
+        $items = $query->orderByDesc("id")->paginate(15);
 
         return response()->json(['items' => $items]);
     }

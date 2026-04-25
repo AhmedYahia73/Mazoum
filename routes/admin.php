@@ -116,14 +116,14 @@ Route::resource('desgins', 'DesginsController', [
 ]);
 Route::post('desgins/{id}', 'DesginsController@update');
 
-Route::resource('web_desgins', 'WebDesginsController', [
-    'names' => 'admin.web_desgins',
-    'except' => ['update'],
-]);
 Route::post('web_desgins/{id}', 'WebDesginsController@update');
 Route::get('web_desgins/destroy/{id}', 'WebDesginsController@destroy');
 Route::post('web_desgins/multi_delete', 'WebDesginsController@multi_delete');
 Route::get('web_desgins/show-pdf/{id}', 'WebDesginsController@show_pdf');
+Route::resource('web_desgins', 'WebDesginsController', [
+    'names' => 'admin.web_desgins',
+    'except' => ['update'],
+]);
 
 // Events 
 Route::get('events/event_lists', 'EventsController@event_lists');

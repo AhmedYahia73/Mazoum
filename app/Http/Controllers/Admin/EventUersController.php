@@ -2130,14 +2130,14 @@ $data = EventUsers::where('event_id', $Item->id)
     ->whereNull('scan')
     ->whereNull('is_refused')
     /* ده الجزء السحري: بنقارن مجموع الـ users_count بالـ scan_count مباشرة في الداتابيز */
-    ->whereRaw('(SELECT COALESCE(SUM(users_count), 0) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > scan_count')
-    ->when($request->search, function ($q) use ($request) {
-        $search = $request->search;
-        $q->where(function ($sub) use ($search) {
-            $sub->where('name', 'like', "%$search%")
-                ->orWhere('mobile', 'like', "%$search%");
-        });
-    })
+    // ->whereRaw('(SELECT COALESCE(SUM(users_count), 0) FROM event_users_actions WHERE event_users_actions.event_user_id = event_users.id) > scan_count')
+    // ->when($request->search, function ($q) use ($request) {
+    //     $search = $request->search;
+    //     $q->where(function ($sub) use ($search) {
+    //         $sub->where('name', 'like', "%$search%")
+    //             ->orWhere('mobile', 'like', "%$search%");
+    //     });
+    // })
     ->paginate(15)
     ->withQueryString()
     ->through(function($item) {

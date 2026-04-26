@@ -126,6 +126,7 @@ Route::resource('web_desgins', 'WebDesginsController', [
 ]);
 
 // Events 
+Route::post('events/multi_delete', 'EventsController@multi_delete');
 Route::get('events/event_lists', 'EventsController@event_lists');
 Route::post('events/update_location', 'EventsController@update_location');
 Route::delete('events/delete_event/{id}', 'EventsController@delete_event');
@@ -144,7 +145,6 @@ Route::patch('events/update_event_package/{id}', 'EventsController@update_event_
 
 
 Route::get('events/destroy/{id}', 'EventsController@destroy');
-Route::post('events/multi_delete', 'EventsController@multi_delete');
 Route::get('events/show-pdf/{id}', 'EventsController@show_pdf');
 
 Route::get('closed-events', 'EventsController@closed_events');

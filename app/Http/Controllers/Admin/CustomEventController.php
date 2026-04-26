@@ -589,6 +589,7 @@ class CustomEventController extends Controller
             'address' , 'date' , 'time', 'scan_assistant_id',
             "name_qr", "number_qr", "qr_height", "send_type",
             "qr_width", "qr_x", "qr_y", "lat", "lng",
+            'image_height', 'image_width', 'text_color'
         ]);
 
         $path = 'images';

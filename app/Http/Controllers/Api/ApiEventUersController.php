@@ -1489,12 +1489,15 @@ class ApiEventUersController extends Controller
 
         $color = $this->hexToRgb($event->color);
 
-        $name_qr   = $event->name_qr;
-        $number_qr = $event->number_qr;
-        $qr_height = $event->qr_height;
-        $qr_width  = $event->qr_width;
-        $qr_x      = $event->qr_x;
-        $qr_y      = $event->qr_y;
+        $name_qr      = $event->name_qr;
+        $number_qr    = $event->number_qr;
+        $qr_height    = $event->qr_height;
+        $qr_width     = $event->qr_width;
+        $qr_x         = $event->qr_x;
+        $qr_y         = $event->qr_y;
+        $image_height = $event->image_height;
+        $image_width  = $event->image_width;
+        $text_color   = $event->text_color ?: '#000';
 
         if($event->image != null) {
 
@@ -1511,7 +1514,12 @@ class ApiEventUersController extends Controller
                 ->generate($link, $qr_code_path);
 
             $background = Image::make($event->image);
-            $qr         = Image::make($qr_code_path);
+
+            if ($image_width > 0 && $image_height > 0) {
+                $background->resize($image_width, $image_height);
+            }
+
+            $qr = Image::make($qr_code_path);
 
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
@@ -1538,10 +1546,10 @@ class ApiEventUersController extends Controller
             }
 
             if ($name_qr) {
-                $background->text($name, $center_x, $text_y, function ($font) use ($font_path) {
+                $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                     $font->file($font_path);
                     $font->size(20);
-                    $font->color('#000');
+                    $font->color($text_color);
                     $font->align('center');
                     $font->valign('top');
                 });
@@ -1549,10 +1557,10 @@ class ApiEventUersController extends Controller
             }
 
             if ($number_qr && $user_event->users_count > 1) {
-                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path) {
+                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                     $font->file($font_path);
                     $font->size(20);
-                    $font->color('#000');
+                    $font->color($text_color);
                     $font->align('center');
                     $font->valign('top');
                 });

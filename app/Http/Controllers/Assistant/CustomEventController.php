@@ -180,114 +180,135 @@ class CustomEventController extends Controller
     }
 
 
-  	private function update_qr($row,$uu_id) {
-
+    private function update_qr($row, $uu_id) {
         $event = $row->event;
         $bg = $event->image;
 
-      	//dd($bg);
-
-      	$image_name = $uu_id . '-custom-event-qr.png';
+        // تأكد من وجود المجلد
+        $directory = public_path('custom_event_qr_code');
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true);
+        }
+        $event_element = $row->event;
+        $name_qr      = $row->event?->name_qr; 
+        $number_qr    = $row->event?->number_qr; 
+        $qr_height    = $row->event?->qr_height; 
+        $qr_width     = $row->event?->qr_width; 
+        $qr_x         = $row->event?->qr_x; 
+        $qr_y         = $row->event?->qr_y; 
+        $image_height = $row->event?->image_height;
+        $image_width  = $row->event?->image_width;
+        $text_color   = $row->event?->text_color ?: '#000';
+        $user_name = $row->name;
+        $users_count = $row->users_count;
+        $image_name = $uu_id . '-custom-event-qr.png';
         $link = asset('scan-custom-event-qr/' . $uu_id);
-        $qr_code_path = 'custom_event_qr_code/' . $image_name;
+        $qr_temp_path = public_path('custom_event_qr_code/temp_qr_' . $image_name);
 
-        // إنشاء QR كـ صورة مؤقتة
-        //$qr_temp_path = public_path('custom_event_qr_code/temp_' . $image_name);
-        //QrCode::size(140)->format('png')->generate($link, $qr_temp_path);
-
-      	// إنشاء QR كـ صورة مؤقتة بخلفية شفافة
-        $qr_temp_path = public_path('custom_event_qr_code/temp_' . $image_name);
-
-      	$color = $this->hexToRgb($row->event->color);
-
-      	// dd($color);
-
+        // إنشاء QR بخلفية شفافة
+        $color = $this->hexToRgb($event_element->color);
+        
         QrCode::format('png')
-            ->size(140)
-          	->color($color[0],$color[1],$color[2])
-            ->backgroundColor(0, 0, 0, 0) // RGBA => شفاف
+            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
+            ->color($color[0], $color[1], $color[2])
+            ->backgroundColor(0, 0, 0, 0)
             ->generate($link, $qr_temp_path);
-
 
         // افتح الخلفية
         $background = Image::make($bg);
 
+        if ($image_width > 0 && $image_height > 0) {
+            $background->resize($image_width, $image_height);
+        }
+        
         // افتح QR
         $qr = Image::make($qr_temp_path);
 
-        // احسب الإحداثيات لتوسيط QR في الأسفل
-        $x = intval(($background->width() - $qr->width()) / 2); // مركز أفقي
-        $y = $background->height() - $qr->height() - 180; // من الأسفل
-
-        // أدرج QR
-        $background->insert($qr, 'top-left', $x, $y - 100);
-
-
-        if($event->language == 'ar') {
-
-            $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-            $name = $Arabic->utf8Glyphs($row->name);
-
-             $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
-            $user_count_label = 'عدد الضيوف ' . $row->users_count . '';
-            $name2 = $Arabic2->utf8Glyphs($user_count_label);
-
-            $font_path = public_path('font/DroidArabicKufiRegular.ttf');
-
-        } else {
-
-            $name = $row->name;
-            $user_count_label = 'Entered Users ' . $row->users_count . '';
-            $name2 = $user_count_label;
-
-            $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-
+        // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
+        if ($qr_width > 0 && $qr_height > 0) {
+            $qr->resize($qr_width, $qr_height);
         }
 
+        // تحديد مكان الـ QR بناءً على المحاور المطلوبة (X و Y)
+        $x = $qr_x;
+        $y = $qr_y;
 
+        // أدرج QR مرة واحدة بس!
+        $background->insert($qr, 'top-left', $x, $y);
 
-        // احسب مركز الصورة للنص
+        // إعداد النصوص
+        if ($event->language == 'ar') {
+            $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+            $name = $Arabic->utf8Glyphs($row->name);
+            
+            $user_count_label = 'عدد الضيوف ' . $row->users_count;
+            $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
+            $name2 = $Arabic2->utf8Glyphs($user_count_label);
+            
+            $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+        } else {
+            $name = $row->name;
+            $name2 = 'Entered Users ' . $row->users_count;
+            $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+        }
+
+        // مركز الصورة للنص
         $center_x = intval($background->width() / 2);
-        $text_y = $y + $qr->height() - 85; // أسفل QR بـ 20px
+        $text_y = $y + $qr->height() + 15;
 
-
-        // أضف النص في وسط الصورة أفقيًا وأسفل QR
-        $background->text($name, $center_x, $text_y, function ($font) use($font_path) {
-            $font->file($font_path);
-            $font->size(20);
-            $font->color('#000');
-            $font->align('center');
-            $font->valign('top');
-        });
-
-
-
-       	// احسب مركز الصورة للنص
-        $text_y2 = $y + $qr->height() - 60; // أسفل QR بـ 20px
-
-        if($row->users_count > 1) {
-
-            // أضف النص في وسط الصورة أفقيًا وأسفل QR
-            $background->text($name2, $center_x, $text_y2, function ($font) use($font_path) {
+        // إضافة اسم الشخص (مربوط بالـ Boolean)
+        if ($name_qr) {
+            $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                 $font->file($font_path);
                 $font->size(20);
-                $font->color('#000');
+                $font->color($text_color);
                 $font->align('center');
                 $font->valign('top');
             });
-
+            
+            // لو الاسم انطبع، ننزل السطر اللي بعده مسافة عشان العدد (لو موجود)
+            $text_y += 25; 
         }
 
-        // حفظ النتيجة
-        $background->save(public_path($qr_code_path), 100);
+        // إضافة عدد المستخدمين (مربوط بالـ Boolean)
+        if ($number_qr && $row->users_count > 1) {
+            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                $font->file($font_path);
+                $font->size(20);
+                $font->color($text_color);
+                $font->align('center');
+                $font->valign('top');
+            });
+        }
 
-      	$row->update([
-            'qr' => $image_name
-        ]);
-
-        // حذف QR المؤقت
-        @unlink($qr_temp_path);
-
+        // حفظ الصورة النهائية
+        $final_path = public_path('custom_event_qr_code/' . $image_name);
+        
+        try {
+        
+            $background = Image::canvas($background->width(), $background->height())
+                        ->insert($background);
+            // ⭐ الحل السحري: encode قبل save
+            $encoded = $background->encode('png', 100);
+            // حفظ الصورة المشفرة
+            file_put_contents($final_path, $encoded);
+            
+            // تحديث قاعدة البيانات
+            $row->update([
+                'qr' => $image_name
+            ]);
+            
+            // حذف QR المؤقت
+            @unlink($qr_temp_path);
+            
+            // تدمير الصورة من الذاكرة
+            $background->destroy();
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error("فشل حفظ QR: " . $e->getMessage());
+            return false;
+        }
     }
 
 

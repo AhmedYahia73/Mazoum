@@ -270,12 +270,15 @@ class CustomEventController extends Controller
             mkdir($directory, 0777, true);
         }
         $event_element = $row->event;
-        $name_qr = $row->event?->name_qr; 
-        $number_qr = $row->event?->number_qr; 
-        $qr_height = $row->event?->qr_height; 
-        $qr_width = $row->event?->qr_width; 
-        $qr_x = $row->event?->qr_x; 
-        $qr_y = $row->event?->qr_y; 
+        $name_qr      = $row->event?->name_qr; 
+        $number_qr    = $row->event?->number_qr; 
+        $qr_height    = $row->event?->qr_height; 
+        $qr_width     = $row->event?->qr_width; 
+        $qr_x         = $row->event?->qr_x; 
+        $qr_y         = $row->event?->qr_y; 
+        $image_height = $row->event?->image_height;
+        $image_width  = $row->event?->image_width;
+        $text_color   = $row->event?->text_color ?: '#000';
         $user_name = $row->name;
         $users_count = $row->users_count;
         $image_name = $uu_id . '-custom-event-qr.png';
@@ -286,13 +289,17 @@ class CustomEventController extends Controller
         $color = $this->hexToRgb($event_element->color);
         
         QrCode::format('png')
-            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
+            ->size($qr_width > 0 ? $qr_width : 140)
             ->color($color[0], $color[1], $color[2])
             ->backgroundColor(0, 0, 0, 0)
             ->generate($link, $qr_temp_path);
 
         // افتح الخلفية
         $background = Image::make($bg);
+
+        if ($image_width > 0 && $image_height > 0) {
+            $background->resize($image_width, $image_height);
+        }
         
         // افتح QR
         $qr = Image::make($qr_temp_path);
@@ -331,24 +338,23 @@ class CustomEventController extends Controller
 
         // إضافة اسم الشخص (مربوط بالـ Boolean)
         if ($name_qr) {
-            $background->text($name, $center_x, $text_y, function ($font) use ($font_path) {
+            $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                 $font->file($font_path);
                 $font->size(20);
-                $font->color('#000');
+                $font->color($text_color);
                 $font->align('center');
                 $font->valign('top');
             });
             
-            // لو الاسم انطبع، ننزل السطر اللي بعده مسافة عشان العدد (لو موجود)
             $text_y += 25; 
         }
 
         // إضافة عدد المستخدمين (مربوط بالـ Boolean)
         if ($number_qr && $row->users_count > 1) {
-            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path) {
+            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                 $font->file($font_path);
                 $font->size(20);
-                $font->color('#000');
+                $font->color($text_color);
                 $font->align('center');
                 $font->valign('top');
             });

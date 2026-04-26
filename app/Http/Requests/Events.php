@@ -45,6 +45,9 @@ class Events extends FormRequest
                 'qr_x' => 'required',
                 'qr_y' => 'required',
                 'resend_qr' => 'required|boolean',
+                'image_height' => ['required'],
+                'image_width' => ['required'],
+                'text_color' => ['required'],
             ];
         }
 
@@ -72,6 +75,9 @@ class Events extends FormRequest
                 'qr_x' => 'required',
                 'qr_y' => 'required',
                 'resend_qr' => 'required',
+                'image_height' => ['required', 'numeric'],
+                'image_width' => ['required', 'numeric'],
+                'text_color' => ['required'],
             ];
         }
 

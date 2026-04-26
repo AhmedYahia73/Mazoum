@@ -91,7 +91,6 @@ class EventsController extends Controller
         }
     }
 
-
     public function delete_events(Request $request) {
         $validator = Validator::make($request->all(), [
             'events' => 'required|array',
@@ -1101,6 +1100,7 @@ class EventsController extends Controller
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
             'country_code', 'scan_assistant_id',
             'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
+            'image_height', 'image_width', 'text_color'
         ]);
 
         if(! isset($modelClass)) {

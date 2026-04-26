@@ -43,6 +43,9 @@ class CustomEvent extends FormRequest
                     "lat" => ["required", "numeric"],
                     "lng" => ["required", "numeric"],
                     "send_type" => ["required", "in:all,watts,msg"],
+                    'image_height' => ['required'],
+                    'image_width' => ['required'],
+                    'text_color' => ['required'],
                 ];
 
             case 'PUT':
@@ -69,6 +72,9 @@ class CustomEvent extends FormRequest
                     "lat" => ["required", "numeric"],
                     "lng" => ["required", "numeric"],
                     "send_type" => ["required", "in:all,watts,msg"],
+                    'image_height' => ['required', 'numeric'],
+                    'image_width' => ['required', 'numeric'],
+                    'text_color' => ['required'],
                 ];
 
             default:

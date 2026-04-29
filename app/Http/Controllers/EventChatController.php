@@ -436,7 +436,7 @@ class EventChatController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->image != null) {
+        if ($event->getRawOriginal('image') != null) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
@@ -456,7 +456,7 @@ class EventChatController extends Controller
                 ->backgroundColor(255, 255, 255)
                 ->generate($link, $qr_tmp_path);
 
-            $background = Image::make($event->image);
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);
@@ -559,3 +559,4 @@ class EventChatController extends Controller
 
 
 }
+

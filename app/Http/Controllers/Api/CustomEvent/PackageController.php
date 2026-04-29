@@ -964,7 +964,7 @@ class PackageController extends Controller
 
     private function update_qr($row, $uu_id) {
         $event = $row->event;
-        $bg = $event->image;
+        $bg = public_path('images/' . $event->getRawOriginal('image'));
 
         // تأكد من وجود المجلد
         $directory = public_path('custom_event_qr_code');

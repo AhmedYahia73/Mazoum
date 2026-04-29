@@ -986,6 +986,7 @@ class EventUersController extends Controller
 
             $new_img->save($destination);
         }
+        dd($new_img);
     }
 
 

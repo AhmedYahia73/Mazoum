@@ -1499,26 +1499,21 @@ class ApiEventUersController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if($event->getRawOriginal('image') != null) {
+        if($event->image != null) {
 
-            $image_name   = $uu_id . '-test-qr.png';
-            $link         = asset('scan-qr/' . $uu_id);
-            $qr_dir       = public_path('qr_code');
-            $qr_code_path = $qr_dir . '/' . $image_name;
-
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
+            $image_name  = $uu_id . '-test-qr.png';
+            $link        = asset('scan-qr/' . $uu_id);
+            $qr_code_path = 'qr_code/' . $image_name;
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0],$color[1],$color[2])
-                ->backgroundColor(255, 255, 255)
+                ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_code_path);
 
-            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
+            $background = Image::make($event->image);
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);
@@ -1571,7 +1566,7 @@ class ApiEventUersController extends Controller
                 });
             }
 
-            $background->save($qr_code_path, 100);
+            $background->save(public_path($qr_code_path), 100);
 
         } else {
 
@@ -1619,5 +1614,3 @@ class ApiEventUersController extends Controller
 
 
 }
-
-

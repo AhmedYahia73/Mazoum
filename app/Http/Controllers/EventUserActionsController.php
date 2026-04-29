@@ -725,27 +725,22 @@ class EventUserActionsController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('image') != null) {
+        if ($event->image != null) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            $qr_dir      = public_path('qr_code');
-            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
-            $final_path  = $qr_dir . '/' . $image_name;
-
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(255, 255, 255)
+                ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
-            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
+            $background = Image::make($event->image);
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);
@@ -757,6 +752,7 @@ class EventUserActionsController extends Controller
                 $qr->resize($qr_width, $qr_height);
             }
 
+            // موضع QR: إذا حُدد x,y استخدمهم، وإلا وسّط
             $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
             $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
 
@@ -846,4 +842,3 @@ class EventUserActionsController extends Controller
         return [$r, $g, $b];
     }
 }
-

@@ -1289,7 +1289,7 @@ class EventUersController extends Controller
 
                             $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
                             $image_url    = asset($qr_code_path);
-f                            //$code = $user_event->mobile_code->code;
+                            //$code = $user_event->mobile_code->code;
                             //$mobile = substr($user_event->mobile, 1);
                             $mobile = $user_event->mobile;
 

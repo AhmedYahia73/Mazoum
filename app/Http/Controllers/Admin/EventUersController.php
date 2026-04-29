@@ -1577,7 +1577,6 @@ class EventUersController extends Controller
         $this->update_qr($event,$uu_id,$user_event,$image_name);
 
         $qr_code_path = 'qr_code/' . $image_name;
-dd($qr_code_path);
         // $bg = 'qr-image-v9.jpg';
 
         // $link = asset('scan-qr/' . $uu_id);
@@ -1598,7 +1597,7 @@ dd($qr_code_path);
         // $new_img->save($destination);
 
         $image_url = asset($qr_code_path);
-
+dd($image_url);
         //$code = $user_event->mobile_code->code;
         //$mobile = substr($user_event->mobile, 1);
         $mobile = $user_event->mobile;

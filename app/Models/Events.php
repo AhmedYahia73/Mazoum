@@ -22,7 +22,7 @@ class Events extends Model
         'country','location','can_replay_messages' , 'is_open' , 'gender',
         'sending_type','phone','invitation_count','reservation_date','package_price','payment_type',
         'is_paid','employee_gender','color','image','video', 'country_code', 'scan_assistant_id',
-        'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
+        'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         'image_height', 'image_width', 'text_color'
     ];
 

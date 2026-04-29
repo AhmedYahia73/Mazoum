@@ -1268,8 +1268,9 @@ class EventUersController extends Controller
                                 'log' => null,
                             ]);
 
+                            $uu_id = $this->unique_uu_id();
                             $image_path = $event->file;
-
+                            $this->update_qr($event, $uu_id, $user_event, $image_path);
                             //$code = $user_event->mobile_code->code;
                             //$mobile = substr($user_event->mobile, 1);
                             $mobile = $user_event->mobile;
@@ -1597,7 +1598,6 @@ class EventUersController extends Controller
         // $new_img->save($destination);
 
         $image_url = asset($qr_code_path);
-dd($image_url);
         //$code = $user_event->mobile_code->code;
         //$mobile = substr($user_event->mobile, 1);
         $mobile = $user_event->mobile;

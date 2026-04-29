@@ -3132,6 +3132,7 @@ return response()->json([
 
             $new_img->save($destination);
         }
+        dd($new_img);
     }
 
 

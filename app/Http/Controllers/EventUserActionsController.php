@@ -729,15 +729,20 @@ class EventUserActionsController extends Controller
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
-            $final_path  = public_path('qr_code/' . $image_name);
+            $qr_dir      = public_path('qr_code');
+            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
+            $final_path  = $qr_dir . '/' . $image_name;
+
+            if (!file_exists($qr_dir)) {
+                mkdir($qr_dir, 0777, true);
+            }
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(0, 0, 0, 0)
+                ->backgroundColor(255, 255, 255)
                 ->generate($link, $qr_tmp_path);
 
             $background = Image::make($event->image);

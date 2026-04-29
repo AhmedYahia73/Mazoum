@@ -209,9 +209,9 @@ class CustomEventController extends Controller
         $color = $this->hexToRgb($event_element->color);
         
         QrCode::format('png')
-            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
+            ->size($qr_width > 0 ? $qr_width : 140)
             ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(0, 0, 0, 0)
+            ->backgroundColor(255, 255, 255)
             ->generate($link, $qr_temp_path);
 
         // افتح الخلفية

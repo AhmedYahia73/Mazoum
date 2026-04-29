@@ -1268,9 +1268,28 @@ class EventUersController extends Controller
                                 'log' => null,
                             ]);
 
-                            $uu_id = $this->unique_uu_id();
-                            $image_path = $event->file;
-                            $this->update_qr($event, $uu_id, $user_event, $image_path);
+                            // get or create QR record
+                            $qr_record = Qr_Code::where('event_user_id', $user_event->id)->latest()->first();
+                            if ($qr_record) {
+                                $uu_id      = $qr_record->uu_id;
+                                $image_name = $qr_record->qr;
+                            } else {
+                                $uu_id      = $this->unique_uu_id();
+                                $image_name = $uu_id . '-test-qr.png';
+                                Qr_Code::create([
+                                    'event_user_id' => $user_event->id,
+                                    'event_id'      => $user_event->event_id,
+                                    'qr'            => $image_name,
+                                    'uu_id'         => $uu_id,
+                                    'counter'       => 0,
+                                ]);
+                            }
+
+                            $this->update_qr($event, $uu_id, $user_event, $image_name);
+
+                            $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
+                            $image_url    = asset($qr_code_path);
+
                             //$code = $user_event->mobile_code->code;
                             //$mobile = substr($user_event->mobile, 1);
                             $mobile = $user_event->mobile;
@@ -1281,7 +1300,6 @@ class EventUersController extends Controller
 
                             $template_name = 'wedding_data_v1_ar';
                             $language = 'ar';
-                            $image_url = $image_path;
                             $user_name = $user_event->name;
 
                             $token          = get_whats_setting($event)['token'];

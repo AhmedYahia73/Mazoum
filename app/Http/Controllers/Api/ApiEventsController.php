@@ -509,8 +509,7 @@ class ApiEventsController extends Controller
             'lat' => 'required',
             'long' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
-            'time' => 'required',
-            'send_type' => 'required',
+            'time' => 'required', 
             'name_qr' => 'required',
             'number_qr' => 'required',
             'qr_height' => 'required',
@@ -546,10 +545,7 @@ class ApiEventsController extends Controller
             $validator = Validator::make($request->all(), $validated_arr, $custom_messages);
         } else {
             $validator = Validator::make($request->all(), $validated_arr);
-        }
-        $request->merge([
-            "send_type" => "watts"
-        ]);
+        } 
         //Send failed response if request is not valid
         if ($validator->fails()) {
             $code = $this->returnCodeAccordingToInput($validator);
@@ -636,7 +632,7 @@ class ApiEventsController extends Controller
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr',
             'first_name','last_name','lat','long','date','time',
-            'send_type', 'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
+            'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         ]);
 
         if (! isset($modelClass)) {

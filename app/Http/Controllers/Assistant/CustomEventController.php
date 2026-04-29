@@ -182,7 +182,7 @@ class CustomEventController extends Controller
 
     private function update_qr($row, $uu_id) {
         $event = $row->event;
-        $bg = public_path('images/' . $event->getRawOriginal('image'));
+        $bg = $event->image;
 
         // تأكد من وجود المجلد
         $directory = public_path('custom_event_qr_code');
@@ -209,9 +209,9 @@ class CustomEventController extends Controller
         $color = $this->hexToRgb($event_element->color);
         
         QrCode::format('png')
-            ->size($qr_width > 0 ? $qr_width : 140)
+            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
             ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(255, 255, 255)
+            ->backgroundColor(0, 0, 0, 0)
             ->generate($link, $qr_temp_path);
 
         // افتح الخلفية
@@ -224,12 +224,14 @@ class CustomEventController extends Controller
         // افتح QR
         $qr = Image::make($qr_temp_path);
 
+        // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
         if ($qr_width > 0 && $qr_height > 0) {
             $qr->resize($qr_width, $qr_height);
         }
 
-        $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
-        $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
+        // تحديد مكان الـ QR بناءً على المحاور المطلوبة (X و Y)
+        $x = $qr_x;
+        $y = $qr_y;
 
         // أدرج QR مرة واحدة بس!
         $background->insert($qr, 'top-left', $x, $y);

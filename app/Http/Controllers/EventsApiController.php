@@ -601,7 +601,7 @@ class EventsApiController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->image != null) {
+        if ($event->getRawOriginal('image') != null) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
@@ -628,9 +628,14 @@ class EventsApiController extends Controller
                 $qr->resize($qr_width, $qr_height);
             }
 
-            // موضع QR: إذا حُدد x,y استخدمهم، وإلا وسّط
-            $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
-            $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
+            // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
+            if ($qr_x > 0 || $qr_y > 0) {
+                $x = $background->width()  - $qr->width()  - $qr_x;
+                $y = $background->height() - $qr->height() - $qr_y;
+            } else {
+                $x = intval(($background->width()  - $qr->width())  / 2);
+                $y = intval(($background->height() - $qr->height()) / 2);
+            }
 
             $background->insert($qr, 'top-left', $x, $y);
 
@@ -720,3 +725,5 @@ class EventsApiController extends Controller
 
 
 }
+
+

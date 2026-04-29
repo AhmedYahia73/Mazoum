@@ -1499,21 +1499,22 @@ class ApiEventUersController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if($event->image != null) {
+        if($event->getRawOriginal('image') != null) {
 
-            $image_name  = $uu_id . '-test-qr.png';
-            $link        = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
+            $image_name   = $uu_id . '-test-qr.png';
+            $link         = asset('scan-qr/' . $uu_id);
+            $qr_dir       = public_path('qr_code');
+            $qr_code_path = $qr_dir . '/' . $image_name;
+
+            if (!file_exists($qr_dir)) {
+                mkdir($qr_dir, 0777, true);
+            }
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
-            QrCode::format('png')
-                ->size($qr_size)
-                ->color($color[0],$color[1],$color[2])
-                ->backgroundColor(0, 0, 0, 0)
-                ->generate($link, $qr_code_path);
+            generate_qr_png($link, $qr_code_path, $qr_size, $color);
 
-            $background = Image::make($event->image);
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);
@@ -1525,8 +1526,14 @@ class ApiEventUersController extends Controller
                 $qr->resize($qr_width, $qr_height);
             }
 
-            $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
-            $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
+            // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
+            if ($qr_x > 0 || $qr_y > 0) {
+                $x = $background->width()  - $qr->width()  - $qr_x;
+                $y = $background->height() - $qr->height() - $qr_y;
+            } else {
+                $x = intval(($background->width()  - $qr->width())  / 2);
+                $y = intval(($background->height() - $qr->height()) / 2);
+            }
 
             $background->insert($qr, 'top-left', $x, $y);
 
@@ -1566,7 +1573,7 @@ class ApiEventUersController extends Controller
                 });
             }
 
-            $background->save(public_path($qr_code_path), 100);
+            $background->save($qr_code_path, 100);
 
         } else {
 

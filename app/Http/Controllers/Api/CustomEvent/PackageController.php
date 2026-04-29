@@ -1006,14 +1006,12 @@ class PackageController extends Controller
         // افتح QR
         $qr = Image::make($qr_temp_path);
 
-        // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
         if ($qr_width > 0 && $qr_height > 0) {
             $qr->resize($qr_width, $qr_height);
         }
 
-        // تحديد مكان الـ QR بناءً على المحاور المطلوبة (X و Y)
-        $x = $qr_x;
-        $y = $qr_y;
+        $x = ($qr_x > 0) ? $qr_x : intval(($background->width()  - $qr->width())  / 2);
+        $y = ($qr_y > 0) ? $qr_y : intval(($background->height() - $qr->height()) / 2);
 
         // أدرج QR مرة واحدة بس!
         $background->insert($qr, 'top-left', $x, $y);

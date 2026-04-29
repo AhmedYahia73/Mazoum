@@ -616,7 +616,7 @@ class EventsApiController extends Controller
                 ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
-            $background = Image::make($event->image);
+            $background = Image::make($event->file);
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);

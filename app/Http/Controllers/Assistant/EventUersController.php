@@ -240,6 +240,15 @@ class EventUersController extends Controller
                         'mobile' => ltrim($arr['mobile'],"+"),
                         'users_count' => $arr['users_count'],
                     ]);
+
+                    // regenerate QR image if one already exists
+                    $qr_record = Qr_Code::where('event_user_id', $row->id)->latest()->first();
+                    if ($qr_record) {
+                        $event = Events::find($row->event_id);
+                        if ($event) {
+                            $this->update_qr($event, $qr_record->uu_id, $row, $qr_record->qr);
+                        }
+                    }
                 }
             }
 

@@ -15,7 +15,7 @@ use App\Models\Qr_Code;
 use App\Models\EventUserLogs;
 use App\Models\Events;
 use App\Models\EventMessages;
-use App\Models\Parking;
+use App\Models\Parking; 
 use App\Models\CongratulationMessages;
 use App\Models\Notifications;
 use Illuminate\Support\Facades\DB;
@@ -143,7 +143,9 @@ class EventUserActionsController extends Controller
                 where("event_id", $user_event->event_id)
                 ->where("event_user_id", $user_event->id)
                 ->where("action", "accept_event")
-                ->first();
+                ->first(); 
+                $user_event
+                ->update(["accept_count" => $request->users_count + $user_event->accept_count]);
                 if ($event_action) {
                     $users_count += ($event_action->users_count ?? 0);
                     $event_action->users_count = $users_count;

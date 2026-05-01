@@ -772,9 +772,8 @@ class EventsController extends Controller
         ->sum('scan_count');
        $confirm_attend = EventUsers::where('event_id', $Item->id)
         ->whereHas('event_action')
-        ->withSum('event_action', 'new_users_count') // بيضيف عميل افتراضي اسمه event_action_sum_users_count
-        ->get()
-        ->sum('event_action_sum_users_count');
+        ->join('event_users_actions', 'event_users.id', '=', 'event_users_actions.event_user_id')
+        ->sum('new_users_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')

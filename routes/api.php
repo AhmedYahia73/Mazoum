@@ -12,6 +12,11 @@ use Login\LoginController;
 //////////// User
 Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         
+    Route::controller('WattsChatController')
+    ->prefix("watts_chat")->group(function () {
+        Route::get('/verifyWebhook', 'verifyWebhook')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/receiveMessage', 'receiveMessage')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+    });
     Route::controller('Api\CustomEvent\ChatController')
     ->prefix("chat")->group(function () {
         Route::get('/custom_users/{id}', 'custom_users');

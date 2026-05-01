@@ -36,9 +36,7 @@ if (! function_exists('Image_Path')) {
         } else {
             return asset('images') . '/' . $img;
         }
-
     }
-
 }
 
 

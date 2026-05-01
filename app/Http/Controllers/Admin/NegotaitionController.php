@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
-
 use App\Models\Negotaition;
+use App\Models\Orders;
+use App\Models\Packages;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class NegotaitionController extends Controller
 {
@@ -91,6 +94,26 @@ class NegotaitionController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        if($request->status == "accept"){
+            
+            $validation = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
+                'type' => 'required',
+                'start_subscription_date' => 'required|date|date_format:Y-m-d',
+                'duration_type' => 'required|in:day,month,year',
+                'duration' => 'required|numeric|min:1',
+                'payment_type' => 'required',
+                'employee_gender' => 'required',
+                'is_paid' => 'required',
+            ]);
+            if ($validation->fails()) { // if Validate Make Error Return Message Error
+                return response()->json([
+                    'errors' => $validation->errors(),
+                ],400);
+            }
+            $validate_arr = $validation->validated();
+            $this->save_order($request, $validate_arr);
+        }
         Negotaition::
         where("id", $id) 
         ->update([
@@ -100,5 +123,107 @@ class NegotaitionController extends Controller
         return response()->json([
             "success" => "You status data success"
         ]);
+    }
+
+    private function save_order($request, $validate_arr)
+    {
+        if($request->type == 'offer') {
+            $validate_arr['offer_id'] = 'required|exists:packages,id';
+        }
+
+        if($request->type == 'fixed-price') {
+            $validate_arr['users_count'] = 'required|numeric|min:1';
+            $validate_arr['total'] = 'required|numeric|min:1';
+            $validate_arr['currency_id'] = 'required';
+        }
+
+        $request->validate($validate_arr);
+
+        $user = User::findOrFail($request->user_id);
+
+        $order_number = Orders::max('order_number') + 1;
+
+        if ($request->type == 'offer') {
+
+            $offer = Packages::findOrFail($request->offer_id);
+
+            $currency_id = $offer->currency_id;
+
+            $order = Orders::create([
+                'order_number' => $order_number,
+                'user_id' => $request->user_id,
+                'type' => 'offer',
+                'offer_id' => $request->offer_id,
+                'total' => $offer->price,
+                'users_count' => $offer->users_count,
+                'operation_date' => Carbon::now(),
+                'currency_id' => $currency_id,
+                'start_subscription_date' => $request->start_subscription_date,
+                'duration_type' => $request->duration_type,
+                'duration' => $request->duration,
+                'payment_type' => $request->payment_type,
+                'employee_gender' => $request->employee_gender,
+                'is_paid' => $request->is_paid,
+
+            ]);
+
+            $user->update([
+                'order_id' => $order->id,
+                'offer_id' => $offer->id,
+                'full_balance' => $user->full_balance + $offer->users_count,
+                'balance' => $user->balance + $offer->users_count,
+                'start_subscription_date' => $request->start_subscription_date,
+                'subscription_price' => $offer->price,
+                'duration_type' => $request->duration_type,
+                'duration' => $request->duration,
+                'payment_type' => $request->payment_type,
+                'employee_gender' => $request->employee_gender,
+                'is_paid' => $request->is_paid,
+            ]);
+
+        }
+
+        /////////////////////////////////////
+
+        if ($request->type == 'fixed-price') {
+
+            $currency_id = $request->currency_id;
+
+            $order = Orders::create([
+                'order_number' => $order_number,
+                'user_id' => $request->user_id,
+                'type' => 'fixed-price',
+                'offer_id' => 0,
+                'total' => $request->total,
+                'users_count' => $request->users_count,
+                'operation_date' => Carbon::now(),
+                'currency_id' => $currency_id,
+                'start_subscription_date' => $request->start_subscription_date,
+                'duration_type' => $request->duration_type,
+                'duration' => $request->duration,
+                'payment_type' => $request->payment_type,
+                'employee_gender' => $request->employee_gender,
+                'is_paid' => $request->is_paid,
+            ]);
+
+            $user->update([
+                'order_id' => $order->id,
+                'balance' => $user->balance + $request->users_count,
+                'full_balance' => $user->full_balance + $request->users_count,
+                'start_subscription_date' => $request->start_subscription_date,
+                'subscription_price' => $request->total,
+                'duration_type' => $request->duration_type,
+                'duration' => $request->duration,
+                'payment_type' => $request->payment_type,
+                'employee_gender' => $request->employee_gender,
+                'is_paid' => $request->is_paid,
+
+            ]);
+        }
+
+        return response()->json([
+            'success' => 'تم الأشتراك بنجاح', 
+        ]);
+
     }
 }

@@ -1706,7 +1706,7 @@ class EventUersController extends Controller
                     'event_user_id' => $user_event->id,
                     'mobile' => $user_event->mobile,
                     'action' => 'accept_event',
-                    'users_count' => $user_event->users_count,
+                    'users_count' => $request->users_count,
                     'msg' => null
                 ]);
             }

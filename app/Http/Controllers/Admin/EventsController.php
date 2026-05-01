@@ -770,11 +770,10 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('scan','yes')
         ->sum('scan_count');
-        $confirm_attend = EventUsers::where('event_users.event_id', $Item->id)
-        ->join('event_users_actions', 'event_users.id', '=', 'event_users_actions.event_user_id')
-        ->where('event_users_actions.action', 'accept_event')
-        ->whereNull('event_users.deleted_at') // تأكد إن المستخدم مش محذوف
-        ->sum('event_users_actions.users_count');
+        $confirm_attend = 
+        EventUserActions::where('event_id', $Item->id)
+        ->where('action', 'accept_event')
+        ->sum('users_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')

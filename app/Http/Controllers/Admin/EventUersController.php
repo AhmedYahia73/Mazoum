@@ -1565,7 +1565,6 @@ class EventUersController extends Controller
 
   	public function send_new_qr($id)
     {
-      	//dd('ok');
 
       	$setting = Setting::first();
 
@@ -1573,15 +1572,13 @@ class EventUersController extends Controller
 
         $event = $user_event->event;
 
-        ////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
 
       	$user_event->update([ 'is_accepted' => 'yes'  ]);
 
         $uu_id = $this->unique_uu_id();
 
         $image_name = $uu_id . '-test-qr.png';
-
-      	Qr_Code::where('event_user_id',$user_event->id)->delete();
 
         Qr_Code::create([
           'event_user_id' => $user_event->id,
@@ -1595,6 +1592,7 @@ class EventUersController extends Controller
         $this->update_qr($event,$uu_id,$user_event,$image_name);
 
         $qr_code_path = 'qr_code/' . $image_name;
+
         // $bg = 'qr-image-v9.jpg';
 
         // $link = asset('scan-qr/' . $uu_id);
@@ -1615,6 +1613,7 @@ class EventUersController extends Controller
         // $new_img->save($destination);
 
         $image_url = asset($qr_code_path);
+
         //$code = $user_event->mobile_code->code;
         //$mobile = substr($user_event->mobile, 1);
         $mobile = $user_event->mobile;
@@ -1623,7 +1622,7 @@ class EventUersController extends Controller
         //$to = $user_event->mobile;
         $to = $mobile;
 
-        $template_name = 'wedding_data_v_ar__10';
+        $template_name = 'wedding_data_v2_ar';
         $language = 'ar';
         $user_name = $user_event->name;
 
@@ -1631,23 +1630,33 @@ class EventUersController extends Controller
         $sender_id      = get_whats_setting($event)['sender_id'];
         $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-        // $response = SendTemplateV2($to, $template_name, $language, $image_url, $user_name, $phone_numer_id, $token);
+        //$response = SendTemplateV2($to, $template_name, $language, $image_url, $user_name, $phone_numer_id, $token);
 
-      	$to = str_replace("+","",$to);
+        $to = str_replace("+","",$to);
 
-        //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&image='.$image_url;
-        $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&image='.$image_url;
+        $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
-        $response = SendNewTemplateCodeV1($url);
+        // $sender_id = $setting->sender_id;
+
+        $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+
+        // if($event->country_code == 'kw') {
+
+        //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.'&image='.$image_url;
+        //   $response = SendNewTemplateCodeV1($url);
+
+        // } else {
+
+        //   $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+
+        // }
+
 
       	//dd($response);
 
         if ($response != null && $response->getStatusCode() == 200) {
 
-          //dd('ok');
-
           $user_event->update([ 'qr_sent' => 'yes'  ]);
-
 
           return response()->json([
               'success' => 'تم أرسال QR Scan  بنجاح', 

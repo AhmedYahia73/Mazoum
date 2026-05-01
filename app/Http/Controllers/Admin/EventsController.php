@@ -790,9 +790,12 @@ class EventsController extends Controller
             $query->where('is_new_sent',1)
              ->orWhereNotNull('is_sent'); 
         })->sum('users_count');
-        $send_Qr = EventUsers::
-        where('event_id',$Item->id)
-        ->where('qr_sent','yes')
+        $send_Qr = 
+        EventUserActions::where('event_id', $Item->id)
+        ->where('action', 'accept_event')
+        ->whereHas("event_user", function($q) { 
+            $q->where('qr_sent','yes'); 
+        })
         ->sum('users_count');
         $congratulation_msgs = CongratulationMessages::
         whereHas('event',function($event) { 

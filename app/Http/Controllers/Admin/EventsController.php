@@ -770,10 +770,10 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('scan','yes')
         ->sum('scan_count');
-     $confirm_attend = EventUsers::where('event_users.event_id', $Item->id)
-    ->join('event_users_actions', 'event_users.id', '=', 'event_users_actions.event_user_id')
-    ->where('event_users_actions.action', 'accept_event')
-    ->sum('event_users_actions.users_count'); // هنا هيجيب العمود الصح لأنه مفيش غير جدول واحد
+        $confirm_attend = EventUsers::where('event_users.event_id', $Item->id)
+        ->join('event_users_actions', 'event_users.id', '=', 'event_users_actions.event_user_id')
+        ->where('event_users_actions.action', 'accept_event')
+        ->sum('event_users_actions.users_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')

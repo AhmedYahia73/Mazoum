@@ -118,7 +118,11 @@ class EventChatController extends Controller
                         'status'         => 'accept_event',
                     ]);
 
-                    $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
+                    $user_event->update([ 
+                        'is_accepted' => 'yes' ,
+                        'confirmed_at' => now(),
+                        'status' => 'attend',
+                    ]);
 
                     if($event->showing_qr == 'yes') {
 

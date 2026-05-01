@@ -88,7 +88,7 @@ class NegotaitionController extends Controller
 
     public function status(Request $request, $id){
         $validator = Validator::make($request->all(), [
-            'status'=> 'required|in:accept,reject',
+            'status'=> 'required|in:approve,reject',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);

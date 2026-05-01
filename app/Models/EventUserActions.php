@@ -14,7 +14,19 @@ class EventUserActions extends Model
     protected $fillable = [
          'event_id', 'event_user_id', 'mobile', 'action' , 'msg' , 'users_count'
     ];
+    protected $appends = ["new_users_count"];
 
+    public function getNewUsersCountAttribute(){
+        if(isset($this->attributes['users_count'])){
+            return $this->attributes['users_count'];
+        }
+        return 1;
+    }
+
+     public function event()
+    {
+        return $this->belongsTo('App\Models\Events', 'event_id');
+    }
     public function event()
     {
         return $this->belongsTo('App\Models\Events', 'event_id');

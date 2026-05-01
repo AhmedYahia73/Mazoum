@@ -1697,7 +1697,7 @@ class EventUersController extends Controller
         ->first();
         if($user_event->is_accepted != "yes"){
             if($event_action){
-                $event_action->users_count = $request->users_count;
+                $event_action->users_count += $request->users_count;
                 $event_action->save();
             }
             else{

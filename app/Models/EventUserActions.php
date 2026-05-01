@@ -20,7 +20,7 @@ class EventUserActions extends Model
         if(isset($this->attributes['users_count'])){
             return $this->attributes['users_count'];
         }
-        return 1;
+        return 0;
     }
  
     public function event()

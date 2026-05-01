@@ -3194,6 +3194,14 @@ return response()->json([
     }
 
     public function scan_data(Request $request){ 
+       $validator = Validator::make($request->all(), [
+            'qr_id' => 'required|exists:qr_code,id',
+        ]); 
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
         // qr_id
         $qr_code = Qr_Code::findOrFail($request->qr_id);
         $Item = EventUsers::where('id', $qr_code->event_user_id)

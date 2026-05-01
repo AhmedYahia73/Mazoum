@@ -22,11 +22,7 @@ class EventUserActions extends Model
         }
         return 1;
     }
-
-     public function event()
-    {
-        return $this->belongsTo('App\Models\Events', 'event_id');
-    }
+ 
     public function event()
     {
         return $this->belongsTo('App\Models\Events', 'event_id');

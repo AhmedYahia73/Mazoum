@@ -778,18 +778,18 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('status','not-attend')
         ->sum('users_count'); 
-        
-        $not_confirm = EventUsers::
-        where('event_id',$Item->id)
-        ->where(function($q) { 
-            $q->where('status','sent')
-            ->orWhere('is_new_sent',1); 
-        })->whereNull('is_accepted')
-        ->whereNull('is_refused')
-        ->where(function($query) {
-            $query->where('is_new_sent',1)
-             ->orWhereNotNull('is_sent'); 
-        })->sum('users_count');
+        $not_confirm = $confirm_attend - $qr;
+        // $not_confirm = EventUsers::
+        // where('event_id',$Item->id)
+        // ->where(function($q) { 
+        //     $q->where('status','sent')
+        //     ->orWhere('is_new_sent',1); 
+        // })->whereNull('is_accepted')
+        // ->whereNull('is_refused')
+        // ->where(function($query) {
+        //     $query->where('is_new_sent',1)
+        //      ->orWhereNotNull('is_sent'); 
+        // })->sum('users_count');
         $send_Qr = EventUsers::
         where('event_id',$Item->id)
         ->where('qr_sent','yes')

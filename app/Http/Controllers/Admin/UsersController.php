@@ -71,16 +71,7 @@ class UsersController extends Controller
                 'errors' => $validation->errors(),
             ],400);
         }
-        $validate_arr = [
-            'user_id' => 'required|exists:users,id',
-            'type' => 'required',
-            'start_subscription_date' => 'required|date|date_format:Y-m-d',
-            'duration_type' => 'required|in:day,month,year',
-            'duration' => 'required|numeric|min:1',
-            'payment_type' => 'required',
-            'employee_gender' => 'required',
-            'is_paid' => 'required',
-        ];
+        $validate_arr = $validation->validated();
 
         if($request->type == 'offer') {
             $validate_arr['offer_id'] = 'required|exists:packages,id';

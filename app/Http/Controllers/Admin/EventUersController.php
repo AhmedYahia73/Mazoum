@@ -3194,8 +3194,35 @@ return response()->json([
     }
 
 
+    public function scan_qr(Request $request){
+       $validator = Validator::make($request->all(), [
+            'qr_id' => 'required|exists:qr_code,id',
+            "users_count" => 'required|numeric',
+        ]); 
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        // qr_id
+        $qr_code = Qr_Code::findOrFail($request->qr_id);
+        $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
+        
+         
 
+      	$now = Carbon::now(); 
 
+        $Item->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $request->users_count]);
+        EnterUserEvent::create([
+            "event_user_id" => $Item->id,
+            "count" => $request->users_count
+        ]);
+
+ 
+        return response()->json([
+            'success' => 'تم عمل QR Scan  بنجاح', 
+        ]);
+    }
 }
 
 

@@ -1493,7 +1493,7 @@ class EventUersController extends Controller
           'uu_id' => $uu_id,
           'counter' => 0
         ]);
-/////////////////////////////////////////
+        /////////////////////////////////////////
   
         // new code
         $this->update_qr($event,$uu_id,$user_event,$image_name);

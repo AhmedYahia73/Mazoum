@@ -12,7 +12,7 @@ class NegotaitionController extends Controller
 {
 
     public function view(Request $request){
-        $negotation = Negotaition::where("status", 0)
+        $negotation = Negotaition::where("status", "pending")
         ->with("package", "user")
         ->paginate(10)
         ->through(function($item){

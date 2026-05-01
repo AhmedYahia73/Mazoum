@@ -1663,10 +1663,21 @@ class EventUersController extends Controller
     }
 
 
-  	public function accept_user_event($id)
+  	public function accept_user_event(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'users_count'   => 'required_if:action,accept_event',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        
         $user_event = Model::withTrashed()->findOrFail($id);
-
+        $user_event->update([
+            'accept_count' => $request->users_count + $user_event->accept_count,
+        ]);
         $event = Events::find($user_event->event_id);
 
 
@@ -1677,7 +1688,7 @@ class EventUersController extends Controller
         ->first();
         if($user_event->is_accepted != "yes"){
             if($event_action){
-                $event_action->users_count = $user_event->users_count;
+                $event_action->users_count = $user_event->accept_count;
                 $event_action->save();
             }
             else{

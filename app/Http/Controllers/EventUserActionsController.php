@@ -181,9 +181,12 @@ class EventUserActionsController extends Controller
 
                 $user_event->update(['confirmed_at' => now(),'status' => 'attend' ]);
 
+                $user_event->update([
+                    "accept_count" => $users_count
+                ]);
                 if($user_event->users_count <= $users_count){
                     $user_event->update([
-                        'is_accepted' => 'yes'
+                        'is_accepted' => 'yes',
                     ]);
                 }
                 if($event->showing_qr == 'yes') {
@@ -725,7 +728,7 @@ class EventUserActionsController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('image') != null) {
+        if ($event->getRawOriginal('file') != null) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);

@@ -772,7 +772,7 @@ class EventsController extends Controller
         ->sum('scan_count');
         $confirm_attend = EventUsers::
         where('event_id',$Item->id)
-        ->sum('accepted_count');
+        ->sum('accept_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')

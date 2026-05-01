@@ -3195,7 +3195,7 @@ return response()->json([
 
     public function scan_data(Request $request){ 
        $validator = Validator::make($request->all(), [
-            'qr_id' => 'required|exists:qr_code,id',
+            'qr_id' => 'required|exists:qr_code,uu_id',
         ]); 
         if ($validator->fails()) {
             return response()->json([
@@ -3203,7 +3203,9 @@ return response()->json([
             ],400);
         } 
         // qr_id
-        $qr_code = Qr_Code::findOrFail($request->qr_id);
+        $qr_code = Qr_Code::
+        where("uu_id",$request->qr_id)
+        ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)
         ->with("event")->first(); 
 
@@ -3218,7 +3220,7 @@ return response()->json([
 
     public function scan_qr(Request $request){
        $validator = Validator::make($request->all(), [
-            'qr_id' => 'required|exists:qr_code,id',
+            'qr_id' => 'required|exists:qr_code,uu_id',
             "users_count" => 'required|numeric',
         ]); 
         if ($validator->fails()) {
@@ -3227,7 +3229,10 @@ return response()->json([
             ],400);
         }  
         // qr_id
-        $qr_code = Qr_Code::findOrFail($request->qr_id);
+        
+        $qr_code = Qr_Code::
+        where("uu_id",$request->qr_id)
+        ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
         
          

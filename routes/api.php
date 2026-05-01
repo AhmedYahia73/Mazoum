@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use Login\LoginController;
-
+ 
  
 //////////// User
 Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {

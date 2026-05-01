@@ -743,7 +743,7 @@ class EventUserActionsController extends Controller
                 ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
-            $background = Image::make($event->file);
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('file')));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);

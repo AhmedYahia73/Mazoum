@@ -136,8 +136,7 @@ class NegotaitionController extends Controller
             $validate_arr['total'] = 'required|numeric|min:1';
             $validate_arr['currency_id'] = 'required';
         }
-
-        $request->validate($validate_arr);
+ 
 
         $user = User::findOrFail($request->user_id);
 

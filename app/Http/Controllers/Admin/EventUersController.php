@@ -1695,7 +1695,7 @@ class EventUersController extends Controller
         ->where("event_user_id", $id)
         ->where('action', 'accept_event')
         ->first();
-        if($user_event->is_accepted != "yes"){
+        if($user_event->is_accepted == "yes"){
             if($event_action){
                 $event_action->users_count += $request->users_count;
                 $event_action->save();

@@ -148,7 +148,7 @@ class EventUserActionsController extends Controller
                 ->update(["accept_count" => $request->users_count + $user_event->accept_count]);
                 if ($event_action) {
                     $users_count += ($event_action->users_count ?? 0);
-                    $event_action->users_count = $users_count;
+                    $event_action->users_count += $request->users_count;
                     $event_action->save();
                 } else {
                     EventUserActions::create([

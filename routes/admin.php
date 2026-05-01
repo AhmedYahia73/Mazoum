@@ -318,6 +318,7 @@ Route::get('open_event_family/{id}', 'EventUersController@open_event_family');
 
 // login-user
 Route::get('login-user/{id}', 'EventUersController@login_user');
+Route::get('scan_data', 'EventUersController@scan_data');
 Route::post('scan_qr', 'EventUersController@scan_qr');
 
 

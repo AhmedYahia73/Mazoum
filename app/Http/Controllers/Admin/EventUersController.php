@@ -3193,6 +3193,20 @@ return response()->json([
         ];
     }
 
+    public function scan_data(Request $request){ 
+        // qr_id
+        $qr_code = Qr_Code::findOrFail($request->qr_id);
+        $Item = EventUsers::where('id', $qr_code->event_user_id)
+        ->with("event")->first(); 
+
+ 
+        return response()->json([
+            "event_name" => $Item?->title,
+            "scan_count" => $Item?->scan_count,
+            "users_count" => $Item?->users_count,
+            "available" => $Item?->users_count - $Item?->scan_count,
+        ]);
+    }
 
     public function scan_qr(Request $request){
        $validator = Validator::make($request->all(), [

@@ -15,10 +15,6 @@ class CreateWattsChatsTable extends Migration
     {
         Schema::create('watts_chats', function (Blueprint $table) {
             $table->id();
-        // '',
-        // '',
-        // '',
-        // ''
             $table->string('phone')->nullable();
             $table->text('message')->nullable(); 
             $table->string('message_id')->nullable(); 

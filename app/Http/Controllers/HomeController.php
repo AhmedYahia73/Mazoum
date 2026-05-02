@@ -967,8 +967,6 @@ class HomeController extends Controller
                    $user_event->update([ 'is_accepted' => 'yes'  ]);
 
                     $uu_id = $this->unique_uu_id();
-                    $bg = 'qr-image-v7.jpg';
-
                     $image_name = $uu_id . '-test-qr.png';
 
                     Qr_Code::create([
@@ -979,23 +977,9 @@ class HomeController extends Controller
                        'counter' => 0
                     ]);
 
-                    $link = asset('scan-qr/' . $uu_id);
+                    $this->update_qr($event, $uu_id, $user_event, $image_name);
+
                     $qr_code_path = 'qr_code/' . $image_name;
-                    QrCode::size(900)->format('png')->generate($link, $qr_code_path);
-
-                    Image::make($bg)->insert($qr_code_path, 'right', 60, 500)->widen(700)->save($qr_code_path, 100);
-
-                    $destination = public_path($qr_code_path);
-
-                    $new_img = Image::make($destination);
-
-                    $new_img->text($user_event->users_count, 170, 645, function ($font) {
-                        $font->file(public_path('font/OpenSans-Italic.ttf'));
-                        $font->size(40);
-                        $font->color('#fff');
-                    });
-
-                    $new_img->save($destination);
 
                     $image_url = asset($qr_code_path);
 

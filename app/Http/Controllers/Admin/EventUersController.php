@@ -3065,7 +3065,7 @@ return response()->json([
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('file') != null && file_exists(public_path('images/' . $event->file))) {
+        if ($event->file != null && file_exists(public_path('images/' . $event->file))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
@@ -3081,7 +3081,7 @@ return response()->json([
 
             generate_qr_png($link, $qr_tmp_path, $qr_size, $color);
 
-            $background = Image::make(public_path('images/' . $event->getRawOriginal('file')));
+            $background = Image::make(public_path('images/' . $event->file));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);

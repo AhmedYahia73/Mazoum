@@ -3065,7 +3065,7 @@ return response()->json([
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('file') != null && file_exists(public_path('images/' . $event->getRawOriginal('file')))) {
+        if ($event->getRawOriginal('file') != null && file_exists(public_path('images/' . $event->file))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);

@@ -17,6 +17,7 @@ use App\Models\Qr_Code;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -653,7 +654,8 @@ class HomeController extends Controller
             $users_count = $raw_value ? (int) explode('_', $raw_value)[1] : null;
 
             info('FLOW REPLY', ['mobile' => $mobile, 'users_count' => $users_count, 'context_id' => $context_id]);
-
+            
+            Log::info('users_count:', $users_count);
             if ($users_count && $mobile) {
 
                 $user_event = EventUsers::where(function($q) use ($mobile) {

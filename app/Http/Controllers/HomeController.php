@@ -142,7 +142,9 @@ class HomeController extends Controller
 
             $user_event = EventUsers::where('message_id', $message_id)->first();
 
+            info('BUTTON_LOOKUP', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
             if($user_event != null) {
+            info('BUTTON new_webhook_post', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
 
                 $user_event->update([
                 	'log' => json_encode($data)
@@ -1048,6 +1050,7 @@ class HomeController extends Controller
             $user_event = EventUsers::where('message_id', $message_id)->first();
 
             if($user_event != null) {
+            info('BUTTON new_webhook_post', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
 
                 $user_event->update([
                 	'log' => json_encode($data)

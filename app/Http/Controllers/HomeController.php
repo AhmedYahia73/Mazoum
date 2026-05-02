@@ -189,7 +189,10 @@ class HomeController extends Controller
 
                     /* ******************************************************************************************************************************************* */
 
-                    $template_name6 = 'flow_'.$user_event->users_count;
+                    $available = max(1, (int)$user_event->users_count - (int)$user_event->accept_count);
+                    $available = min($available, 9); // max 9 buttons
+
+                    $template_name6 = 'flow_'.$available;
 
                     $token          = get_whats_setting($event)['token'];
                     $sender_id      = get_whats_setting($event)['sender_id'];
@@ -198,7 +201,7 @@ class HomeController extends Controller
                     $to = $phone;
                     $language = 'ar';
 
-                    $func = 'SendArFlowV' . $user_event->users_count . 'Template';
+                    $func = 'SendArFlowV' . $available . 'Template';
                     $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
 
                     //info($response3);

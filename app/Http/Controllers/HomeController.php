@@ -166,27 +166,7 @@ class HomeController extends Controller
 
                     $user_event->update([ 'is_accepted' => 'yes'  ]);
 
-                    // $event_action = EventUserActions::
-                    // where("event_id", $user_event->event_id)
-                    // ->where("event_user_id", $user_event->id)
-                    // ->where('action', 'accept_event')
-                    // ->first();
-                    // if($event_action){
-                    //     if($event_action){
-                    //         $event_action->users_count = $request->users_count;
-                    //         $event_action->save();
-                    //     }
-                    //     else{
-                    //         EventUserActions::create([
-                    //             'event_id' => $user_event->event_id,
-                    //             'event_user_id' => $user_event->id,
-                    //             'mobile' => $user_event->mobile,
-                    //             'action' => 'accept_event',
-                    //             'users_count' => $request->users_count,
-                    //             'msg' => null
-                    //         ]);
-                    //     }
-                    // }
+                
                     /////////////////////////////////////////////////////////
 
                     $phone = $user_event->mobile;
@@ -654,6 +634,132 @@ class HomeController extends Controller
             /* ****************************************************************************************** */
 
 
+
+        } elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) &&
+           array_key_exists("changes", $data['entry'][0]) &&
+           array_key_exists("value", $data['entry'][0]['changes'][0]) &&
+           array_key_exists("messages", $data['entry'][0]['changes'][0]['value']) &&
+           isset($data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['type']) &&
+           $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['type'] === 'nfm_reply') {
+
+            // WhatsApp Flow reply — wedding_data90 template
+            $msg        = $data['entry'][0]['changes'][0]['value']['messages'][0];
+            $mobile     = $msg['from'];
+            $context_id = $msg['context']['id'] ?? null;
+
+            $response_json = json_decode($msg['interactive']['nfm_reply']['response_json'] ?? '{}', true);
+            // القيمة بتيجي زي "0_1" — نأخذ الرقم بعد الـ underscore الأخير
+            $raw_value   = $response_json['screen_0___0'] ?? null;
+            $users_count = $raw_value ? (int) explode('_', $raw_value)[1] : null;
+
+            info('FLOW REPLY', ['mobile' => $mobile, 'users_count' => $users_count, 'context_id' => $context_id]);
+
+            if ($users_count && $mobile) {
+
+                $user_event = EventUsers::where(function($q) use ($mobile) {
+                    $q->where('mobile', $mobile)->orWhere('mobile', '+' . $mobile);
+                })->when($context_id, function($q) use ($context_id) {
+                    $q->orWhere('message_id', $context_id);
+                })->orderBy('id', 'desc')->first();
+
+                if ($user_event) {
+
+                    $event = $user_event->event;
+
+                    $user_event->update([
+                        'users_count'  => $users_count,
+                        'accept_count' => $users_count,
+                        'is_accepted'  => 'yes',
+                        'confirmed_at' => now(),
+                        'status'       => 'attend',
+                    ]);
+
+                    $event_action = EventUserActions::where('event_id', $user_event->event_id)
+                        ->where('event_user_id', $user_event->id)
+                        ->where('action', 'accept_event')
+                        ->first();
+
+                    if ($event_action) {
+                        $event_action->users_count = $users_count;
+                        $event_action->save();
+                    } else {
+                        EventUserActions::create([
+                            'event_id'      => $user_event->event_id,
+                            'event_user_id' => $user_event->id,
+                            'mobile'        => $user_event->mobile,
+                            'action'        => 'accept_event',
+                            'users_count'   => $users_count,
+                            'msg'           => null,
+                        ]);
+                    }
+
+                    Notifications::create([
+                        'add_by'         => 'event_user',
+                        'user_id'        => $user_event->id,
+                        'send_to_type'   => 'user',
+                        'send_to_id'     => $user_event->event->user_id,
+                        'en_title'       => $user_event->event->title,
+                        'ar_title'       => $user_event->event->title,
+                        'en_description' => $user_event->name,
+                        'ar_description' => $user_event->name,
+                        'type'           => 'accept_event',
+                        'item_id'        => $user_event->event->id,
+                        'user_event_id'  => $user_event->id,
+                        'status'         => 'accept_event',
+                    ]);
+
+                    $token          = get_whats_setting($event)['token'];
+                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    $to             = $mobile;
+                    $language       = 'ar';
+
+                    if ($event->showing_qr == 'yes') {
+
+                        $uu_id      = $this->unique_uu_id();
+                        $image_name = $uu_id . '-test-qr.png';
+
+                        $qr_row = Qr_Code::where('event_user_id', $user_event->id)->first();
+                        if ($qr_row) {
+                            $qr_row->update(['qr' => $image_name]);
+                        } else {
+                            Qr_Code::create([
+                                'event_user_id' => $user_event->id,
+                                'event_id'      => $user_event->event_id,
+                                'qr'            => $image_name,
+                                'uu_id'         => $uu_id,
+                                'counter'       => 0,
+                            ]);
+                        }
+
+                        $this->update_qr($event, $uu_id, $user_event, $image_name);
+
+                        $qr_code_path  = 'qr_code/' . $image_name;
+                        $url_image     = asset($qr_code_path);
+                        $template_name = 'wedding_data90';
+
+                        $response = SendWeddingDataV2ArTemplate($to, $template_name, $language, $users_count, $url_image, $phone_numer_id, $token);
+
+                        if ($response && $response->getStatusCode() == 200) {
+                            $user_event->update(['qr_sent' => 'yes']);
+                            EventUserLogs::create([
+                                'log'           => 'تم ارسال ال QR Code',
+                                'event_id'      => $user_event->event_id,
+                                'event_user_id' => $user_event->id,
+                                'message_id'    => $user_event->message_id,
+                                'status'        => 'attend',
+                                'error_title'   => null,
+                                'error_details' => null,
+                            ]);
+                        }
+
+                    } else {
+
+                        $template_name = 'send_congratulation_ar_new';
+                        SendCongratulationArNewTemplate($to, $template_name, $language, $phone_numer_id, $token);
+
+                    }
+                }
+            }
 
         } elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&

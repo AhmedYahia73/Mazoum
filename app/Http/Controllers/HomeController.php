@@ -142,9 +142,7 @@ class HomeController extends Controller
 
             $user_event = EventUsers::where('message_id', $message_id)->first();
 
-            info('BUTTON_LOOKUP', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
             if($user_event != null) {
-            info('BUTTON new_webhook_post', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
 
                 $user_event->update([
                 	'log' => json_encode($data)
@@ -174,33 +172,24 @@ class HomeController extends Controller
 
                     $phone = $user_event->mobile;
 
-                    info('ATTEND BLOCK START', ['user_event_id' => $user_event->id, 'users_count' => $user_event->users_count, 'accept_count' => $user_event->accept_count]);
-
-                    try {
-                        Notifications::create([
-                          'add_by'         => 'event_user',
-                            'user_id'        => $user_event != null ? $user_event->id : 0,
-                            'send_to_type'   => 'user',
-                            'send_to_id'     => $user_event->event->user_id,
-                            'en_title'       => $user_event->event->title,
-                            'ar_title'       => $user_event->event->title,
-                            'en_description' => $user_event->name,
-                            'ar_description' => $user_event->name,
-                            'type'           => 'accept_event',
-                            'item_id'        => $user_event->event->id,
-                            'user_event_id'  => $user_event != null ? $user_event->id : 0,
-                            'status'         => 'accept_event',
-                        ]);
-                    } catch (\Exception $e) {
-                        info('NOTIFICATION ERROR', ['msg' => $e->getMessage()]);
-                    }
+                    Notifications::create([
+                      'add_by'         => 'event_user',
+                        'user_id'        => $user_event != null ? $user_event->id : 0,
+                        'send_to_type'   => 'user',
+                        'send_to_id'     => $user_event->event->user_id,
+                        'en_title'       => $user_event->event->title,
+                        'ar_title'       => $user_event->event->title,
+                        'en_description' => $user_event->name,
+                        'ar_description' => $user_event->name,
+                        'type'           => 'accept_event',
+                        'item_id'        => $user_event->event->id,
+                        'user_event_id'  => $user_event != null ? $user_event->id : 0,
+                        'status'         => 'accept_event',
+                    ]);
 
                     /* ******************************************************************************************************************************************* */
 
-                    $available = max(1, (int)$user_event->users_count - (int)$user_event->accept_count);
-                    $available = min($available, 9); // max 9 buttons
-
-                    $template_name6 = 'flow_'.$available;
+                    $template_name6 = 'flow_'.$user_event->users_count;
 
                     $token          = get_whats_setting($event)['token'];
                     $sender_id      = get_whats_setting($event)['sender_id'];
@@ -209,14 +198,17 @@ class HomeController extends Controller
                     $to = $phone;
                     $language = 'ar';
 
-                    info('FLOW SEND', ['available' => $available, 'func' => 'SendArFlowV'.$available.'Template', 'to' => $to]);
+                    $func = 'SendArFlowV' . $user_event->users_count . 'Template';
+                    $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
 
-                    try {
-                        $func = 'SendArFlowV' . $available . 'Template';
-                        $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
-                        info('FLOW SENT', ['status' => $response6 ? $response6->getStatusCode() : 'null']);
-                    } catch (\Exception $e) {
-                        info('FLOW ERROR', ['msg' => $e->getMessage()]);
+                    //info($response3);
+                    //info($response3->getBody()->getContents());
+
+                    if ($response6 && $response6->getStatusCode() == 200) { // 200 OK
+
+                        // $response_data2 = $response2->getBody()->getContents();
+                        // info($response_data2);
+                        //dd($response_data,json_decode($response_data,true));
                     }
 
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {
@@ -1050,7 +1042,6 @@ class HomeController extends Controller
             $user_event = EventUsers::where('message_id', $message_id)->first();
 
             if($user_event != null) {
-            info('BUTTON new_webhook_post', ['message_id' => $message_id, 'status' => $status, 'found' => $user_event != null ? $user_event->id : 'NULL']);
 
                 $user_event->update([
                 	'log' => json_encode($data)

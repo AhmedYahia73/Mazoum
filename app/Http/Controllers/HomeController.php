@@ -497,8 +497,7 @@ class HomeController extends Controller
                     $event = $event_user->event;
 
                     $phone = $mobile;
-
-                    $event_user->update([ 'users_count' => $status ]);
+ 
 
                     ////////////////////////////////////////////////////////////////////////
 
@@ -1570,11 +1569,11 @@ class HomeController extends Controller
                 $font_path = public_path('font/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
-                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
+                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->accept_count);
             } else {
                 $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
                 $name      = $user_event->name;
-                $name2     = 'Entered Users ' . $user_event->users_count;
+                $name2     = 'Entered Users ' . $user_event->accept_count;
             }
 
             if ($name_qr) {
@@ -1588,7 +1587,7 @@ class HomeController extends Controller
                 $text_y += 25;
             }
 
-            if ($number_qr && $user_event->users_count > 1) {
+            if ($number_qr && $user_event->accept_count > 1) {
                 $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                     $font->file($font_path);
                     $font->size(20);
@@ -1616,8 +1615,8 @@ class HomeController extends Controller
             $destination = public_path($qr_code_path);
             $new_img     = Image::make($destination);
 
-            if ($user_event->users_count > 1) {
-                $new_img->text($user_event->users_count, 115, 412, function ($font) {
+            if ($user_event->accept_count > 1) {
+                $new_img->text($user_event->accept_count, 115, 412, function ($font) {
                     $font->file(public_path('font/OpenSans-Italic.ttf'));
                     $font->size(25);
                     $font->color('#000');

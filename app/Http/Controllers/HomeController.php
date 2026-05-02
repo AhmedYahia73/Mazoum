@@ -500,7 +500,7 @@ class HomeController extends Controller
 
                     ////////////////////////////////////////////////////////////////////////
 
-                    $template_name = 'wedding_data90';
+                    $template_name = 'wedding_data_v2_ar';
 
                     $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend', 'accept_count' => (int)$status ]);
 

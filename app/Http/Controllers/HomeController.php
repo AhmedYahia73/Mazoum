@@ -172,20 +172,26 @@ class HomeController extends Controller
 
                     $phone = $user_event->mobile;
 
-                    Notifications::create([
-                      'add_by'         => 'event_user',
-                        'user_id'        => $user_event != null ? $user_event->id : 0,
-                        'send_to_type'   => 'user',
-                        'send_to_id'     => $user_event->event->user_id,
-                        'en_title'       => $user_event->event->title,
-                        'ar_title'       => $user_event->event->title,
-                        'en_description' => $user_event->name,
-                        'ar_description' => $user_event->name,
-                        'type'           => 'accept_event',
-                        'item_id'        => $user_event->event->id,
-                        'user_event_id'  => $user_event != null ? $user_event->id : 0,
-                        'status'         => 'accept_event',
-                    ]);
+                    info('ATTEND BLOCK START', ['user_event_id' => $user_event->id, 'users_count' => $user_event->users_count, 'accept_count' => $user_event->accept_count]);
+
+                    try {
+                        Notifications::create([
+                          'add_by'         => 'event_user',
+                            'user_id'        => $user_event != null ? $user_event->id : 0,
+                            'send_to_type'   => 'user',
+                            'send_to_id'     => $user_event->event->user_id,
+                            'en_title'       => $user_event->event->title,
+                            'ar_title'       => $user_event->event->title,
+                            'en_description' => $user_event->name,
+                            'ar_description' => $user_event->name,
+                            'type'           => 'accept_event',
+                            'item_id'        => $user_event->event->id,
+                            'user_event_id'  => $user_event != null ? $user_event->id : 0,
+                            'status'         => 'accept_event',
+                        ]);
+                    } catch (\Exception $e) {
+                        info('NOTIFICATION ERROR', ['msg' => $e->getMessage()]);
+                    }
 
                     /* ******************************************************************************************************************************************* */
 

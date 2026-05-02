@@ -9,7 +9,18 @@ use Illuminate\Support\Facades\Route;
 use Login\LoginController;
  
  
+// webhook
+Route::get('webhook', 'HomeController@webhook_v1');
 Route::post('webhook', 'HomeController@new_webhook_post');
+
+/*
+Route::get('webhook', 'WhatsAppWebhookController@handle');
+Route::post('webhook', 'WhatsAppWebhookController@verify');
+*/
+
+// routes/api.php
+//Route::post('webhook/whatsapp', [WhatsAppWebhookController::class, 'handle']);
+//Route::get('webhook/whatsapp', [WhatsAppWebhookController::class, 'verify']);
 //////////// User
 Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         
@@ -98,9 +109,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     });
 });
 
-// webhook
-Route::get('webhook', 'HomeController@webhook_v1');
-Route::post('webhook', 'HomeController@webhook_post');
+// webhook 
 
 Route::controller(LoginController::class)->group(function () {
     Route::post('login_admin', 'login_admin');

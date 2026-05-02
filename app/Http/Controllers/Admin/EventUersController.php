@@ -3148,7 +3148,8 @@ return response()->json([
 
         } else {
 
-            $bg           = 'qr-image-v9.jpg'; 
+            $bg           = 'qr-image-v9.jpg';
+            $link         = asset('scan-qr/' . $uu_id); 
             $destination =  public_path($bg);
 
             QrCode::size(450)->format('png')->generate($link, $destination);

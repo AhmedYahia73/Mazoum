@@ -683,25 +683,39 @@ class EventsApiController extends Controller
 
         } else {
 
-            $bg           = 'qr-image-v9.jpg';
-            $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
+            $bg          = public_path('qr-image-v9.jpg');
+            $qr_dir      = public_path('qr_code');
+            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
+            $final_path  = $qr_dir . '/' . $image_name;
+            $link        = asset('scan-qr/' . $uu_id);
 
-            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
-            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+            if (!file_exists($qr_dir)) {
+                mkdir($qr_dir, 0777, true);
+            }
 
-            $destination = public_path($qr_code_path);
-            $new_img     = Image::make($destination);
+            QrCode::size(200)->format('png')->generate($link, $qr_tmp_path);
+
+            $background = Image::make($bg);
+            $qr         = Image::make($qr_tmp_path);
+
+            $x = intval(($background->width()  - $qr->width())  / 2);
+            $y = intval(($background->height() - $qr->height()) / 2);
+
+            $background->insert($qr, 'top-left', $x, $y);
 
             if ($user_event->users_count > 1) {
-                $new_img->text($user_event->users_count, 115, 412, function ($font) {
+                $background->text($user_event->users_count, 115, 412, function ($font) {
                     $font->file(public_path('font/OpenSans-Italic.ttf'));
                     $font->size(25);
                     $font->color('#000');
                 });
             }
 
-            $new_img->save($destination);
+            $background->save($final_path, 100);
+
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
         }
     }
 

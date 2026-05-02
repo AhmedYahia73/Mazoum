@@ -498,8 +498,6 @@ class HomeController extends Controller
 
                     $phone = $mobile;
 
-                    $event_user->update([ 'users_count' => $status ]);
-
                     ////////////////////////////////////////////////////////////////////////
 
                     $template_name = 'wedding_data90';

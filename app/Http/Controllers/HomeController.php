@@ -502,9 +502,42 @@ class HomeController extends Controller
 
                     ////////////////////////////////////////////////////////////////////////
 
-                    $template_name = 'wedding_data_v2_ar';
+                    $template_name = 'wedding_data90';
 
-                    $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
+                    $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend', 'accept_count' => (int)$status ]);
+
+                    $event_action = EventUserActions::where('event_id', $user_event->event_id)
+                        ->where('event_user_id', $user_event->id)
+                        ->where('action', 'accept_event')
+                        ->first();
+                    if ($event_action) {
+                        $event_action->users_count = (int)$status;
+                        $event_action->save();
+                    } else {
+                        EventUserActions::create([
+                            'event_id'      => $user_event->event_id,
+                            'event_user_id' => $user_event->id,
+                            'mobile'        => $user_event->mobile,
+                            'action'        => 'accept_event',
+                            'users_count'   => (int)$status,
+                            'msg'           => null,
+                        ]);
+                    }
+
+                    Notifications::create([
+                        'add_by'         => 'event_user',
+                        'user_id'        => $user_event->id,
+                        'send_to_type'   => 'user',
+                        'send_to_id'     => $user_event->event->user_id,
+                        'en_title'       => $user_event->event->title,
+                        'ar_title'       => $user_event->event->title,
+                        'en_description' => $user_event->name,
+                        'ar_description' => $user_event->name,
+                        'type'           => 'accept_event',
+                        'item_id'        => $user_event->event->id,
+                        'user_event_id'  => $user_event->id,
+                        'status'         => 'accept_event',
+                    ]);
 
                     $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 

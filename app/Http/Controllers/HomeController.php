@@ -189,7 +189,10 @@ class HomeController extends Controller
 
                     /* ******************************************************************************************************************************************* */
 
-                    $template_name6 = 'flow_'.$user_event->users_count;
+                    $available = max(1, (int)$user_event->users_count - (int)($user_event->accept_count ?? 0));
+                    $available = min($available, 9);
+
+                    $template_name6 = 'flow_'.$available;
 
                     $token          = get_whats_setting($event)['token'];
                     $sender_id      = get_whats_setting($event)['sender_id'];
@@ -198,17 +201,9 @@ class HomeController extends Controller
                     $to = $phone;
                     $language = 'ar';
 
-                    $func = 'SendArFlowV' . $user_event->users_count . 'Template';
-                    $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
-
-                    //info($response3);
-                    //info($response3->getBody()->getContents());
-
-                    if ($response6 && $response6->getStatusCode() == 200) { // 200 OK
-
-                        // $response_data2 = $response2->getBody()->getContents();
-                        // info($response_data2);
-                        //dd($response_data,json_decode($response_data,true));
+                    $func = 'SendArFlowV' . $available . 'Template';
+                    if (function_exists($func)) {
+                        $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
                     }
 
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {

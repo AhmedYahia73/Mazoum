@@ -201,17 +201,14 @@ class HomeController extends Controller
                     $to = $phone;
                     $language = 'ar';
 
-                    $func = 'SendArFlowV' . $available . 'Template';
-                    $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
+                    info('FLOW SEND', ['available' => $available, 'func' => 'SendArFlowV'.$available.'Template', 'to' => $to]);
 
-                    //info($response3);
-                    //info($response3->getBody()->getContents());
-
-                    if ($response6 && $response6->getStatusCode() == 200) { // 200 OK
-
-                        // $response_data2 = $response2->getBody()->getContents();
-                        // info($response_data2);
-                        //dd($response_data,json_decode($response_data,true));
+                    try {
+                        $func = 'SendArFlowV' . $available . 'Template';
+                        $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
+                        info('FLOW SENT', ['status' => $response6 ? $response6->getStatusCode() : 'null']);
+                    } catch (\Exception $e) {
+                        info('FLOW ERROR', ['msg' => $e->getMessage()]);
                     }
 
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {

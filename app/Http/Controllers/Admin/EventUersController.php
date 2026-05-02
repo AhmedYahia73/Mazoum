@@ -3148,14 +3148,12 @@ return response()->json([
 
         } else {
 
-            $bg           = 'qr-image-v9.jpg';
-            $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path =  public_path($bg);
+            $bg           = 'qr-image-v9.jpg'; 
+            $destination =  public_path($bg);
 
-            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
-            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+            QrCode::size(450)->format('png')->generate($link, $destination);
+            Image::make($bg)->insert($destination, 'left', 320, 0)->widen(450)->save($destination, 100);
 
-            $destination = public_path($qr_code_path);
             $new_img     = Image::make($destination);
 
             if ($user_event->users_count > 1) {

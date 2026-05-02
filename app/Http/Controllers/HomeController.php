@@ -165,7 +165,6 @@ class HomeController extends Controller
                 if($status == 'attend' && $event != null && $event->showing_qr == 'yes') {
 
                     $user_event->update([ 'is_accepted' => 'yes'  ]);
-                    $this->accept_data($data, $user_event);
 
                     // $event_action = EventUserActions::
                     // where("event_id", $user_event->event_id)
@@ -235,7 +234,6 @@ class HomeController extends Controller
 
 
                   	$user_event->update([ 'is_accepted' => 'yes'  ]);
-                    $this->accept_data($data, $user_event);
 
                     $mobile = $user_event->mobile;
 
@@ -526,7 +524,6 @@ class HomeController extends Controller
                     $template_name = 'wedding_data_v2_ar';
 
                     $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
-                    $this->accept_data($data, $user_event);
 
                     $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
@@ -928,7 +925,6 @@ class HomeController extends Controller
                 if($status == 'attend' && $event != null && $event->showing_qr == 'yes') {
 
                    $user_event->update([ 'is_accepted' => 'yes'  ]);
-                    $this->accept_data($data, $user_event);
 
                     $uu_id = $this->unique_uu_id();
                     $bg = 'qr-image-v9.jpg';
@@ -1003,7 +999,6 @@ class HomeController extends Controller
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {
 
                   	$user_event->update([ 'is_accepted' => 'yes'  ]);
-                    $this->accept_data($data, $user_event);
 
                     $mobile = $user_event->mobile;
 

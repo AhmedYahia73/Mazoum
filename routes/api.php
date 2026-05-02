@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Login\LoginController;
  
  
+Route::post('webhook', 'HomeController@new_webhook_post');
 //////////// User
 Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         

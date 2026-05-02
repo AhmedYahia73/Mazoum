@@ -52,7 +52,6 @@ class HomeController extends Controller
 
   	public function new_webhook_post(Request $request)
     {
-
         info('WEBHOOK POST RECEIVED');
         info($request->all());
 
@@ -98,11 +97,11 @@ class HomeController extends Controller
             }
 
           	$events_users = EventUsers::where('message_id', $message_id)->get();
+
           	foreach($events_users as $user_event) {
 
             	$user_event->update([ 'status' => $status, 'log' => json_encode($data) ]);
 
-                $this->accept_data($data, $user_event->first());
                	EventUserLogs::create([
                 	'log' => json_encode($data),
                   	'event_id' => $user_event->event_id,
@@ -167,6 +166,7 @@ class HomeController extends Controller
 
                     $user_event->update([ 'is_accepted' => 'yes'  ]);
                     $this->accept_data($data, $user_event);
+
                     // $event_action = EventUserActions::
                     // where("event_id", $user_event->event_id)
                     // ->where("event_user_id", $user_event->id)
@@ -526,6 +526,7 @@ class HomeController extends Controller
                     $template_name = 'wedding_data_v2_ar';
 
                     $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend' ]);
+                    $this->accept_data($data, $user_event);
 
                     $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
@@ -729,44 +730,6 @@ class HomeController extends Controller
         return response()->json(['status' => 'ok'], 200);
     }
 
-    private function accept_data($data, $user_event) {
-        try {
-            if (isset($data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'])) {
-                $users_count = 0;
-                $response_json = json_decode($data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'], true);
-                
-                // إحنا هنا بنسحب القيمة بناءً على اسم الحقل في الـ Flow (screen_0___0)
-                // لو إنت مغير الاسم في الـ Flow JSON تأكد إنه مطابق هنا
-                $flow_id = $response_json['screen_0___0'] ?? '0_0'; 
-                
-                // بنعمل Extract للرقم من الـ ID (مثلاً لو الـ ID هو 0_3 هياخد رقم 3)
-                $count_parts = explode('_', $flow_id);
-                $users_count = (int) end($count_parts);
-                // الآن تحديث الجزء اللي كان معمول له Comment
-                $event_action = EventUserActions::where("event_id", $user_event->event_id)
-                    ->where("event_user_id", $user_event->id)
-                    ->where('action', 'accept_event')
-                    ->first();
-
-                if ($event_action) {
-                    // تحديث السجل الموجود
-                    $event_action->users_count = $users_count;
-                    $event_action->save();
-                } else {
-                    // إنشاء سجل جديد
-                    EventUserActions::create([
-                        'event_id' => $user_event->event_id,
-                        'event_user_id' => $user_event->id,
-                        'mobile' => $user_event->mobile,
-                        'action' => 'accept_event',
-                        'users_count' => $users_count,
-                        'msg' => null
-                    ]);
-                }
-            }
-        } catch (\Throwable $th) { 
-        }
-    }
 
 
 
@@ -965,8 +928,11 @@ class HomeController extends Controller
                 if($status == 'attend' && $event != null && $event->showing_qr == 'yes') {
 
                    $user_event->update([ 'is_accepted' => 'yes'  ]);
+                    $this->accept_data($data, $user_event);
 
                     $uu_id = $this->unique_uu_id();
+                    $bg = 'qr-image-v7.jpg';
+
                     $image_name = $uu_id . '-test-qr.png';
 
                     Qr_Code::create([
@@ -977,9 +943,23 @@ class HomeController extends Controller
                        'counter' => 0
                     ]);
 
-                    $this->update_qr($event, $uu_id, $user_event, $image_name);
-
+                    $link = asset('scan-qr/' . $uu_id);
                     $qr_code_path = 'qr_code/' . $image_name;
+                    QrCode::size(900)->format('png')->generate($link, $qr_code_path);
+
+                    Image::make($bg)->insert($qr_code_path, 'right', 60, 500)->widen(700)->save($qr_code_path, 100);
+
+                    $destination = public_path($qr_code_path);
+
+                    $new_img = Image::make($destination);
+
+                    $new_img->text($user_event->users_count, 170, 645, function ($font) {
+                        $font->file(public_path('font/OpenSans-Italic.ttf'));
+                        $font->size(40);
+                        $font->color('#fff');
+                    });
+
+                    $new_img->save($destination);
 
                     $image_url = asset($qr_code_path);
 
@@ -1023,6 +1003,7 @@ class HomeController extends Controller
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {
 
                   	$user_event->update([ 'is_accepted' => 'yes'  ]);
+                    $this->accept_data($data, $user_event);
 
                     $mobile = $user_event->mobile;
 
@@ -1489,39 +1470,25 @@ class HomeController extends Controller
 
         } else {
 
-            $bg          = public_path('qr-image-v9.jpg');
-            $qr_dir      = public_path('qr_code');
-            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
-            $final_path  = $qr_dir . '/' . $image_name;
-            $link        = asset('scan-qr/' . $uu_id);
+            $bg           = 'qr-image-v9.jpg';
+            $link         = asset('scan-qr/' . $uu_id);
+            $qr_code_path = 'qr_code/' . $image_name;
 
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
+            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
-            QrCode::size(200)->format('png')->generate($link, $qr_tmp_path);
-
-            $background = Image::make($bg);
-            $qr         = Image::make($qr_tmp_path);
-
-            $x = intval(($background->width()  - $qr->width())  / 2);
-            $y = intval(($background->height() - $qr->height()) / 2);
-
-            $background->insert($qr, 'top-left', $x, $y);
+            $destination = public_path($qr_code_path);
+            $new_img     = Image::make($destination);
 
             if ($user_event->users_count > 1) {
-                $background->text($user_event->users_count, 115, 412, function ($font) {
+                $new_img->text($user_event->users_count, 115, 412, function ($font) {
                     $font->file(public_path('font/OpenSans-Italic.ttf'));
                     $font->size(25);
                     $font->color('#000');
                 });
             }
 
-            $background->save($final_path, 100);
-
-            if (file_exists($qr_tmp_path)) {
-                unlink($qr_tmp_path);
-            }
+            $new_img->save($destination);
         } 
     }
 
@@ -1549,8 +1516,43 @@ class HomeController extends Controller
     }
 
 
+    private function accept_data($data, $user_event) {
+        try {
+            if (isset($data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'])) {
+                $users_count = 0;
+                $response_json = json_decode($data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'], true);
+                
+                // إحنا هنا بنسحب القيمة بناءً على اسم الحقل في الـ Flow (screen_0___0)
+                // لو إنت مغير الاسم في الـ Flow JSON تأكد إنه مطابق هنا
+                $flow_id = $response_json['screen_0___0'] ?? '0_0'; 
+                
+                // بنعمل Extract للرقم من الـ ID (مثلاً لو الـ ID هو 0_3 هياخد رقم 3)
+                $count_parts = explode('_', $flow_id);
+                $users_count = (int) end($count_parts);
+                // الآن تحديث الجزء اللي كان معمول له Comment
+                $event_action = EventUserActions::where("event_id", $user_event->event_id)
+                    ->where("event_user_id", $user_event->id)
+                    ->where('action', 'accept_event')
+                    ->first();
 
-
-
+                if ($event_action) {
+                    // تحديث السجل الموجود
+                    $event_action->users_count = $users_count;
+                    $event_action->save();
+                } else {
+                    // إنشاء سجل جديد
+                    EventUserActions::create([
+                        'event_id' => $user_event->event_id,
+                        'event_user_id' => $user_event->id,
+                        'mobile' => $user_event->mobile,
+                        'action' => 'accept_event',
+                        'users_count' => $users_count,
+                        'msg' => null
+                    ]);
+                }
+            }
+        } catch (\Throwable $th) { 
+        }
+    }
 
 }

@@ -3065,7 +3065,7 @@ return response()->json([
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->file != null && file_exists(public_path('images/' . $event->file))) {
+        if ($event->getRawOriginal('file') != null && file_exists(public_path('images/' . $event->getRawOriginal('file')))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
@@ -3081,7 +3081,7 @@ return response()->json([
 
             generate_qr_png($link, $qr_tmp_path, $qr_size, $color);
 
-            $background = Image::make(public_path('images/' . $event->file));
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('file')));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);
@@ -3150,7 +3150,7 @@ return response()->json([
 
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
+            $qr_code_path =  public_path($bg);
 
             QrCode::size(450)->format('png')->generate($link, $qr_code_path);
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);

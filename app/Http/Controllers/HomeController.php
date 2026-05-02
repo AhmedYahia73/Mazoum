@@ -931,7 +931,7 @@ class HomeController extends Controller
                     $this->accept_data($data, $user_event);
 
                     $uu_id = $this->unique_uu_id();
-                    $bg = 'qr-image-v7.jpg';
+                    $bg = 'qr-image-v9.jpg';
 
                     $image_name = $uu_id . '-test-qr.png';
 

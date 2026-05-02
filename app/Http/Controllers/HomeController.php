@@ -498,6 +498,8 @@ class HomeController extends Controller
 
                     $phone = $mobile;
 
+                    $event_user->update([ 'users_count' => $status ]);
+
                     ////////////////////////////////////////////////////////////////////////
 
                     $template_name = 'wedding_data_v2_ar';
@@ -509,7 +511,7 @@ class HomeController extends Controller
                         ->where('action', 'accept_event')
                         ->first();
                     if ($event_action) {
-                        $event_action->users_count = (int)$status;
+                        $event_action->users_count += (int)$status;
                         $event_action->save();
                     } else {
                         EventUserActions::create([

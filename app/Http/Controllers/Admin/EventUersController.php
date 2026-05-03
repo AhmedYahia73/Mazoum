@@ -1287,8 +1287,29 @@ class EventUersController extends Controller
 
                             // $this->update_qr($event, $uu_id, $user_event, $image_name);
 
-                            $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
-                            $image_url    = asset($qr_code_path);
+                            // $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
+                            // $image_url    = asset($qr_code_path);
+                            // //$code = $user_event->mobile_code->code;
+                            // //$mobile = substr($user_event->mobile, 1);
+                            // $mobile = $user_event->mobile;
+
+                            // //$to = $code.$mobile;
+                            // $to = $mobile;
+                            // $to = str_replace("+","",$to);
+
+                            // $template_name = 'wedding_data_v1_ar';
+                            // $language = 'ar';
+                            // $user_name = $user_event->name;
+
+                            // $token          = get_whats_setting($event)['token'];
+                            // $sender_id      = get_whats_setting($event)['sender_id'];
+                            // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                          	//dd($token,$sender_id,$phone_numer_id);
+                            // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
+
+                            $image_path = $event->file;
+
                             //$code = $user_event->mobile_code->code;
                             //$mobile = substr($user_event->mobile, 1);
                             $mobile = $user_event->mobile;
@@ -1299,15 +1320,13 @@ class EventUersController extends Controller
 
                             $template_name = 'wedding_data_v1_ar';
                             $language = 'ar';
+                            $image_url = $image_path;
                             $user_name = $user_event->name;
 
                             $token          = get_whats_setting($event)['token'];
                             $sender_id      = get_whats_setting($event)['sender_id'];
                             $phone_numer_id = get_whats_setting($event)['sender_id'];
-
-                          	//dd($token,$sender_id,$phone_numer_id);
-                            // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
-
+                            
                             $param_1   = $user_name;
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;

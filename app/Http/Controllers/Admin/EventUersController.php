@@ -1326,7 +1326,7 @@ class EventUersController extends Controller
                             $token          = get_whats_setting($event)['token'];
                             $sender_id      = get_whats_setting($event)['sender_id'];
                             $phone_numer_id = get_whats_setting($event)['sender_id'];
-                            
+
                             $param_1   = $user_name;
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
@@ -1543,7 +1543,7 @@ class EventUersController extends Controller
 
         // $sender_id = $setting->sender_id;
         $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
-        '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.
+        '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->accept_count.
         '&image='.$image_url;
 
         // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.

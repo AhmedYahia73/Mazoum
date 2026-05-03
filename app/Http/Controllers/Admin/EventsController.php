@@ -777,18 +777,6 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('status','not-attend')
         ->sum('users_count'); 
-        
-        $not_confirm = EventUsers::
-        where('event_id',$Item->id)
-        ->where(function($q) { 
-            $q->where('status','sent')
-            ->orWhere('is_new_sent',1); 
-        })->whereNull('is_accepted')
-        ->whereNull('is_refused')
-        ->where(function($query) {
-            $query->where('is_new_sent',1)
-             ->orWhereNotNull('is_sent'); 
-        })->sum('users_count');
         $send_Qr = EventUsers::
         where('event_id', $Item->id)
         ->where('qr_sent','yes') 
@@ -798,6 +786,7 @@ class EventsController extends Controller
             $event->whereIn('is_open',['yes','current']); 
         })->whereIn('mobile',$mobiles_arr)
         ->count();
+        
         $not_attend =  $confirm_attend - $qr;
         $confirm_web_users = EventUsers::
         where('event_id', $Item->id)
@@ -813,6 +802,7 @@ class EventsController extends Controller
         $invitees = EventUsers::
         where('event_id',$Item->id)
         ->sum('users_count');
+        $not_confirm = $invitees - $confirm_attend;
 
         return response()->json([
             "Item" => $Item,

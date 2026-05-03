@@ -399,7 +399,7 @@ class HomeController extends Controller
 
                   $url_image = asset($qr_code_path);
 
-                  $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$url_image,$phone_numer_id,$token);
+                  $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->accept_count,$url_image,$phone_numer_id,$token);
 
                 }
 

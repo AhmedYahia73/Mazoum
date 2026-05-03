@@ -1006,22 +1006,37 @@ class PackageController extends Controller
         // افتح QR
         $qr = Image::make($qr_temp_path);
 
-        // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
-        if ($qr_width > 0 && $qr_height > 0) {
-            $qr->resize($qr_width, $qr_height);
-        }
+        // // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
+        // if ($qr_width > 0 && $qr_height > 0) {
+        //     $qr->resize($qr_width, $qr_height);
+        // }
 
-        // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
-        if ($qr_x > 0 || $qr_y > 0) {
-            $x = $background->width()  - $qr->width()  - $qr_x;
-            $y = $background->height() - $qr->height() - $qr_y;
-        } else {
-            $x = intval(($background->width()  - $qr->width())  / 2);
-            $y = intval(($background->height() - $qr->height()) / 2);
-        }
+        // // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
+        // if ($qr_x > 0 || $qr_y > 0) {
+        //     $x = $background->width()  - $qr->width()  - $qr_x;
+        //     $y = $background->height() - $qr->height() - $qr_y;
+        // } else {
+        //     $x = intval(($background->width()  - $qr->width())  / 2);
+        //     $y = intval(($background->height() - $qr->height()) / 2);
+        // }
 
-        // أدرج QR مرة واحدة بس!
-        $background->insert($qr, 'top-left', $x, $y);
+        // // أدرج QR مرة واحدة بس!
+        // $background->insert($qr, 'top-left', $x, $y);
+        
+            if ($qr_width > 0 && $qr_height > 0) {
+                $qr->resize($qr_width, $qr_height);
+            }
+
+            // تعديل نقطة البداية (Origin) لتكون Top-Left مباشرة
+            if ($qr_x > 0 || $qr_y > 0) {
+                $x = $qr_x; 
+                $y = $qr_y;
+            } else {
+                $x = intval(($background->width()  - $qr->width())  / 2);
+                $y = intval(($background->height() - $qr->height()) / 2);
+            }
+
+            $background->insert($qr, 'top-left', $x, $y);
 
         // إعداد النصوص
         if ($event->language == 'ar') {

@@ -1513,9 +1513,8 @@ class EventUersController extends Controller
           'counter' => 0
         ]);
         /////////////////////////////////////////
-        $event->file = null;
         // new code
-        $this->update_qr($event,$uu_id,$user_event,$image_name);
+        $this->update_qr($event,$uu_id,$user_event,$image_name, true);
 
         $qr_code_path = 'qr_code/' . $image_name; 
 
@@ -3070,7 +3069,7 @@ return response()->json([
 
 
 
-    private function update_qr($event,$uu_id,$user_event,$image_name) {
+    private function update_qr($event,$uu_id,$user_event,$image_name, $status = false) {
 
         $color = $this->hexToRgb($event->color);
 
@@ -3084,7 +3083,7 @@ return response()->json([
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
+        if (!$status && $event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);

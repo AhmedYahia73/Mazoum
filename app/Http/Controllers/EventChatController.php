@@ -451,7 +451,7 @@ class EventChatController extends Controller
 
             generate_qr_png($link, $qr_tmp_path, $qr_size, $color);
 
-            $background = Image::make(public_path('images/' . $event->getRawOriginal('file')));
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
 
             if ($image_width > 0 && $image_height > 0) {
                 $background->resize($image_width, $image_height);

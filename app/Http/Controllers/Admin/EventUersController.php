@@ -1513,7 +1513,7 @@ class EventUersController extends Controller
           'counter' => 0
         ]);
         /////////////////////////////////////////
-  
+        $event->file = null;
         // new code
         $this->update_qr($event,$uu_id,$user_event,$image_name);
 

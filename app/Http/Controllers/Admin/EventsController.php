@@ -804,7 +804,7 @@ class EventsController extends Controller
         ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
-        ->where("accept_count", "<=", 0)
+        ->where("accept_count", 0)
         ->sum('users_count');
 
         return response()->json([

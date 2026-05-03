@@ -202,7 +202,7 @@ class HomeController extends Controller
 
                     /* ******************************************************************************************************************************************* */
 
-                    $available = max(1, (int)$user_event->users_count - (int)($user_event->accept_count ?? 0));
+                    $available = max(1, (int)$user_event->users_count);
                     $available = min($available, 9);
 
                     $template_name6 = 'flow_'.$available;
@@ -511,7 +511,7 @@ class HomeController extends Controller
 
                     $template_name = 'wedding_data_v2_ar';
 
-                    $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend', 'accept_count' => (int)$status + ($user_event->accept_count ?? 0)]);
+                    $user_event->update([ 'is_accepted' => 'yes' ,'confirmed_at' => now(),'status' => 'attend', 'accept_count' => (int)$status]);
 
                     $event_action = EventUserActions::where('event_id', $user_event->event_id)
                         ->where('event_user_id', $user_event->id)

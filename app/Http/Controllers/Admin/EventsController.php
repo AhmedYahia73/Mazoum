@@ -770,9 +770,9 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where('scan','yes')
         ->sum('scan_count');
-        $confirm_attend = EventUserActions::where('event_id', $Item->id)
-        ->where('action', 'accept_event')
-        ->sum('users_count');
+        $confirm_attend = EventUsers::
+        where('event_id', $Item->id) 
+        ->sum('accept_count');
         $apologize = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')
@@ -789,23 +789,21 @@ class EventsController extends Controller
             $query->where('is_new_sent',1)
              ->orWhereNotNull('is_sent'); 
         })->sum('users_count');
-        $send_Qr = 
-        EventUserActions::where('event_id', $Item->id)
-        ->where('action', 'accept_event')
-        ->whereHas("event_user", function($q) { 
-            $q->where('qr_sent','yes'); 
-        })
-        ->sum('users_count');
+        $send_Qr = EventUsers::
+        where('event_id', $Item->id)
+        ->where('qr_sent','yes') 
+        ->sum('accept_count'); 
         $congratulation_msgs = CongratulationMessages::
         whereHas('event',function($event) { 
             $event->whereIn('is_open',['yes','current']); 
         })->whereIn('mobile',$mobiles_arr)
         ->count();
         $not_attend =  $confirm_attend - $qr;
-        $confirm_web_users = EventUserActions::
-        where('event_id',$Item->id)
-        ->where('action','accept_event')
-        ->count();
+        $confirm_web_users = EventUsers::
+        where('event_id', $Item->id)
+        ->where("send_type", "link")
+        ->where('qr_sent','yes') 
+        ->sum('accept_count');
         $waiting = EventUsers::
         where('event_id',$Item->id)
         ->where('status','hold')

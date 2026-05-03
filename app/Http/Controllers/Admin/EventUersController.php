@@ -3255,7 +3255,9 @@ return response()->json([
 
       	$now = Carbon::now(); 
 
-        $Item->update(['scan' => 'yes','scan_at' => $now,'scan_count' => $request->users_count]);
+        $Item->update(['scan' => 'yes',
+        'scan_at' => $now,
+        'scan_count' => $request->users_count + $Item->scan_count]);
         EnterUserEvent::create([
             "event_user_id" => $Item->id,
             "count" => $request->users_count

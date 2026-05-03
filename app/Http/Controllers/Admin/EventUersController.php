@@ -1285,7 +1285,7 @@ class EventUersController extends Controller
                                 ]);
                             }
 
-                            $this->update_qr($event, $uu_id, $user_event, $image_name);
+                            // $this->update_qr($event, $uu_id, $user_event, $image_name);
 
                             $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
                             $image_url    = asset($qr_code_path);

@@ -802,7 +802,10 @@ class EventsController extends Controller
         $invitees = EventUsers::
         where('event_id',$Item->id)
         ->sum('users_count');
-        $not_confirm = $invitees - $confirm_attend;
+        $not_confirm = EventUsers::
+        where('event_id', $Item->id)
+        ->where("accept_count", "<=", 0)
+        ->sum('users_count');
 
         return response()->json([
             "Item" => $Item,

@@ -2019,7 +2019,8 @@ class EventUersController extends Controller
                 'is_send_congratulation' => $item->is_send_congratulation,
                 'code' => $item->code,
                 "send_time" => $item->send_time,
-                "accept_time" => $item->accept_time
+                "accept_time" => $item->accept_time,
+                "accept_count" => $item->accept_count,
             ];
         });
 

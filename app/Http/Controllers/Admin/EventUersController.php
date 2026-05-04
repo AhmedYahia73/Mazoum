@@ -431,17 +431,7 @@ class EventUersController extends Controller
             ],400);
         }   
 
-        $setting = Setting::first();
-
-        $request->validate([
-            'sending_type2' => 'required|in:old_send,new_send',
-            'message2' => 'required',
-            'event_id' => 'required|exists:events,id',
-            'users' => 'required',
-          	'file2'  => 'nullable|image',
-            'date' => 'required',
-            'time' => 'required',
-        ]);
+        $setting = Setting::first(); 
 
         $event_id = $request->event_id;
 

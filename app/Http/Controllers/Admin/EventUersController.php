@@ -2402,6 +2402,7 @@ class EventUersController extends Controller
         $data = EventUsers::
         where('event_id',$Item->id)
         ->where('qr_sent','yes')
+        ->where("accept_count", ">", 0)
         //->where('qr_sent', 'yes')
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;

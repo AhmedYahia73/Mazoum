@@ -1087,7 +1087,7 @@ class EventsController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-        $events = Model::whereIn('id', $request->items)->get();
+        $events = Model::whereIn('id', $request->items)->delete();
         
         return response()->json(['success' => 'You delete data success']);
     }

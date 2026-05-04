@@ -547,7 +547,7 @@ class EventUersController extends Controller
                                 $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم ". $date ." في تمــام الساعة "  . $time . "  تشرفينــا لحضور " . $request->message2 . ' 🌺🌺 ';
 
                                 // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
-                                // dd($url_image);
+                                dd($url_image);
 
                                 // $api=$client->sendChatMessage($to,$body);
                                 $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);

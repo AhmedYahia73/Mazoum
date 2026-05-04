@@ -2244,8 +2244,8 @@ class EventUersController extends Controller
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         if($request->search){
             $data = EventUsers::
-            where('event_id',$Item->id)
-            ->where('qr_sent','yes') 
+            where('event_id',$Item->id) 
+            ->where("accept_count", 0)
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2257,8 +2257,8 @@ class EventUersController extends Controller
         }
         else{
             $data = EventUsers::
-            where('event_id',$Item->id)
-            ->where('qr_sent','yes') 
+            where('event_id',$Item->id) 
+            ->where("accept_count", 0)
             ->paginate(15);
         }
 

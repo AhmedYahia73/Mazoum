@@ -94,7 +94,7 @@ class NegotaitionController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        if($request->status == "accept"){
+        if($request->status == "approve"){
             
             $validation = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',

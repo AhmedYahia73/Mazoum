@@ -1986,7 +1986,7 @@ class EventUersController extends Controller
                 $sub->where('name', 'like', "%$search%")
                     ->orWhere('mobile', 'like', "%$search%");
             });
-        }) 
+        })
         ->paginate(15) 
         ->withQueryString() 
         ->through(function($item) { 

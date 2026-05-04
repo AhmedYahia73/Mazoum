@@ -129,6 +129,7 @@ Route::resource('web_desgins', 'WebDesginsController', [
 ]);
 
 // Events 
+Route::post('events/delete_items', 'EventsController@delete_items');
 Route::post('events/multi_delete', 'EventsController@multi_delete');
 Route::get('events/event_lists', 'EventsController@event_lists');
 Route::post('events/update_location', 'EventsController@update_location');

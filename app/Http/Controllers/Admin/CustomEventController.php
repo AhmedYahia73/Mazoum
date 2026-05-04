@@ -602,8 +602,7 @@ class CustomEventController extends Controller
         }
         Model::whereIn('id', $request->items)->delete();
         return response()->json(['success' => 'تم حذف البيانات بنجاح']);
-    }
-
+    } 
 
     private function gteInput($request, $modelClass)
     {

@@ -2069,7 +2069,7 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         if($request->search){
-            $data = EventUserActions::where('event_id', $Item->id)
+            $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
             ->with("event_user:id,name")
@@ -2081,7 +2081,7 @@ class EventUersController extends Controller
             ->paginate(15);
         }
         else{
-            $data = EventUserActions::where('event_id', $Item->id)
+            $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
             ->with("event_user:id,name")

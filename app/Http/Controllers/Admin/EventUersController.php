@@ -551,7 +551,7 @@ class EventUersController extends Controller
 
                                 // $api=$client->sendChatMessage($to,$body);
                                 $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
-                                dd($api->json());
+                                dd($api);
                                 $api2 = $client->sendLocationMessage($to,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
 
                                 // $qr_code_row = Qr_Code::where('event_user_id',$arr['id'])->latest()->first();

@@ -430,7 +430,18 @@ class EventUersController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
-        $setting = Setting::first(); 
+
+        $setting = Setting::first();
+
+        $request->validate([
+            'sending_type2' => 'required|in:old_send,new_send',
+            'message2' => 'required',
+            'event_id' => 'required|exists:events,id',
+            'users' => 'required',
+          	'file2'  => 'nullable|image',
+            'date' => 'required',
+            'time' => 'required',
+        ]);
 
         $event_id = $request->event_id;
 
@@ -481,7 +492,7 @@ class EventUersController extends Controller
 
                         if($user_event != null) {
 
-                            $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
+                            $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
                             $user_name = $user_event->name;
 
@@ -495,11 +506,12 @@ class EventUersController extends Controller
                           	$date = $request->date;
                           	$time = $request->time;
 
+                            $template_name = 'car_msg3_';
+
                             if($request->sending_type2 == 'old_send') {
 
-
                                 $language = 'ar';
-                                $template_name = "car_msg3_";
+
                                 $token          = get_whats_setting($event)['token'];
                                 $sender_id      = get_whats_setting($event)['sender_id'];
                                 $phone_numer_id = get_whats_setting($event)['sender_id'];
@@ -510,14 +522,22 @@ class EventUersController extends Controller
 
                                 $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
 
-                                // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
+                                // if($event->country_code == 'kw') {
 
-                                //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&url_button='.$url_button.'&image='.$url_image;
-                                // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&url_button='.$url_button.'&image='.$url_image.'&url_button='.$url_button;
-                                // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&param_2='.$time.'&param_3='.$date.'&url_button='.$url_button.'&image='.$url_image;
+                                //   //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&url_button='.$url_button.'&image='.$url_image;
+                                //   // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&url_button='.$url_button.'&image='.$url_image.'&url_button='.$url_button;
+                                //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$message.'&param_2='.$time.'&param_3='.$date.'&url_button='.$url_button.'&image='.$url_image;
 
+                                //   $response = SendNewTemplateCodeV1($url);
 
-                                //$response = SendNewTemplateCodeV1($url);
+                                // } else {
+
+                                //   $param_1 = $user_name;
+                                //   $param_2 = $time;
+                                //   $param_3 = $date;
+
+                                //   $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
+                                // }
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
@@ -576,14 +596,14 @@ class EventUersController extends Controller
 
                 return response()->json([
                     'success' => 'تم الأرسال بنجاح', 
-                ]);
+                ]); 
             }
 
         } catch(\Exception $e) {
             dd($e,$e->getMessage(), $e->getLine());
         }
 
-        dd('error-v2');
+        dd('error-v2'); 
 
     }
 

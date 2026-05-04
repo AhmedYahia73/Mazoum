@@ -453,7 +453,7 @@ class EventUersController extends Controller
             $url_image = asset('images/'.$filename);
 
         } else {
-            $url_image = asset("images/" . $event->file);
+            $url_image = $event->file;
         }
 
         /* ***************************************************************************** */

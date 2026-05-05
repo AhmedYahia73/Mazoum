@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use App\Models\CongratulationMessages;
+use App\Models\EventMessages;
+use App\Models\Events;
+use App\Models\EventUserActions;
+use App\Models\EventUserLogs;
+use App\Models\EventUsers;
+use App\Models\Logs;
+use App\Models\Notifications;
+use App\Models\Orders;
+use App\Models\Parking; 
+use App\Models\Qr_Code;
+use App\Models\Setting;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\EventUsers;
-use App\Models\EventUserActions;
-
-use App\Models\Orders;
-use App\Models\Admin;
-use App\Models\Setting;
-use App\Models\Logs;
-use App\Models\Qr_Code;
-use App\Models\EventUserLogs;
-use App\Models\Events;
-use App\Models\EventMessages;
-use App\Models\Parking; 
-use App\Models\CongratulationMessages;
-use App\Models\Notifications;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\Validator;
-use GuzzleHttp\Client;
-use App\Http\Controllers\Controller;
 
 class EventUserActionsController extends Controller
 {
@@ -49,6 +49,13 @@ class EventUserActionsController extends Controller
             $qr_row = Qr_Code::
             where('event_user_id',$event_user->id)
             ->first();
+            $url = $qr_row->qr_link;
+
+            $exists = Http::head($url)->successful();
+
+            if (!$exists) {
+                $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
+            } 
             $btns_status = false;
         }
         else{ 

@@ -1599,7 +1599,7 @@ class EventUersController extends Controller
 
       	//dd($response);
 
-        if ($response != null && $response->getStatusCode() == 200) {
+        if ($response != null && (is_array($response) || $response->getStatusCode() == 200)) {
 
           $user_event->update([ 'qr_sent' => 'yes'  ]);
 

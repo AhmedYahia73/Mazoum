@@ -49,19 +49,6 @@ class EventUserActionsController extends Controller
             $qr_row = Qr_Code::
             where('event_user_id',$event_user->id)
             ->first();
-            $url = $qr_row->qr_link;
-
-            $exists = Http::head($url)->successful();
-
-            if (!$exists) {
-                $destination = $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
-                $qr_row->update([
-                    "qr" => $destination,
-                ]);
-            } 
-            return response()->json([
-                "destination" => $destination, 
-            ]);
             $btns_status = false;
         }
         else{ 
@@ -116,6 +103,22 @@ class EventUserActionsController extends Controller
         $yes_reply_congratulation = CongratulationMessages::
         where("message_id", $event_user->id)
         ->first();
+        if($btns_status){
+
+            $url = $qr_row->qr_link;
+
+            $exists = Http::head($url)->successful();
+
+            if (!$exists) {
+                $destination = $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
+                $qr_row->update([
+                    "qr" => $destination,
+                ]);
+            } 
+            return response()->json([
+                "destination" => $destination, 
+            ]);
+        }
         return response()->json([
             "event_user" => $event_user,
             "qr_row" => $qr_row,

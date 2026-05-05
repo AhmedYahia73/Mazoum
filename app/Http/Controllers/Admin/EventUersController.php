@@ -1520,13 +1520,33 @@ class EventUersController extends Controller
           'uu_id' => $uu_id,
           'counter' => 0
         ]);
-        /////////////////////////////////////////
-        // new code
-        $this->update_qr($event,$uu_id,$user_event,$image_name, true);
 
-        $qr_code_path = 'qr_code/' . $image_name; 
+        // new code
+        $this->update_qr($event,$uu_id,$user_event,$image_name);
+
+        $qr_code_path = 'qr_code/' . $image_name;
+
+        // $bg = 'qr-image-v9.jpg';
+
+        // $link = asset('scan-qr/' . $uu_id);
+        // QrCode::size(900)->format('png')->generate($link, $qr_code_path);
+
+        // Image::make($bg)->insert($qr_code_path, 'left', 480, 0)->widen(700)->save($qr_code_path, 100);
+
+        // $destination = public_path($qr_code_path);
+
+        // $new_img = Image::make($destination);
+
+        // $new_img->text($user_event->users_count, 150, 615, function ($font) {
+        //   $font->file(public_path('font/OpenSans-Italic.ttf'));
+        //   $font->size(40);
+        //   $font->color('#eeb534');
+        // });
+
+        // $new_img->save($destination);
 
         $image_url = asset($qr_code_path);
+
         //$code = $user_event->mobile_code->code;
         //$mobile = substr($user_event->mobile, 1);
         $mobile = $user_event->mobile;
@@ -1538,6 +1558,7 @@ class EventUersController extends Controller
         $template_name = 'wedding_data_v2_ar';
         $language = 'ar';
         $user_name = $user_event->name;
+
         $token          = get_whats_setting($event)['token'];
         $sender_id      = get_whats_setting($event)['sender_id'];
         $phone_numer_id = get_whats_setting($event)['sender_id'];
@@ -1546,44 +1567,47 @@ class EventUersController extends Controller
 
         $to = str_replace("+","",$to);
 
-        $url_button = '?q=' . $user_event?->event?->lat . ',' . $user_event?->event?->long;
+        $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
 
         // $sender_id = $setting->sender_id;
-        $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
-        '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->accept_count.
-        '&image='.$image_url;
 
-        // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.
-        // '&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.
-        // '&image='.$image_url.'&url_button='.$url_button;
-        
-        $response = SendNewVTemplateCodeV1($url);
- 		// تحويل النص لـ Array
-        $responseData = json_decode($response);  
+        if($user_event->send_type == "meta"){
+            $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+        }
+        else{
 
-        // التأكد أن الرد ليس فارغاً وأن مصفوفة الرسائل موجودة فعلاً
-        if ($responseData && isset($responseData->messages) && !empty($responseData->messages)) {
-            $status = $responseData->messages[0]->message_status ?? '';
-
-            if ($status == "accepted") {
-                $user_event->update(['qr_sent' => 'yes']);
-                return response()->json(['success' => 'تم أرسال QR Scan بنجاح']);
-            }
-        }  else {
-
-          return response()->json([
-              'errors' => 'عفوا فشل أرسال QR Scan ', 
-          ]); 
+            $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+            $instance_id="instance109805"; // Ultramsg.com instance id
+            $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
+  
+            // $api=$client->sendChatMessage($to,$body);
+            $api2 = $client->sendImageMessage($mobile,$image_url,"",$priority=0,$referenceId="SDK");
+            $response = ["success"];
         }
 
-        /////////////////////////////////////////////////////
+        // if($event->country_code == 'kw') {
 
-        ////////////////////////////////////////////////////////////////////
+        //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_event->users_count.'&image='.$image_url;
+        //   $response = SendNewTemplateCodeV1($url);
 
+        // } else {
 
+        //   $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+
+        // }
 
 
       	//dd($response);
+
+        if ($response != null && $response->getStatusCode() == 200) {
+
+          $user_event->update([ 'qr_sent' => 'yes'  ]);
+
+           return response()->json(['status' => 'success', 'message' => 'تم أرسال QR Scan  بنجاح']);
+
+        } else {
+        	return response()->json(['status' => 'error', 'message' => 'عفوا فشل أرسال QR Scan ']);
+        }  
  
     }
 

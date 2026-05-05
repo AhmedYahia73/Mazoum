@@ -110,14 +110,12 @@ class EventUserActionsController extends Controller
             $exists = Http::head($url)->successful();
 
             if (!$exists) {
-                $destination = $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
+                $image_name = $qr_row->uu_id . '-test-qr.png';
+                $this->update_qr($event_user->event, $qr_row->uu_id, $event_user, $image_name);
                 $qr_row->update([
-                    "qr" => $destination,
+                    "qr" => $image_name,
                 ]);
-            } 
-            return response()->json([
-                "destination" => $destination, 
-            ]);
+            }  
         }
         return response()->json([
             "event_user" => $event_user,

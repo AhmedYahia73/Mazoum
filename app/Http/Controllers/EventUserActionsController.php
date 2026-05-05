@@ -59,6 +59,9 @@ class EventUserActionsController extends Controller
                     "qr" => $destination,
                 ]);
             } 
+            return response()->json([
+                "destination" => $destination, 
+            ]);
             $btns_status = false;
         }
         else{ 

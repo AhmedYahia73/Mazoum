@@ -54,7 +54,10 @@ class EventUserActionsController extends Controller
             $exists = Http::head($url)->successful();
 
             if (!$exists) {
-                $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
+                $destination = $this->update_qr($event_user->event,$qr_row->uu_id,$event_user,$event_user->event?->image);
+                $qr_row->update([
+                    "qr" => $destination,
+                ]);
             } 
             $btns_status = false;
         }
@@ -853,6 +856,7 @@ class EventUserActionsController extends Controller
             }
 
             $new_img->save($destination);
+            return $destination;
         }
     }
 

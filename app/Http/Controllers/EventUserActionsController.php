@@ -103,11 +103,11 @@ class EventUserActionsController extends Controller
         $yes_reply_congratulation = CongratulationMessages::
         where("message_id", $event_user->id)
         ->first();
-        if($btns_status){
+        if($btns_status && $qr_row){
 
             $url = $qr_row->qr_link;
 
-            $exists = Http::head($url)->successful();
+            $exists = $url ? Http::head($url)->successful() : false;
 
             if (!$exists) {
                 $image_name = $qr_row->uu_id . '-test-qr.png';

@@ -3276,9 +3276,10 @@ class EventUersController extends Controller
         ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)
         ->with("event")->first(); 
-
  
         return response()->json([
+            "user_name" => $Item?->name,
+            "user_mobile" => $Item?->mobile, 
             "event_name" => $Item?->event?->title,
             "scan_count" => $Item?->scan_count,
             "users_count" => $Item?->users_count,
@@ -3303,7 +3304,10 @@ class EventUersController extends Controller
         where("uu_id",$request->qr_id)
         ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
-        
+        EnterUserEvent::create([
+            "event_user_id" => $Item->id,
+            "count" => $request->users_count
+        ]);
          
 
       	$now = Carbon::now(); 

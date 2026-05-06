@@ -268,7 +268,7 @@ class HomeController extends Controller
                     'is_refused' => 'yes',
                     'is_accepted' => 'no' ,
                     'status' => 'not-attend',
-                    "accept_count" = 0;
+                    "accept_count" => 0,
                   ]);
                 $user_event->is_refused = 'yes';
                 $user_event->save();

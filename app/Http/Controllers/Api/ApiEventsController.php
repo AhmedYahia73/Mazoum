@@ -111,7 +111,7 @@ class ApiEventsController extends Controller
             //$confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','attend')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
             $confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)
             ->where('is_accepted','yes')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -152,7 +152,7 @@ class ApiEventsController extends Controller
             // $confirmed_without_attend = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->where('scan','!=','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
 
             $non_attendance_users   = EventUsers::where('event_id',$Item->id)->where('status','attend')
-            ->whereNull('scan')->whereNull('is_refused')
+            ->where("accept_count", 0)
             ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;

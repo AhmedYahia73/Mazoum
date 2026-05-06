@@ -34,6 +34,8 @@ class Admin
             if ( Auth::user()->role == "scan_employee"){
                 $allowed = [
                     "admin/event-messages",
+                    "admin/scan_data",
+                    "admin/scan_qr",
                     "admin/all-invited-users/*",
                     "admin/login-user/*",
                     "admin/event-qr-details/*",

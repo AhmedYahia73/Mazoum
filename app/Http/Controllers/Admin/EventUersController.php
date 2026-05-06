@@ -3304,6 +3304,12 @@ class EventUersController extends Controller
         where("uu_id",$request->qr_id)
         ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
+        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+            return response()->json([
+                'errors' => 'عفوا هذا QR غير متاح', 
+            ],400);
+
+        }
         EnterUserEvent::create([
             "event_user_id" => $Item->id,
             "count" => $request->users_count

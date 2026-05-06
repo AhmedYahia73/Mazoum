@@ -70,6 +70,7 @@ class Admin
                     "admin/closed-events",
                     "admin/current-events",
                     "admin/deleted-events",
+                    "admin/event_open_users",
                     "admin/sa-closed-events",
                     "admin/sa-current-events",
                     "admin/current-event/*",

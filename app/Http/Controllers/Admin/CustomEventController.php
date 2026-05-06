@@ -7,6 +7,7 @@ use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily; 
 use App\Models\CustomEventUsers;
+use App\Models\EnterUserCustomEvent;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
 use App\Models\User;
@@ -1072,6 +1073,24 @@ class CustomEventController extends Controller
         }
 
     } 
+
+    public function custom_open_users(Request $request, $id){
+        $enter_event = EnterUserCustomEvent::
+        where("custom_user_id", $id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "count" => $item->count,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "enter_event" => $enter_event
+        ]);
+    }
 }
 
 

@@ -193,6 +193,8 @@ Route::post('delete_events', 'EventsController@delete_events');
 Route::get('save_event_users', function() {
     return redirect('admin');
 });
+Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
+Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
 Route::post('save_event_users', 'EventUersController@save_event_users');
 
 
@@ -391,6 +393,7 @@ Route::resource('custom_events', 'CustomEventController', [
     'names' => 'admin.custom_events',
     'except' => ['update'],
 ]);
+Route::post('custom_open_users', 'CustomEventController@custom_open_users');
 Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 Route::post('custom_events/{id}', 'CustomEventController@update');
 Route::get('custom_events/destroy/{id}', 'CustomEventController@destroy');

@@ -3331,6 +3331,24 @@ class EventUersController extends Controller
             'success' => 'تم عمل QR Scan  بنجاح', 
         ]);
     }
+
+    public function event_open_users(Request $request, $id){
+        $enter_event = EnterUserEvent::
+        where("event_user_id", $id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "count" => $item->count,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "enter_event" => $enter_event
+        ]);
+    }
 }
 
 

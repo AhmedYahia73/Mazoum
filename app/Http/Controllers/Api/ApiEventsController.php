@@ -177,7 +177,7 @@ class ApiEventsController extends Controller
             $arr3 = [
                 'title_en' => 'confirmed_invitatios_users',
                 'title_ar' => '',
-              	'count' => $confirmed_invitatios_users->sum('users_count'),
+              	'count' => $confirmed_invitatios_users->sum('accept_count'),
                 'users' => $confirmed_invitatios_users
             ];
 

@@ -295,6 +295,7 @@ Route::get('save_event_family', function() {
     return redirect('admin');
 });
 Route::post('save_event_family', 'EventUersController@save_event_family');
+Route::get('event_family/{id}', 'EventUersController@event_family');
 
 
 // update_event_family

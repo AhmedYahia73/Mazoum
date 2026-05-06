@@ -1062,6 +1062,19 @@ class EventUersController extends Controller
 
   	///////////////////////////////////////////////////////////////////////////////////////
 
+    public function event_family($id) {
+
+        $event = Events::where('id', $id)->firstOrFail();
+
+        $event_users = EventFamily::where('event_id',$id)->get();
+
+        return response()->json([
+            'event_users' => $event_users, 
+            'event_id' => $id, 
+        ]);
+
+    }
+    
   	// save_event_family
     public function save_event_family(Request $request)
     {

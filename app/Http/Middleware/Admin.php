@@ -35,6 +35,7 @@ class Admin
                 $allowed = [
                     "admin/event-messages",
                     "admin/scan_data",
+                    "admin/event_family/{id}",
                     "admin/scan_qr",
                     "admin/all-invited-users/*",
                     "admin/login-user/*",

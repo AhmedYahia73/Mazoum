@@ -3060,6 +3060,9 @@ class EventUersController extends Controller
         $event_user_id = $request->user_id;
 
         $user_event = Model::withTrashed()->where('id', $event_user_id)->firstOrFail();
+        $user_event->accept_count = 0;
+        $user_event->is_refused = 'yes';
+        $user_event->save();
 
 
        	EventMessages::create([

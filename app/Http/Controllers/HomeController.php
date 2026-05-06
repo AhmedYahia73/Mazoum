@@ -262,8 +262,16 @@ class HomeController extends Controller
 
                   Qr_Code::where('event_user_id', $user_event->id)->delete();
 
-                  $user_event->update([ 'scan' => null , 'scan_at' => null, 'is_refused' => 'yes','is_accepted' => 'no' ,'status' => 'not-attend'  ]);
-
+                  $user_event->update([ 
+                    'scan' => null , 
+                    'scan_at' => null, 
+                    'is_refused' => 'yes',
+                    'is_accepted' => 'no' ,
+                    'status' => 'not-attend',
+                    "accept_count" = 0;
+                  ]);
+                $user_event->is_refused = 'yes';
+                $user_event->save();
                   $event = Events::find($user_event->event_id);
 
                   $token          = get_whats_setting($event)['token'];

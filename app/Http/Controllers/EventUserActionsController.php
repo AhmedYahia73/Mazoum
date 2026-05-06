@@ -249,6 +249,9 @@ class EventUserActionsController extends Controller
                 }
 
             } elseif($request->action == 'refuse_event') {
+                $user_event->accept_count = 0;
+                $user_event->is_refused = 'yes';
+                $user_event->save();
                 $user_event_count = $user_event->users_count;
                 $event_action = EventUserActions::
                 where("event_id", $user_event->event_id)

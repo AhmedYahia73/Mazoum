@@ -1074,7 +1074,7 @@ class EventUersController extends Controller
         ]);
 
     }
-    
+
   	// save_event_family
     public function save_event_family(Request $request)
     {
@@ -3276,10 +3276,11 @@ class EventUersController extends Controller
 
  
         return response()->json([
-            "event_name" => $Item?->title,
+            "event_name" => $Item?->event?->title,
             "scan_count" => $Item?->scan_count,
             "users_count" => $Item?->users_count,
             "available" => $Item?->users_count - $Item?->scan_count,
+            "status" => $Item->is_refused == 'yes' ? "refused" : ($Item->accept_count < 1 ? "not_confirmed" : "accepted"),
         ]);
     }
 

@@ -393,7 +393,7 @@ Route::resource('custom_events', 'CustomEventController', [
     'names' => 'admin.custom_events',
     'except' => ['update'],
 ]);
-Route::post('custom_open_users/{id}', 'CustomEventController@custom_open_users');
+Route::get('custom_open_users/{id}', 'CustomEventController@custom_open_users');
 Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 Route::post('custom_events/{id}', 'CustomEventController@update');
 Route::get('custom_events/destroy/{id}', 'CustomEventController@destroy');

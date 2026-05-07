@@ -805,6 +805,7 @@ class EventsController extends Controller
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
         ->where("accept_count", 0) 
+        ->where('status', "!=", 'not-attend')
         ->where(function($query) { 
             $query->where('is_new_sent', "!=", 0)
             ->orWhere('status', "!=", 'hold')

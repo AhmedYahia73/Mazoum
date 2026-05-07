@@ -222,7 +222,7 @@ class ApiEventsController extends Controller
             $arr9 = [
                 'title_en' => 'non_attendance_users',
                 'title_ar' => '',
-                'count' => $non_attendance_users->sum('users_count'),
+                'count' => $non_attendance_users->sum('available'),
                 'users' => $non_attendance_users
             ];
 

@@ -805,12 +805,7 @@ class EventsController extends Controller
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
         ->where("accept_count", 0)
-        ->where(function($query) { 
-            $query->where('is_new_sent', "!=", 0)
-            ->where('status', "!=", 'hold')
-            ->WhereNotNull('is_sent'); 
-        })
-        ->sum('users_count');
+        ->sum('users_count') - $waiting;
 
         return response()->json([
             "Item" => $Item,

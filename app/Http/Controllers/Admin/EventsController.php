@@ -782,9 +782,7 @@ class EventsController extends Controller
         ->where('qr_sent','yes') 
         ->sum('accept_count'); 
         $congratulation_msgs = CongratulationMessages::
-        whereHas('event',function($event) { 
-            $event->whereIn('is_open',['yes','current']); 
-        })->whereIn('mobile',$mobiles_arr)
+        where('event_id', $Item->id)
         ->count();
         
         $not_attend =  $confirm_attend - $qr;

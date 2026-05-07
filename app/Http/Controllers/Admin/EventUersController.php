@@ -2610,12 +2610,7 @@ class EventUersController extends Controller
         }
         $messages = CongratulationMessages::
         with("reply")
-        ->whereHas('event', function ($event) {
-            $event->whereIn('is_open', ['yes', 'current']);
-        })
-        ->when($mobiles_arr ?? false, function ($q) use ($mobiles_arr) {
-            $q->whereIn('mobile', $mobiles_arr);
-        })
+        ->where("event_id", $id)
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {

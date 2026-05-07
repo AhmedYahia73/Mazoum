@@ -828,7 +828,9 @@ class HomeController extends Controller
                 $template_name = 'wedding_data_v4_ar';
                 $language = 'ar';
 
-                $user_event = EventUsers::whereHas('event',function($event) { $event->whereIn('is_open',['yes','current']); })->where('mobile',$mobile)->orderBy('id','desc')->first();
+                $user_event = EventUsers::where('mobile',$mobile)
+                ->orderBy('updated_at','desc')
+                ->first();
 
                 $event = $user_event->event;
 

@@ -2109,6 +2109,7 @@ class EventUersController extends Controller
             $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
+            ->where("accept_count", ">", 0)
             ->with("event:id,title")
             ->where('mobile', 'like', "%{$request->search}%")
             ->paginate(15);
@@ -2117,6 +2118,7 @@ class EventUersController extends Controller
             $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
+            ->where("accept_count", ">", 0)
             ->with("event:id,title")
             ->paginate(15);
         }

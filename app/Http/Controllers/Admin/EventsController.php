@@ -804,8 +804,7 @@ class EventsController extends Controller
         ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
-        ->where("accept_count", 0)
-        ->where('qr_sent', "!=", 'yes') 
+        ->where("accept_count", 0) 
         ->where(function($query) { 
             $query->where('is_new_sent', "!=", 0)
             ->orWhere('status', "!=", 'hold')

@@ -161,6 +161,7 @@ class ApiEventsController extends Controller
                 $item->available = $attendance;
                 return $item;
             });
+            $non_attendance_users = collect($non_attendance_users)->where('available', '>', 0)->values();
 
 
             $arr1 = [

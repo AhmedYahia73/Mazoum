@@ -2283,6 +2283,7 @@ class EventUersController extends Controller
             $data = EventUsers::
             where('event_id', $Item->id)
             ->where("accept_count", 0) 
+            ->where('status', "!=", 'not-attend')
             ->where(function($query) { 
                 $query->where('is_new_sent', "!=", 0)
                 ->orWhere('status', "!=", 'hold')
@@ -2300,6 +2301,7 @@ class EventUersController extends Controller
         else{
             $data = EventUsers::
             where('event_id', $Item->id)
+            ->where('status', "!=", 'not-attend')
             ->where("accept_count", 0) 
             ->where(function($query) { 
                 $query->where('is_new_sent', "!=", 0)

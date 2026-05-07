@@ -2109,19 +2109,15 @@ class EventUersController extends Controller
             $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
-            ->with("event_user:id,name")
-            ->whereHas('event_user', function ($q) use ($request) {
-                if ($request->search) {
-                    $q->where('mobile', 'like', "%{$request->search}%");
-                }
-            })
+            ->with("event:id,title")
+            ->where('mobile', 'like', "%{$request->search}%")
             ->paginate(15);
         }
         else{
             $data = EventUsers::where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes') 
-            ->with("event_user:id,name")
+            ->with("event:id,title")
             ->paginate(15);
         }
 

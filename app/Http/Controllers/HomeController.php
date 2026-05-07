@@ -202,7 +202,7 @@ class HomeController extends Controller
 
                     /* ******************************************************************************************************************************************* */
 
-                    $available = max(1, (int)$user_event->users_count);
+                    $available = max(1, (int)$user_event->users_count - (int)$user_event->accept_count);
                     $available = min($available, 9);
 
                     $template_name6 = 'flow_'.$available;
@@ -716,8 +716,7 @@ class HomeController extends Controller
 
                     $event = $user_event->event;
 
-                    $user_event->update([
-                        'users_count'  => $users_count,
+                    $user_event->update([ 
                         'accept_count' => $users_count,
                         'is_accepted'  => 'yes',
                         'confirmed_at' => now(),

@@ -2283,6 +2283,11 @@ class EventUersController extends Controller
             $data = EventUsers::
             where('event_id',$Item->id) 
             ->where("accept_count", 0)
+            ->where(function($query) { 
+                $query->where('is_new_sent', "!=", 0)
+                ->where('status', "!=", 'hold')
+                ->WhereNotNull('is_sent'); 
+            })
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -2296,6 +2301,11 @@ class EventUersController extends Controller
             $data = EventUsers::
             where('event_id',$Item->id) 
             ->where("accept_count", 0)
+            ->where(function($query) { 
+                $query->where('is_new_sent', "!=", 0)
+                ->where('status', "!=", 'hold')
+                ->WhereNotNull('is_sent'); 
+            })
             ->paginate(15);
         }
 

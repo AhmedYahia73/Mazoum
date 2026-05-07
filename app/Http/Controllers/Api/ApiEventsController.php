@@ -132,13 +132,13 @@ class ApiEventsController extends Controller
             });
 
           	//$failed_invitatios_users = EventUsers::where('event_id',$Item->id)->whereIn('status',['hold','sent'])->whereNull('is_accepted')->whereNull('is_refused')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
-			$failed_invitatios_users = EventUsers::where('event_id', $Item->id)
-            ->whereIn('status', ['sent'])
-            ->whereNull('is_accepted')
-            ->whereNull('is_refused')
-            ->where(function($query) {
-                $query->where('is_new_sent',1)
-                      ->orWhereNotNull('is_sent');
+			$failed_invitatios_users = EventUsers::
+            where('event_id', $Item->id)
+            ->where("accept_count", 0)
+            ->where(function($query) { 
+                $query->where('is_new_sent', "!=", 0)
+                ->where('status', "!=", 'hold')
+                ->WhereNotNull('is_sent'); 
             })
             ->get(['id', 'name', 'mobile', 'users_count', 'scan_at', 'confirmed_at', "scan_count"])
             ->map(function($item){
@@ -151,11 +151,14 @@ class ApiEventsController extends Controller
 
             // $confirmed_without_attend = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->where('scan','!=','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
 
-            $non_attendance_users   = EventUsers::where('event_id',$Item->id)->where('status','attend')
-            ->where("accept_count", 0)
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count"])
+            $non_attendance_users   = EventUsers::
+            where('event_id',$Item->id) 
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
             ->map(function($item){
+                $attendance = $item->accept_count - $item->scan_count;
+                $item->attendance = $attendance > 0 ? $attendance : 0;
                 $item->scan_status = $item->users_count > $item->scan_count;
+                $item->available = $attendance;
                 return $item;
             });
 

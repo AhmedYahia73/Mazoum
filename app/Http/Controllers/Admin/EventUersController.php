@@ -2638,20 +2638,9 @@ class EventUersController extends Controller
     {
 
         $Item = Events::findOrFail($id);
-
-        $mobiles = Model::withTrashed()->where('event_id',$Item->id)->pluck('mobile')->toArray();
-
-        $mobiles_arr = [];
-
-        foreach($mobiles as $phone) {
-            $mobiles_arr[] = ltrim($phone,"+");
-        }
-        $messages = EventMessages::whereHas('event', function ($event) {
-            $event->whereIn('is_open', ['yes', 'current']);
-        })
-        ->when($mobiles_arr ?? false, function ($q) use ($mobiles_arr) {
-            $q->whereIn('mobile', $mobiles_arr);
-        })
+ 
+        $messages = EventMessages::
+        where("event_id", $id)
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {

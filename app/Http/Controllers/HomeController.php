@@ -849,7 +849,7 @@ class HomeController extends Controller
 
                     	$q->where('mobile', $mobile)->orWhere('mobile', '+'.$mobile);
 
-                    })->orderBy('id', 'desc')->first();
+                    })->orderBy('updated_at', 'desc')->first();
 
                   	if($event_user != null && $event_user->status == 'attend') {
 

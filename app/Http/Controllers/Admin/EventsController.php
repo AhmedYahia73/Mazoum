@@ -761,10 +761,7 @@ class EventsController extends Controller
 
          // __________________ New ________________
         $apologize_msgs = EventMessages::
-        whereHas('event',function($event) { 
-            $event->whereIn('is_open',['yes','current']); 
-        })
-        ->whereIn('mobile',$mobiles_arr)
+        where("event_id", $id)
         ->count();
         $qr = EventUsers::
         where('event_id',$Item->id)

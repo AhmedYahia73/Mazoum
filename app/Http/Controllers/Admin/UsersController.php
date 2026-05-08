@@ -112,12 +112,13 @@ class UsersController extends Controller
                 'is_paid' => $request->is_paid,
 
             ]);
-
+ 
             $user->update([
                 'order_id' => $order->id,
                 'offer_id' => $offer->id,
                 'full_balance' => $user->full_balance + $offer->users_count,
                 'balance' => $user->balance + $offer->users_count,
+                "custom_invetaion" => $user->custom_invetaion + $offer->users_count,
                 'start_subscription_date' => $request->start_subscription_date,
                 'subscription_price' => $offer->price,
                 'duration_type' => $request->duration_type,
@@ -155,6 +156,7 @@ class UsersController extends Controller
             $user->update([
                 'order_id' => $order->id,
                 'balance' => $user->balance + $request->users_count,
+                "custom_invetaion" => $user->custom_invetaion + $request->users_count,
                 'full_balance' => $user->full_balance + $request->users_count,
                 'start_subscription_date' => $request->start_subscription_date,
                 'subscription_price' => $request->total,

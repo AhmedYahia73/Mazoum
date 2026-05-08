@@ -640,7 +640,7 @@ class PackageController extends Controller
             'users' => 'required|array',
             'users.*' => 'required|exists:custom_event_users,id',
         ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
+        if ($validator->fails()) {
             return response()->json([
                 'errors' => $validator->errors(),
             ],400);

@@ -498,7 +498,9 @@ class ApiEventUersController extends Controller
         $nocache=true;
 
         if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            return response()->json([
+                "message" => 'language is required',
+            ], 400);  
         }
 
         $lang = $this->lang;
@@ -511,9 +513,13 @@ class ApiEventUersController extends Controller
 
         if ($user == null) {
             if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
+                return response()->json([
+                    "message" => ' user is required',
+                ], 400); 
             } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
+                return response()->json([
+                    "message" => 'الستخدم مطلوب',
+                ], 400); 
             }
         }
 
@@ -585,6 +591,12 @@ class ApiEventUersController extends Controller
 
                             if($user_event != null) {
 
+                                if(array_key_exists('qty', $event_user_arr)) {
+                                    $users_count = $event_user_arr['qty'];
+                                } else {
+                                    $users_count = $user_event->users_count;
+                                }
+
                                 $user_event->update([
                                     'status' => 'hold',
                                     'scan' => null,
@@ -621,21 +633,24 @@ class ApiEventUersController extends Controller
                                 $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                                 $param_4   = $event->address;
                                 $param_5   = $event->time != null ? $event->time : '07:00 مساء';
+                                $param_6   = $users_count;
 
                                 if($event->sending_type == 'old_send') {
 
-                                    //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
-                                    $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+                                    $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
 
-                                    $response = SendNewTemplateCodeV1($url);
+                                    // if($event->country_code == 'kw') {
 
-                                    $template_name = 'wedding_data_v1_ar';
-                                    $title = $user_event?->event?->title;
-                                    $address = $user_event?->event?->address;
-                                    $time = $user_event?->event?->time;
-                                    $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                                    $users_count = $user_event->users_count;
-                                    $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
+                                    //     //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
+                                    //     $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
+
+                                    //     $response = SendNewTemplateCodeV1($url);
+
+                                    // } else {
+
+                                    //     $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
+                                    // }
+
                                     if ($response != null && $response->getStatusCode() == 200) {
 
                                         $user->update([
@@ -681,7 +696,7 @@ class ApiEventUersController extends Controller
                                     "⏱️الساعـة " . $row->event->time . " مساءاً" . PHP_EOL . PHP_EOL .
                                     "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL .
                                     "لتأكيد الحضـور أو الاعتذار الرجاء الضغط على للينك لإظهار تفاصيل المناسبة وستلام كود الدخول الخاص بكم" . PHP_EOL . PHP_EOL .
-                                    "https://mazoom-kw.com/event/login";
+                                    "https://mazoom.online/event/login";
 
                                     // $api=$client->sendChatMessage($to,$body);
                                     $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
@@ -707,18 +722,25 @@ class ApiEventUersController extends Controller
                         }
 
                         if ($lang == 'en') {
-                            return $this->returnSuccessMessage('invitations sent successfully');
+                            return response()->json([
+                                "message" => 'invitations sent successfully',
+                            ]);
                         } else {
-
-                            return $this->returnSuccessMessage('تم أرسال الدعوات بنجاح');
+                            return response()->json([
+                                "message" => 'تم أرسال الدعوات بنجاح',
+                            ]);
                         }
                     }
 
                 } else {
                     if ($lang == 'en') {
-                        return $this->returnError('404', 'sorry this event is not found');
+                        return response()->json([
+                            "message" => ' sorry this event is not found',
+                        ], 404);
                     } else {
-                        return $this->returnError('404', 'عفوا هذا الحدث غير موجود مسبقا');
+                        return response()->json([
+                            "message" => ' عفوا رصيدك غير كافي برجاء شحن رصيدك برصيد ',
+                        ], 404);
                     }
                 }
 
@@ -728,9 +750,13 @@ class ApiEventUersController extends Controller
 
         } else {
             if ($lang == 'en') {
-                return $this->returnError('E100', 'sorry your balance is not enough please charge your balance with at least ' . $total_qty);
+                return response()->json([
+                    "message" => 'sorry your balance is not enough please charge your balance with at least ' . $total_qty,
+                ], 400);
             } else {
-                return $this->returnError('E100', ' عفوا رصيدك غير كافي برجاء شحن رصيدك برصيد ' . $total_qty);
+                return response()->json([
+                    "message" => ' عفوا رصيدك غير كافي برجاء شحن رصيدك برصيد ' . $total_qty,
+                ], 400);
             }
         }
 

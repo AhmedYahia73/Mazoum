@@ -42,7 +42,8 @@ class UserController extends Controller
           'mobile' => 'required',
           'name' => 'required',
           'custom_invetaion' => 'required|numeric',
-          "custom_event_id" => "required|exists:custom_event,id",
+          "custom_event_id" => "exists:custom_event,id",
+          "event_user_id" => "exists:event_users,id",
           "password" => "required"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
@@ -51,6 +52,12 @@ class UserController extends Controller
             ],400);
         }
 
+        if(!$request->custom_event_id && !$request->event_user_id){
+            return response()->json([
+                "errors" => "custom_event_id or event_user_id is required"
+            ]);
+
+        }
         $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
         if($available < $request->custom_invetaion){
             return response()->json([
@@ -65,7 +72,8 @@ class UserController extends Controller
             "name" => $request->name,
             "custom_invetaion" => $request->custom_invetaion,
             "user_id" => $request->user()->id,
-            "custom_event_id" => $request->custom_event_id,
+            "custom_event_id" => $request->custom_event_id ?? null,
+            "event_user_id" => $request->event_user_id ?? null,
             "password" => Hash::make($request->password)
         ]);
 

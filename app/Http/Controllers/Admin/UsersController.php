@@ -56,122 +56,118 @@ class UsersController extends Controller
     // save_order
     public function save_order(Request $request)
     {
-        $validation = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'type' => 'required',
+        // 1. تحديد القواعد الأساسية للتحقق
+        $rules = [
+            'user_id'                 => 'required|exists:users,id',
+            'type'                    => 'required|in:offer,fixed-price',
             'start_subscription_date' => 'required|date|date_format:Y-m-d',
-            'duration_type' => 'required|in:day,month,year',
-            'duration' => 'required|numeric|min:1',
-            'payment_type' => 'required',
-            'employee_gender' => 'required',
-            'is_paid' => 'required',
-        ]);
-        if ($validation->fails()) { // if Validate Make Error Return Message Error
+            'duration_type'           => 'required|in:day,month,year',
+            'duration'                => 'required|numeric|min:1',
+            'payment_type'            => 'required',
+            'employee_gender'         => 'required',
+            'is_paid'                 => 'required',
+        ];
+
+        // 2. إضافة القواعد الشرطية بناءً على النوع (Type)
+        if ($request->type == 'offer') {
+            $rules['offer_id'] = 'required|exists:packages,id';
+        } elseif ($request->type == 'fixed-price') {
+            $rules['users_count'] = 'required|numeric|min:1';
+            $rules['total']       = 'required|numeric|min:1';
+            $rules['currency_id'] = 'required';
+        }
+
+        // 3. تنفيذ عملية التحقق
+        $validation = Validator::make($request->all(), $rules);
+
+        if ($validation->fails()) {
             return response()->json([
                 'errors' => $validation->errors(),
-            ],400);
-        }
-        $validate_arr = $validation->validated();
-
-        if($request->type == 'offer') {
-            $validate_arr['offer_id'] = 'required|exists:packages,id';
+            ], 400);
         }
 
-        if($request->type == 'fixed-price') {
-            $validate_arr['users_count'] = 'required|numeric|min:1';
-            $validate_arr['total'] = 'required|numeric|min:1';
-            $validate_arr['currency_id'] = 'required';
-        }
+        // جلب البيانات التي تم التحقق منها
+        $validatedData = $validation->validated();
 
-        $request->validate($validate_arr);
-
+        // 4. العمليات على قاعدة البيانات
         $user = User::findOrFail($request->user_id);
-
         $order_number = Orders::max('order_number') + 1;
 
+        // حالة العرض (Offer)
         if ($request->type == 'offer') {
-
             $offer = Packages::findOrFail($request->offer_id);
-
             $currency_id = $offer->currency_id;
 
             $order = Orders::create([
-                'order_number' => $order_number,
-                'user_id' => $request->user_id,
-                'type' => 'offer',
-                'offer_id' => $request->offer_id,
-                'total' => $offer->price,
-                'users_count' => $offer->users_count,
-                'operation_date' => Carbon::now(),
-                'currency_id' => $currency_id,
+                'order_number'            => $order_number,
+                'user_id'                 => $request->user_id,
+                'type'                    => 'offer',
+                'offer_id'                => $request->offer_id,
+                'total'                   => $offer->price,
+                'users_count'             => $offer->users_count,
+                'operation_date'          => Carbon::now(),
+                'currency_id'             => $currency_id,
                 'start_subscription_date' => $request->start_subscription_date,
-                'duration_type' => $request->duration_type,
-                'duration' => $request->duration,
-                'payment_type' => $request->payment_type,
-                'employee_gender' => $request->employee_gender,
-                'is_paid' => $request->is_paid,
-
+                'duration_type'           => $request->duration_type,
+                'duration'                => $request->duration,
+                'payment_type'            => $request->payment_type,
+                'employee_gender'         => $request->employee_gender,
+                'is_paid'                 => $request->is_paid,
             ]);
- 
+
             $user->update([
-                'order_id' => $order->id,
-                'offer_id' => $offer->id,
-                'full_balance' => $user->full_balance + $offer->users_count,
-                'balance' => $user->balance + $offer->users_count,
-                "custom_invetaion" => $user->custom_invetaion + $offer->users_count,
+                'order_id'                => $order->id,
+                'offer_id'                => $offer->id,
+                'full_balance'            => $user->full_balance + $offer->users_count,
+                'balance'                 => $user->balance + $offer->users_count,
+                'custom_invetaion'        => $user->custom_invetaion + $offer->users_count,
                 'start_subscription_date' => $request->start_subscription_date,
-                'subscription_price' => $offer->price,
-                'duration_type' => $request->duration_type,
-                'duration' => $request->duration,
-                'payment_type' => $request->payment_type,
-                'employee_gender' => $request->employee_gender,
-                'is_paid' => $request->is_paid,
+                'subscription_price'      => $offer->price,
+                'duration_type'           => $request->duration_type,
+                'duration'                => $request->duration,
+                'payment_type'            => $request->payment_type,
+                'employee_gender'         => $request->employee_gender,
+                'is_paid'                 => $request->is_paid,
             ]);
-
         }
 
-        /////////////////////////////////////
-
+        // حالة السعر الثابت (Fixed Price)
         if ($request->type == 'fixed-price') {
-
-            $currency_id = $request->currency_id;
-
             $order = Orders::create([
-                'order_number' => $order_number,
-                'user_id' => $request->user_id,
-                'type' => 'fixed-price',
-                'offer_id' => 0,
-                'total' => $request->total,
-                'users_count' => $request->users_count,
-                'operation_date' => Carbon::now(),
-                'currency_id' => $currency_id,
+                'order_number'            => $order_number,
+                'user_id'                 => $request->user_id,
+                'type'                    => 'fixed-price',
+                'offer_id'                => 0,
+                'total'                   => $request->total,
+                'users_count'             => $request->users_count,
+                'operation_date'          => Carbon::now(),
+                'currency_id'             => $request->currency_id,
                 'start_subscription_date' => $request->start_subscription_date,
-                'duration_type' => $request->duration_type,
-                'duration' => $request->duration,
-                'payment_type' => $request->payment_type,
-                'employee_gender' => $request->employee_gender,
-                'is_paid' => $request->is_paid,
+                'duration_type'           => $request->duration_type,
+                'duration'                => $request->duration,
+                'payment_type'            => $request->payment_type,
+                'employee_gender'         => $request->employee_gender,
+                'is_paid'                 => $request->is_paid,
             ]);
 
             $user->update([
-                'order_id' => $order->id,
-                'balance' => $user->balance + $request->users_count,
-                "custom_invetaion" => $user->custom_invetaion + $request->users_count,
-                'full_balance' => $user->full_balance + $request->users_count,
+                'order_id'                => $order->id,
+                'balance'                 => $user->balance + $request->users_count,
+                'custom_invetaion'        => $user->custom_invetaion + $request->users_count,
+                'full_balance'            => $user->full_balance + $request->users_count,
                 'start_subscription_date' => $request->start_subscription_date,
-                'subscription_price' => $request->total,
-                'duration_type' => $request->duration_type,
-                'duration' => $request->duration,
-                'payment_type' => $request->payment_type,
-                'employee_gender' => $request->employee_gender,
-                'is_paid' => $request->is_paid,
-
+                'subscription_price'      => $request->total,
+                'duration_type'           => $request->duration_type,
+                'duration'                => $request->duration,
+                'payment_type'            => $request->payment_type,
+                'employee_gender'         => $request->employee_gender,
+                'is_paid'                 => $request->is_paid,
             ]);
         }
 
         return response()->json([
-            'success' => 'تم الأشتراك بنجاح', 
-        ]);
+            'success' => 'تم الاشتراك بنجاح',
+        ]); 
 
     }
 

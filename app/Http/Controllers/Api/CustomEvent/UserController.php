@@ -74,7 +74,8 @@ class UserController extends Controller
             "user_id" => $request->user()->id,
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_user_id" => $request->event_user_id ?? null,
-            "password" => Hash::make($request->password)
+            "password" => Hash::make($request->password),
+            "balance" => $request->custom_invetaion
         ]);
 
         return response()->json([

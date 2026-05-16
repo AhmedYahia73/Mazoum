@@ -192,6 +192,11 @@ class AttendanceController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        if(!$request->user()->user_type || $request->user()->user_type == "user"){
+            return response()->json([
+                "errors" => "يجب التسجيل كموظف"
+            ]);
+        }
         // التحقق من الموقع والـ IP
         $check = $this->checkLocationAndIp($request);
         if ($check !== true) {
@@ -229,7 +234,12 @@ class AttendanceController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-
+ 
+        if(!$request->user()->user_type || $request->user()->user_type == "user"){
+            return response()->json([
+                "errors" => "يجب التسجيل كموظف"
+            ]);
+        }
         // التحقق من الموقع والـ IP
         $check = $this->checkLocationAndIp($request);
         if ($check !== true) {

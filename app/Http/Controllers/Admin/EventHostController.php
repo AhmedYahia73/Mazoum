@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CongratulationMessages;
 use App\Models\EventMessages;
 use App\Models\Events;
+use App\Models\CustomEvent;
+use App\Models\CustomEventUsers;
 use App\Models\EventUsers;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,6 +16,37 @@ use Illuminate\Support\Facades\Validator;
 
 class EventHostController extends Controller
 {
+    public function custom_users(Request $request){
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        $custom_event_id = $request->custom_event_id;
+        $event_host = User::
+        where("id", $request->user_id) 
+        ->first();
+        $user_id = $event_host->user_id ? $event_host->id : null;
+        $custom_event_user = CustomEventUsers::
+        where('custom_event_id',$custom_event_id);
+        $user_id ? $custom_event_user->where("user_id", $user_id): 
+        $custom_event_user->where(function($query) use($user_id){
+            $query->whereNull("user_id")
+            ->orWhere("user_id", $user_id);
+        });
+   
+        
+        // $ =  $confirm_attend - $qr;  
+        return response()->json([
+            "custom_event_user" => $custom_event_user
+        ]);
+    }
+    
     public function users(Request $request){
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
@@ -268,21 +301,31 @@ class EventHostController extends Controller
             ]);
 
         }
-        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-        if($available < $request->custom_invetaion || auth()->user()->balance < $request->custom_invetaion){
-            return response()->json([
-                "errors" => "عدد الدعوات لا تكفى"
-            ]);
+        $user_id = 0;
+        if($request->event_id){ 
+            $user_id = Events::
+            where("id", $request->event_id)
+            ->first()->user_id;
         }
-        auth()->user()->custom_invetaion -= $request->custom_invetaion;
-        auth()->user()->balance -= $request->custom_invetaion;
-        auth()->user()->save();
+        if($request->custom_event_id){ 
+            $user_id = CustomEvent::
+            where("id", $request->custom_event_id)
+            ->first()->user_id;
+        }
+        $user = User::
+        where("id", $user_id)
+        ->first();
+        $available = $user->custom_invetaion - $user->send_custom_invetaion;
+        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $request->custom_invetaion - $request->custom_invetaion : 0;
+        $user->custom_invetaion -=  $user_custom_invetaion;
+        $user->balance -= $request->custom_invetaion;
+        $user->save();
         User::create([
             "mobile_code" => $request->mobile_code,
             "mobile" => $request->mobile,
             "name" => $request->name,
             "custom_invetaion" => $request->custom_invetaion,
-            "user_id" => $request->user()->id,
+            "user_id" => $user->id,
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_id" => $request->event_id ?? null,
             "password" => Hash::make($request->password),
@@ -313,59 +356,23 @@ class EventHostController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-          'mobile_code' => 'required|exists:mobile_codes,id',
-          'mobile' => 'required',
-          'name' => 'required',
-          'custom_invetaion' => 'required|numeric',
-          "custom_event_id" => "exists:custom_event,id",
-          "event_id" => "exists:events,id",
-          "password" => "required"
+            "password" => "required"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
                 'errors' => $validator->errors(),
             ],400);
         }
-
-        if(!$request->custom_event_id && !$request->event_id){
-            return response()->json([
-                "errors" => "custom_event_id or event_id is required"
-            ]); 
-        }
-        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-        if($available < $request->custom_invetaion || auth()->user()->balance < $request->custom_invetaion){
-            return response()->json([
-                "errors" => "عدد الدعوات لا تكفى"
-            ]);
-        }
-        auth()->user()->custom_invetaion -= $request->custom_invetaion;
-        auth()->user()->balance -= $request->custom_invetaion;
-        auth()->user()->save();
+  
         User::
         where("id", $id)
+        ->where("user_id", auth()->user()->id)
         ->update([
-            "mobile_code" => $request->mobile_code,
-            "mobile" => $request->mobile,
-            "name" => $request->name,
-            "custom_invetaion" => $request->custom_invetaion,
-            "user_id" => $request->user()->id,
-            "custom_event_id" => $request->custom_event_id ?? null,
-            "event_id" => $request->event_id ?? null,
-            "password" => Hash::make($request->password),
-            "balance" => $request->custom_invetaion
+            "password" => Hash::make($request->password)
         ]);
 
         return response()->json([
-            "success" => "You add data success"
+            "success" => "You update data success"
         ]);
-    }
-    
-    public function destroy($id)
-    {
-        $Item = User::findOrFail($id);
-        $Item->delete();
-        return response()->json([
-            'success' =>  'تم حذف البيانات بنجاح', 
-        ]); 
-    }
+    } 
 }

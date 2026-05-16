@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
@@ -62,5 +63,17 @@ class Attendance extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+  	protected static function boot() {
+        parent::boot();
+        static::addGlobalScope(function (Builder $builder) {
+            if (
+                auth()->check() &&
+                auth()->user()->role == 'employee'
+            ) {
+                $builder->where('user_id', auth()->id());
+            }
+        });
     }
 }

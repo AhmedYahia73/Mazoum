@@ -20,6 +20,15 @@ Route::resource(
     ['names' => 'admin.attendance']
 );
 
+Route::get('event_host/{id}', 'EventHostController@index');
+Route::resource(
+    'event_host',
+    'EventHostController',
+    ['names' => 'admin.event_host']
+);
+Route::post('event_host/users', 'EventHostController@users');
+Route::post('event_host/report', 'EventHostController@report');
+
 Route::post('attendance/multi_delete', 'AttendanceDataController@multi_delete');
 Route::resource(
     'attendance_data',

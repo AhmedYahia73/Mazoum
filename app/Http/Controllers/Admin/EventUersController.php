@@ -2023,8 +2023,7 @@ class EventUersController extends Controller
     {
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('accept_count', ">", 0)
-        ->with("event_action")
+        ->where('accept_count', ">", 0) 
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
             $q->where(function ($sub) use ($search) {

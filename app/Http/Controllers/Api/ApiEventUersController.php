@@ -357,7 +357,7 @@ class ApiEventUersController extends Controller
                               'name' => $arr['name'],
                               'mobile' => ltrim($arr['mobile'],"+"),
                               'users_count' => $arr['users_count'],
-                              'status' => 'hold'
+                              'status' => 'hold',2
                             ]);
 
                         } else {
@@ -1188,12 +1188,19 @@ class ApiEventUersController extends Controller
               $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
         })->select([
             'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember'
-        ])->first();
+        ])->first(); 
+        $user_id = $user->user_id ? $user->id : null;
 
         if ($Item != null) {
 
-            $EventUsers = EventUsers::where('event_id', $Item->id)
-            ->get()
+            $EventUsers = EventUsers::
+            where('event_id', $Item->id); 
+            $user_id ? $EventUsers->where("user_id", $user_id): 
+            $EventUsers->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $EventUsers = $EventUsers->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1207,8 +1214,13 @@ class ApiEventUersController extends Controller
             });
             $user_events = UserEvents_Data::collection($EventUsers);
 
-            $all_invited_users = EventUsers::where('event_id',$Item->id)
-            ->get()
+            $all_invited_users = EventUsers::where('event_id',$Item->id); 
+            $user_id ? $all_invited_users->where("user_id", $user_id): 
+            $all_invited_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $all_invited_users = $all_invited_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1220,8 +1232,15 @@ class ApiEventUersController extends Controller
                     "scan_status" => $item->users_count > $item->scan_count,
                 ];
             });;
-            $invitations_not_sent_users = EventUsers::where('event_id',$Item->id)->where('status','hold')
-            ->get()
+            $invitations_not_sent_users = EventUsers::
+            where('event_id',$Item->id)
+            ->where('status','hold'); 
+            $user_id ? $invitations_not_sent_users->where("user_id", $user_id): 
+            $invitations_not_sent_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $invitations_not_sent_users = $invitations_not_sent_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1236,8 +1255,15 @@ class ApiEventUersController extends Controller
 
             //$confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','attend')->get(['id','name','mobile','users_count','scan_at','confirmed_at'])
 
-            $confirmed_invitatios_users = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')
-            ->get()
+            $confirmed_invitatios_users = EventUsers::
+            where('event_id',$Item->id)
+            ->where('is_accepted','yes'); 
+            $user_id ? $confirmed_invitatios_users->where("user_id", $user_id): 
+            $confirmed_invitatios_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $confirmed_invitatios_users = $confirmed_invitatios_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1250,21 +1276,15 @@ class ApiEventUersController extends Controller
                 ];
             });
 
-            $scaned_qr_users = EventUsers::where('event_id',$Item->id)->where('scan','yes')
-            ->get()
-            ->map(function($item){
-                return [
-                    "id" => $item->id,
-                    "name" => $item->name,
-                    "mobile" => $item->mobile,
-                    "users_count" => $item->users_count,
-                    "scan_at" => $item->scan_at,
-                    "confirmed_at" => $item->confirmed_at,
-                    "scan_status" => $item->users_count > $item->scan_count,
-                ];
-            });;
-            $apologized_invitatios_users = EventUsers::where('event_id',$Item->id)->where('status','not-attend')
-            ->get()
+            $scaned_qr_users = EventUsers::
+            where('event_id',$Item->id)
+            ->where('scan','yes'); 
+            $user_id ? $scaned_qr_users->where("user_id", $user_id): 
+            $scaned_qr_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $scaned_qr_users = $scaned_qr_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1276,8 +1296,37 @@ class ApiEventUersController extends Controller
                     "scan_status" => $item->users_count > $item->scan_count,
                 ];
             });
-            $failed_invitatios_users = EventUsers::where('event_id',$Item->id)->whereIn('status',['hold','sent'])->whereNull('is_accepted')->whereNull('is_refused')
-            ->get()
+            $apologized_invitatios_users = EventUsers::
+            where('event_id',$Item->id)
+            ->where('status','not-attend'); 
+            $user_id ? $apologized_invitatios_users->where("user_id", $user_id): 
+            $apologized_invitatios_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $apologized_invitatios_users = $apologized_invitatios_users->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "name" => $item->name,
+                    "mobile" => $item->mobile,
+                    "users_count" => $item->users_count,
+                    "scan_at" => $item->scan_at,
+                    "confirmed_at" => $item->confirmed_at,
+                    "scan_status" => $item->users_count > $item->scan_count,
+                ];
+            });
+            $failed_invitatios_users = EventUsers::
+            where('event_id',$Item->id)
+            ->whereIn('status',['hold','sent'])
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused'); 
+            $user_id ? $failed_invitatios_users->where("user_id", $user_id): 
+            $failed_invitatios_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+            $failed_invitatios_users = $failed_invitatios_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,
@@ -1294,8 +1343,17 @@ class ApiEventUersController extends Controller
 
             // $confirmed_without_attend = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->where('scan','!=','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
 
-            $non_attendance_users   = EventUsers::where('event_id',$Item->id)->where('status','attend')->whereNull('scan')->whereNull('is_refused')
-            ->get()
+            $non_attendance_users   = EventUsers::
+            where('event_id',$Item->id)
+            ->where('status','attend')
+            ->whereNull('scan')
+            ->whereNull('is_refused'); 
+            $user_id ? $non_attendance_users->where("user_id", $user_id): 
+            $non_attendance_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+           $non_attendance_users = $non_attendance_users->get()
             ->map(function($item){
                 return [
                     "id" => $item->id,

@@ -23,7 +23,8 @@ class User extends Authenticatable
         "order_id","start_subscription_date","duration_type","duration",
         "payment_type","employee_gender","is_paid","subscription_price",
         "user_id", "custom_invetaion", "send_custom_invetaion", "custom_event_id",
-        "salary", "appointment_from", "appointment_to", "holiday", "event_user_id"
+        "salary", "appointment_from", "appointment_to", "holiday", "event_user_id",
+        "event_id"
     ];
 
   	protected $hidden = [
@@ -31,6 +32,10 @@ class User extends Authenticatable
     ];
 
     protected $appends = ['role'];
+
+    public function event_users(){
+        return $this->hasMany(EventUsers::class, "event_user_id");
+    }
 
     public function sub_users(){
         return $this->hasMany(User::class, "user_id");

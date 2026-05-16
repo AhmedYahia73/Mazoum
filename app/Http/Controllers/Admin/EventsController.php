@@ -807,6 +807,12 @@ class EventsController extends Controller
             ->orWhereNotNull('is_sent'); 
         })
         ->sum('users_count');
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("event_id", $Item->id);
+        })
+        ->count();
 
         return response()->json([
             "Item" => $Item,
@@ -822,6 +828,7 @@ class EventsController extends Controller
             "apologize" => $apologize,
             "not_confirm" => $not_confirm,
             "send_Qr" => $send_Qr,
+            "event_host" => $event_host + 1,
         ]);
     }
 

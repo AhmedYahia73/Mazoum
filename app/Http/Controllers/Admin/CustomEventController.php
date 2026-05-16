@@ -870,10 +870,18 @@ class CustomEventController extends Controller
         where('custom_event_id',$Item->id)
         ->where('scan','yes')
         ->sum('scan_count');
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("event_id", $Item->id);
+        })
+        ->count();
+
         return response()->json([
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
             'qr_count' =>  $qr_count, 
+            'event_host' =>  $event_host, 
         ]); 
     }
 

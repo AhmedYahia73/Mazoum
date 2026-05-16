@@ -34,7 +34,11 @@ class User extends Authenticatable
     protected $appends = ['role'];
 
     public function event_users(){
-        return $this->hasMany(EventUsers::class, "event_id");
+        return $this->hasMany(EventUsers::class, "user_id");
+    }
+
+    public function custom_users(){
+        return $this->hasMany(CustomEventUsers::class, "user_id");
     }
 
     public function sub_users(){

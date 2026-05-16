@@ -184,8 +184,7 @@ class AttendanceController extends Controller
     public function employee_attend(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image'     => 'required|image',
-            "location"  => "required",
+            'image'     => 'required|image', 
             "lat"       => "required|numeric",
             "lng"       => "required|numeric",
         ]);

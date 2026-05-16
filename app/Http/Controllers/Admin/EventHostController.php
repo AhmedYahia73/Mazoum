@@ -39,6 +39,7 @@ class EventHostController extends Controller
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
         });
+        $custom_event_user = $custom_event_user->get();
    
         
         // $ =  $confirm_attend - $qr;  

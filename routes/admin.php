@@ -21,6 +21,7 @@ Route::resource(
 );
 
 Route::get('event_host/{id}', 'EventHostController@index');
+Route::get('event_host/item/{id}', 'EventHostController@show');
 Route::post('custom_users/{id}', 'EventHostController@custom_users');
 Route::post('event_host/users', 'EventHostController@users');
 Route::post('event_host/report', 'EventHostController@report');

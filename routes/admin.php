@@ -12,7 +12,10 @@ Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
 
 Route::get('attendance/users_list', 'AttendanceController@users_list');
+Route::get('attendance_list', 'AttendanceController@index');
 Route::post('attendance/user_attendance', 'AttendanceController@user_attendance');
+Route::post('employee_attend', 'AttendanceController@employee_attend');
+Route::post('employee_departure', 'AttendanceController@employee_departure');
 Route::post('attendance/multi_delete', 'AttendanceController@multi_delete');
 Route::resource(
     'attendance',

@@ -26,15 +26,20 @@ class Admin
                 $not_allowed = [
                     "admin/setting",
                     "admin/setting/*",
+                    "admin/attendance",
+                    "admin/attendance/*",
                 ];
                 if(!$request->is($not_allowed)){
                     return $next($request);
                 }
             }
             if ( Auth::user()->role == "scan_employee"){
-                $allowed = [
+                $allowed = [ 
                     "admin/event-messages",
                     "admin/scan_data",
+                    "admin/employee_attend",
+                    "admin/attendance_list",
+                    "admin/employee_departure",
                     "admin/event_family/{id}",
                     "admin/scan_qr",
                     "admin/all-invited-users/*",

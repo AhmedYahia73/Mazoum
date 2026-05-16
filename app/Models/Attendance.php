@@ -16,14 +16,29 @@ class Attendance extends Model
         'to',
         'image',
         'by_admin',
+        'second_image'
     ];
 
     protected $casts = [
         'by_admin' => 'boolean',
     ];
 
-    protected $appends = ['from_date', 'from_time', 'to_date', 'to_time'];
+    protected $appends = ['from_date', 'from_time', 'to_date', 'to_time', 'image_url', 'second_image_url'];
 
+    public function getImageUrlAttribute()
+    {
+        if(isset($this->attributes['image'])){
+            return url("storage/" . $this->attributes['image']);
+        }
+    } 
+    
+    public function getSecondImageUrlAttribute()
+    {
+        if(isset($this->attributes['image'])){
+            return url("storage/" . $this->attributes['image']);
+        }
+    } 
+    
     public function getFromDateAttribute()
     {
         return $this->from ? \Carbon\Carbon::parse($this->from)->format('Y-m-d') : null;

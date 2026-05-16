@@ -278,6 +278,34 @@ class EventHostController extends Controller
         ]); 
     } 
 
+    public function custom_index(Request $request, $id)
+    {
+        $event = CustomEvent::
+        findOrFail($id);
+        $user_id = $event->user_id;
+        $query = User::
+        where("user_id", $user_id)
+        ->orWhereHas("sub_users", function($query) use($user_id){
+            $query->where("users.id", $user_id);
+        });
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                ->orWhere('mobile', 'like', "%$search%");
+            });
+        }
+ 
+        $Item = $query->paginate(15); // عدد العناصر في الصفحة
+
+        return response()->json([
+            'Item' => $Item,
+        ]); 
+    }  
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

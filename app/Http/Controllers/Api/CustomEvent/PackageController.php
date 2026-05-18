@@ -146,7 +146,7 @@ class PackageController extends Controller
             return [
                 "id" => $item->id,
                 "status" => $item->status,
-                "en_title" => $item?->package?->{$lang . "_title"},
+                "title" => $item?->package?->{$lang . "_title"},
                 "package_price" => $item?->package?->price,
                 "created_at" => $item->created_at,
             ];

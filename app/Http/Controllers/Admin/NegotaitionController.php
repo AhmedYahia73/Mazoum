@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class NegotaitionController extends Controller
 {
-
     public function view(Request $request){
         $negotation = Negotaition::where("status", "pending")
         ->with("package", "user")
@@ -111,6 +110,18 @@ class NegotaitionController extends Controller
                     'errors' => $validation->errors(),
                 ],400);
             }
+            if($request->is_paid == "not_paid"){
+                $validation = Validator::make($request->all(), [
+                    'payment_method' => 'required',
+                    'payment_type' => 'required|in:link,phone',
+                    'payment_description' => 'required',
+                ]);
+                if ($validation->fails()) { // if Validate Make Error Return Message Error
+                    return response()->json([
+                        'errors' => $validation->errors(),
+                    ],400);
+                }
+            }
             $validate_arr = $validation->validated();
             $this->save_order($request, $validate_arr);
         }
@@ -163,7 +174,9 @@ class NegotaitionController extends Controller
                 'payment_type' => $request->payment_type,
                 'employee_gender' => $request->employee_gender,
                 'is_paid' => $request->is_paid,
-
+                'payment_method' => $request->payment_method,
+                'payment_type' => $request->payment_type,
+                'payment_description' => $request->payment_description,
             ]);
 
             $user->update([
@@ -204,6 +217,9 @@ class NegotaitionController extends Controller
                 'payment_type' => $request->payment_type,
                 'employee_gender' => $request->employee_gender,
                 'is_paid' => $request->is_paid,
+                'payment_method' => $request->payment_method,
+                'payment_type' => $request->payment_type,
+                'payment_description' => $request->payment_description,
             ]);
 
             $user->update([

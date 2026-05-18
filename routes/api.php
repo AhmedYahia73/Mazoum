@@ -66,6 +66,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::get('/custom_details/{id}', 'custom_details');
         Route::get('/event_details/{id}', 'event_details');
         Route::post('/create_qr', 'create_qr');
+        Route::get('/negotations_history', 'negotations_history');
         Route::get('/orders_list', 'orders_list');
         Route::get('/orders_history', 'orders_history');
         Route::post('/payment', 'payment');

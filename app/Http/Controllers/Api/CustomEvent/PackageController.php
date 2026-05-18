@@ -127,6 +127,36 @@ class PackageController extends Controller
         ]);
     }
 
+    public function negotations_history(Request $request){
+        $validator = Validator::make($request->all(), [
+            'lang' => 'required|in:en,ar',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $lang = $request->lang;
+        $negotations = Negotaition::
+        where("user_id", auth()->user()->id)
+        ->with("package")
+        ->orderByDesc("id")
+        ->get()
+        ->map(function($item) use($lang){
+            return [
+                "id" => $item->id,
+                "status" => $item->status,
+                "en_title" => $item?->package?->{$lang . "_title"},
+                "package_price" => $item?->package?->price,
+                "created_at" => $item->created_at,
+            ];
+        });
+
+        return response()->json([
+            "negotations" => $negotations
+        ]);
+    }
+
     public function orders_list(){
         $orders = Orders::
         where("user_id", auth()->user()->id)
@@ -141,11 +171,14 @@ class PackageController extends Controller
                 "operation_date" => $item->operation_date,
                 "order_number" => $item->order_number,
                 "payment_type" => $item->payment_type,
+                "is_paid" => $item->is_paid,
                 "total" => $item->total,
                 "type" => $item->type,
                 "users_count" => $item->users_count,
                 "type" => $item->type,
-                "type" => $item->type,
+                "payment_method" => $item->payment_method,
+                "payment_type" => $item->payment_type,
+                "payment_description" => $item->payment_description,
             ];
         });
 
@@ -169,10 +202,14 @@ class PackageController extends Controller
                 "operation_date" => $item->operation_date,
                 "order_number" => $item->order_number,
                 "payment_type" => $item->payment_type,
+                "is_paid" => $item->is_paid,
                 "total" => $item->total,
                 "type" => $item->type,
                 "users_count" => $item->users_count,
                 "type" => $item->type,
+                "payment_method" => $item->payment_method,
+                "payment_type" => $item->payment_type,
+                "payment_description" => $item->payment_description,
             ];
         });
 

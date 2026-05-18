@@ -197,9 +197,10 @@ class AttendanceController extends Controller
                 "errors" => "يجب التسجيل كموظف"
             ], 403);
         }
+        dd("dfgdr");  
+
         // التحقق من الموقع والـ IP
         $check = $this->checkLocationAndIp($request);
-        dd($check);  
         if ($check !== true) {
             return response()->json(['errors' => $check], 403);
         }

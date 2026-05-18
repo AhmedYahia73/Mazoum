@@ -249,7 +249,7 @@ class AttendanceController extends Controller
 
         $item = Attendance::
         where("user_id", auth()->user()->id)
-        ->where("attendance_id", $request->attendance_id)
+        ->where("id", $request->attendance_id)
         ->whereNull("to")
         ->orderByDesc("id")
         ->first();

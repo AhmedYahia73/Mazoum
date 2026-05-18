@@ -395,7 +395,6 @@ class EventHostController extends Controller
   
         User::
         where("id", $id)
-        ->where("user_id", auth()->user()->id)
         ->update([
             "password" => Hash::make($request->password)
         ]);

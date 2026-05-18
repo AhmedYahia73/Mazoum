@@ -195,10 +195,11 @@ class AttendanceController extends Controller
         if(!$request->user()->user_type || $request->user()->user_type == "user"){
             return response()->json([
                 "errors" => "يجب التسجيل كموظف"
-            ]);
+            ], 403);
         }
         // التحقق من الموقع والـ IP
         $check = $this->checkLocationAndIp($request);
+        dd($check);  
         if ($check !== true) {
             return response()->json(['errors' => $check], 403);
         }
@@ -238,7 +239,7 @@ class AttendanceController extends Controller
         if(!$request->user()->user_type || $request->user()->user_type == "user"){
             return response()->json([
                 "errors" => "يجب التسجيل كموظف"
-            ]);
+            ], 403);
         }
         // التحقق من الموقع والـ IP
         $check = $this->checkLocationAndIp($request);
@@ -335,5 +336,9 @@ class AttendanceController extends Controller
         }
 
         return $inside;
+    }
+
+    public function report(){
+
     }
 }

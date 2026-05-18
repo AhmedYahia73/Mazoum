@@ -402,5 +402,5 @@ class EventHostController extends Controller
         return response()->json([
             "success" => "You update data success"
         ]);
-    } 
+    }
 }

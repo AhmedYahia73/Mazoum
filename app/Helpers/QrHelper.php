@@ -14,7 +14,7 @@ if (! function_exists('generate_qr_png')) {
      * @param int    $size      Pixel size of the output image
      * @param array  $color     RGB array for dark modules e.g. [0, 0, 0]
      */
-    function generate_qr_png(string $data, string $path, int $size = 300, array $color = [0, 0, 0]): void
+    function generate_qr_png(string $data, string $path, int $size = 300, array $color = [0, 0, 0], bool $transparent = false): void
     {
         // scale = size / (modules * 1) — approximate, QRCode adjusts internally
         $scale = max(1, intval($size / 50));
@@ -23,7 +23,7 @@ if (! function_exists('generate_qr_png')) {
         $options->outputInterface  = QRGdImagePNG::class;
         $options->outputBase64     = false;
         $options->scale            = $scale;
-        $options->imageTransparent = false;
+        $options->imageTransparent = $transparent;
         $options->bgColor          = [255, 255, 255];
         $options->moduleValues     = [
             // dark modules

@@ -1647,7 +1647,7 @@ class HomeController extends Controller
                 mkdir($qr_dir, 0777, true);
             }
 
-            QrCode::format('png')->size(200)->backgroundColor(255, 255, 255, 0)->generate($link, $qr_tmp_path);
+            generate_qr_png($link, $qr_tmp_path, 200, [0, 0, 0], true);
 
             $background = Image::make($bg);
             $qr         = Image::make($qr_tmp_path);

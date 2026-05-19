@@ -3217,7 +3217,7 @@ class EventUersController extends Controller
 
             QrCode::size(450)->format('png')->generate($link, $qr_code_path);
             make_qr_transparent(public_path($qr_code_path));
-            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->encode('png')->save($qr_code_path);
 
             $destination = public_path($qr_code_path);
             $new_img     = Image::make($destination);

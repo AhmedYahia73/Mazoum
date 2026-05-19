@@ -1637,24 +1637,11 @@ class HomeController extends Controller
 
         } else {
 
-            $bg          = public_path('qr-image-v9.jpg');
-            $qr_dir      = public_path('qr_code');
-            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
-            $final_path  = $qr_dir . '/' . $image_name;
-            $link        = asset('scan-qr/' . $uu_id);
-
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
-
-        } else {
-
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
             QrCode::size(450)->format('png')->generate($link, $qr_code_path);
-            make_qr_transparent(public_path($qr_code_path));
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
             $destination = public_path($qr_code_path);

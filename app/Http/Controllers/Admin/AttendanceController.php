@@ -304,8 +304,7 @@ class AttendanceController extends Controller
             $user  = User::
             where("id", (int) $user_id)
             ->first();
-        } 
-        return $user;
+        }  
         $month = Carbon::createFromFormat('Y-m', $request->month);
 
         $startOfMonth = $month->copy()->startOfMonth();

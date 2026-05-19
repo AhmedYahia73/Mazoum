@@ -11,7 +11,7 @@ Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
 
-Route::get('attendance_report', 'AttendanceController@attendance_report');
+Route::post('attendance_report', 'AttendanceController@attendance_report');
 Route::get('attendance/users_list', 'AttendanceController@users_list');
 Route::get('attendance_list', 'AttendanceController@index');
 Route::post('attendance/user_attendance', 'AttendanceController@user_attendance');

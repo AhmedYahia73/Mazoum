@@ -23,7 +23,7 @@ if (! function_exists('generate_qr_png')) {
         $options->outputInterface  = QRGdImagePNG::class;
         $options->outputBase64     = false;
         $options->scale            = $scale;
-        $options->imageTransparent = $transparent;
+        $options->imageTransparent = false;
         $options->bgColor          = [255, 255, 255];
         $options->moduleValues     = [
             // dark modules
@@ -38,6 +38,43 @@ if (! function_exists('generate_qr_png')) {
 
         $qrData = (new QRCode($options))->render($data);
         file_put_contents($path, $qrData);
+
+        // إزالة الخلفية البيضاء وجعلها شفافة
+        if ($transparent) {
+            $src = imagecreatefrompng($path);
+            $w   = imagesx($src);
+            $h   = imagesy($src);
+
+            $dst = imagecreatetruecolor($w, $h);
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+
+            // ملء بشفافية كاملة
+            $transparent_color = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+            imagefill($dst, 0, 0, $transparent_color);
+
+            // نسخ كل pixel — لو أبيض نخليه شفاف
+            for ($x = 0; $x < $w; $x++) {
+                for ($y = 0; $y < $h; $y++) {
+                    $rgb = imagecolorat($src, $x, $y);
+                    $r   = ($rgb >> 16) & 0xFF;
+                    $g   = ($rgb >> 8)  & 0xFF;
+                    $b   = $rgb         & 0xFF;
+
+                    // لو الـ pixel فاتح (خلفية بيضاء) → شفاف
+                    if ($r > 200 && $g > 200 && $b > 200) {
+                        $c = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+                    } else {
+                        $c = imagecolorallocatealpha($dst, $r, $g, $b, 0);
+                    }
+                    imagesetpixel($dst, $x, $y, $c);
+                }
+            }
+
+            imagepng($dst, $path);
+            imagedestroy($src);
+            imagedestroy($dst);
+        }
     }
 
 }

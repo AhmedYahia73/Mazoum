@@ -68,6 +68,11 @@ class UsersController extends Controller
             'is_paid'                 => 'required',
         ];
 
+        if($request->is_paid == "not_paid"){
+            $rules['payment_method'] = 'required';
+            $rules['payment_type'] = 'required|in:link,phone';
+            $rules['payment_description'] = 'required';
+        }
         // 2. إضافة القواعد الشرطية بناءً على النوع (Type)
         if ($request->type == 'offer') {
             $rules['offer_id'] = 'required|exists:packages,id';
@@ -113,6 +118,9 @@ class UsersController extends Controller
                 'payment_type'            => $request->payment_type,
                 'employee_gender'         => $request->employee_gender,
                 'is_paid'                 => $request->is_paid,
+                'payment_method'          => $request->payment_method ?? null,
+                'payment_type'            => $request->payment_type ?? null,
+                'payment_description'     => $request->payment_description ?? null,
             ]);
 
             $user->update([
@@ -148,6 +156,9 @@ class UsersController extends Controller
                 'payment_type'            => $request->payment_type,
                 'employee_gender'         => $request->employee_gender,
                 'is_paid'                 => $request->is_paid,
+                'payment_method'          => $request->payment_method ?? null,
+                'payment_type'            => $request->payment_type ?? null,
+                'payment_description'     => $request->payment_description ?? null,
             ]);
 
             $user->update([
@@ -176,22 +187,6 @@ class UsersController extends Controller
     // edit_order
     public function edit_order(Request $request)
     {
-        $validation = Validator::make($request->all(), [
-  
-            'order_id' => 'required|exists:orders,id',
-            'start_subscription_date' => 'required|date|date_format:Y-m-d',
-            'duration_type' => 'required|in:day,month,year',
-            'duration' => 'required|numeric|min:1',
-            'payment_type' => 'required',
-            'employee_gender' => 'required',
-            'is_paid' => 'required',
-            'total' => 'required|numeric',
-        ]);
-        if ($validation->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validation->errors(),
-            ],400);
-        }
         $validate_arr = [
             'order_id' => 'required|exists:orders,id',
             'start_subscription_date' => 'required|date|date_format:Y-m-d',
@@ -202,6 +197,17 @@ class UsersController extends Controller
             'is_paid' => 'required', 
             'total' => 'required',
         ];
+        if($request->is_paid == "not_paid"){
+            $validate_arr['payment_method'] = 'required';
+            $validate_arr['payment_type'] = 'required|in:link,phone';
+            $validate_arr['payment_description'] = 'required';
+        }
+        $validation = Validator::make($request->all(), $validate_arr);
+        if ($validation->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validation->errors(),
+            ],400);
+        }
 
         $request->validate($validate_arr);
 
@@ -217,7 +223,10 @@ class UsersController extends Controller
             'employee_gender' => $request->employee_gender,
             'is_paid' => $request->is_paid,
             'users_count' => $request->users_count ?? $order->users_count,
-            'total' => $request->total
+            'total' => $request->total,
+            'payment_method' => $request->payment_method ?? $order->payment_method,
+            'payment_type' => $request->payment_type ?? $order->payment_type,
+            'payment_description' => $request->payment_description ?? $order->payment_description,
         ]);
 
         $user->update([

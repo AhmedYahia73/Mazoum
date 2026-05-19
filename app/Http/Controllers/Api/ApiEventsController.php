@@ -11,6 +11,7 @@ use App\Http\Resources\APiResource\CongratulationMessagesResource;
 use App\Http\Resources\APiResource\EventMessagesResource;
 use App\Models\Events as Model;
 use App\Models\EventUsers;
+use App\Models\Qr_Code;
 use App\Models\User;
 use App\Models\EventMessages;
 use App\Models\CongratulationMessages;
@@ -685,5 +686,34 @@ class ApiEventsController extends Controller
         return  $input;
     }
 
+    public function qr_link(Request $request){ 
+        $validator = Validator::make($request->all(), [
+            "event_id" => ["required", "exists:events,id"],
+            "mobile" => ["required", "numeric"],
+        ]);
 
+        $event = Model::
+        where("id", $request->event_id)
+        ->first();
+        $event_user = EventUsers::
+        where("event_id", $request->event_id)
+        ->where(function($query) use($request){
+            $query->where("mobile", $request->mobile)
+            ->orWhereRaw("CONCAT(code, mobile) = ?", [$request->mobile]);
+        })
+        ->firstOrFail();
+        $qr = Qr_Code::
+        where("event_user_id", $event_user->id)
+        ->orderByDesc("id")
+        ->firstOrFail();
+        $qr_link = "https://www.mazoominvitations.com/event-login/" . $qr->uu_id;
+        $event_image = $event->image;
+        $event_file = $event->file;
+
+        return response()->json([
+            "qr_link" => $qr_link,
+            "event_image" => $event_image,
+            "event_file" => $event_file,
+        ]);
+    }
 }

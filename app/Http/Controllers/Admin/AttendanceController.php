@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -282,6 +283,169 @@ class AttendanceController extends Controller
      * التحقق من أن الموقع داخل الحدود والـ IP صح
      * returns true if valid, or error string if not
      */
+    public function attendance_report(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'month'   => 'required|date_format:Y-m',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user_id = auth()->user()->id;
+        if(!auth()->user()->user_type ){
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+            $user_id = $request->user_id;
+        } 
+        $user  = User::findOrFail($user_id);
+        $month = Carbon::createFromFormat('Y-m', $request->month);
+
+        $startOfMonth = $month->copy()->startOfMonth();
+        $endOfMonth   = $month->copy()->endOfMonth();
+
+        // لو الشهر الحالي، نحسب لحد امبارح بس
+        $today = Carbon::today();
+        $isCurrentMonth = $month->isSameMonth($today);
+        $lastDayToCount = $isCurrentMonth ? $today->copy()->subDay() : $endOfMonth;
+
+        $holidayDayNumber = $user->holiday;
+        $appointmentFrom  = $user->appointment_from;
+        $appointmentTo    = $user->appointment_to;
+
+        $records = Attendance::where('user_id', $user->id)
+            ->whereBetween('from', [$startOfMonth, $endOfMonth])
+            ->get();
+
+        $recordsByDay = $records->groupBy(function ($r) {
+            return Carbon::parse($r->from)->format('Y-m-d');
+        });
+
+        $absenceDays       = 0;
+        $presentDays       = 0;
+        $holidayDays       = 0;
+        $lateMinutes       = 0;
+        $earlyLeaveMinutes = 0;
+        $overtimeMinutes   = 0;
+        $dailyDetails      = [];
+
+        for ($day = $startOfMonth->copy(); $day->lte($endOfMonth); $day->addDay()) {
+            $dateStr   = $day->format('Y-m-d');
+            $dayOfWeek = $day->dayOfWeek;
+
+            // يوم الإجازة
+            if (!is_null($holidayDayNumber) && $dayOfWeek == (int)$holidayDayNumber) {
+                $holidayDays++;
+                $dailyDetails[] = [
+                    'date'                => $dateStr,
+                    'status'              => 'holiday',
+                    'check_in'            => null,
+                    'check_out'           => null,
+                    'late_minutes'        => 0,
+                    'early_leave_minutes' => 0,
+                    'overtime_minutes'    => 0,
+                ];
+                continue;
+            }
+
+            // أيام المستقبل في الشهر الحالي — لا نحسبها
+            if ($day->gt($lastDayToCount)) {
+                $dailyDetails[] = [
+                    'date'                => $dateStr,
+                    'status'              => 'upcoming',
+                    'check_in'            => null,
+                    'check_out'           => null,
+                    'late_minutes'        => 0,
+                    'early_leave_minutes' => 0,
+                    'overtime_minutes'    => 0,
+                ];
+                continue;
+            }
+
+            $dayRecords = $recordsByDay->get($dateStr, collect());
+
+            if ($dayRecords->isEmpty()) {
+                $absenceDays++;
+                $dailyDetails[] = [
+                    'date'                => $dateStr,
+                    'status'              => 'absent',
+                    'check_in'            => null,
+                    'check_out'           => null,
+                    'late_minutes'        => 0,
+                    'early_leave_minutes' => 0,
+                    'overtime_minutes'    => 0,
+                ];
+                continue;
+            }
+
+            $presentDays++;
+            $firstRecord = $dayRecords->sortBy('from')->first();
+            $lastRecord  = $dayRecords->sortByDesc('to')->first();
+
+            $checkIn  = $firstRecord->from ? Carbon::parse($firstRecord->from) : null;
+            $checkOut = $lastRecord->to    ? Carbon::parse($lastRecord->to)    : null;
+
+            $dayLate       = 0;
+            $dayEarlyLeave = 0;
+            $dayOvertime   = 0;
+
+            if ($checkIn && $appointmentFrom) {
+                $expectedIn = Carbon::parse($dateStr . ' ' . $appointmentFrom);
+                if ($checkIn->gt($expectedIn)) {
+                    $dayLate = $checkIn->diffInMinutes($expectedIn);
+                    $lateMinutes += $dayLate;
+                }
+            }
+
+            if ($checkOut && $appointmentTo) {
+                $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
+                if ($checkOut->lt($expectedOut)) {
+                    $dayEarlyLeave = $checkOut->diffInMinutes($expectedOut);
+                    $earlyLeaveMinutes += $dayEarlyLeave;
+                } elseif ($checkOut->gt($expectedOut)) {
+                    $dayOvertime = $checkOut->diffInMinutes($expectedOut);
+                    $overtimeMinutes += $dayOvertime;
+                }
+            }
+
+            $dailyDetails[] = [
+                'date'                => $dateStr,
+                'status'              => 'present',
+                'check_in'            => $checkIn  ? $checkIn->format('H:i')  : null,
+                'check_out'           => $checkOut ? $checkOut->format('H:i') : null,
+                'late_minutes'        => $dayLate,
+                'early_leave_minutes' => $dayEarlyLeave,
+                'overtime_minutes'    => $dayOvertime,
+            ];
+        }
+
+        return response()->json([
+            'user' => [
+                'id'               => $user->id,
+                'name'             => $user->name,
+                'salary'           => $user->salary,
+                'appointment_from' => $appointmentFrom,
+                'appointment_to'   => $appointmentTo,
+                'holiday'          => $holidayDayNumber,
+            ],
+            'month'               => $request->month,
+            'is_current_month'    => $isCurrentMonth,
+            'absence_days'        => $absenceDays,
+            'present_days'        => $presentDays,
+            'present_days_with_holidays' => $presentDays + $holidayDays,
+            'holiday_days'        => $holidayDays,
+            'late_minutes'        => $lateMinutes,
+            'early_leave_minutes' => $earlyLeaveMinutes,
+            'overtime_minutes'    => $overtimeMinutes,
+            'daily_details'       => $dailyDetails,
+        ]);
+    }
+
     private function checkLocationAndIp(Request $request)
     {
         $allOffices = \App\Models\AttendanceData::all();

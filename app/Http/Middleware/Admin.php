@@ -41,6 +41,7 @@ class Admin
                     "admin/attendance_list",
                     "admin/employee_departure",
                     "admin/event_family/{id}",
+                    "admin/attendance_report",
                     "admin/scan_qr",
                     "admin/all-invited-users/*",
                     "admin/login-user/*",

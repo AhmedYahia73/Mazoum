@@ -292,7 +292,7 @@ class AttendanceController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $user_id = auth()->user()->id;
+        $user = auth()->user();
         if(!auth()->user()->user_type ){
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',
@@ -301,10 +301,10 @@ class AttendanceController extends Controller
                 return response()->json(['errors' => $validator->errors()], 400);
             }
             $user_id = $request->user_id;
+            $user  = User::
+            where("id", (int) $user_id)
+            ->first();
         } 
-        $user  = User::
-        where("id", (int) $user_id)
-        ->first();
         return $user;
         $month = Carbon::createFromFormat('Y-m', $request->month);
 

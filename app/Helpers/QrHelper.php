@@ -14,8 +14,9 @@ if (! function_exists('generate_qr_png')) {
      * @param int    $size      Pixel size of the output image
      * @param array  $color     RGB array for dark modules e.g. [0, 0, 0]
      */
-    function generate_qr_png(string $data, string $path, int $size = 300, array $color = [0, 0, 0], bool $transparent = false): void
+    function generate_qr_png(string $data, string $path, int $size = 300, array $color = [0, 0, 0]): void
     {
+        // scale = size / (modules * 1) — approximate, QRCode adjusts internally
         $scale = max(1, intval($size / 50));
 
         $options = new QROptions;
@@ -25,6 +26,7 @@ if (! function_exists('generate_qr_png')) {
         $options->imageTransparent = false;
         $options->bgColor          = [255, 255, 255];
         $options->moduleValues     = [
+            // dark modules
             \chillerlan\QRCode\Data\QRMatrix::M_DATA_DARK        => $color,
             \chillerlan\QRCode\Data\QRMatrix::M_FINDER_DARK      => $color,
             \chillerlan\QRCode\Data\QRMatrix::M_FINDER_DOT       => $color,
@@ -36,15 +38,6 @@ if (! function_exists('generate_qr_png')) {
 
         $qrData = (new QRCode($options))->render($data);
         file_put_contents($path, $qrData);
-
-        if ($transparent) {
-            $src = imagecreatefrompng($path);
-            // جعل اللون الأبيض شفافاً مباشرة
-            $white = imagecolorallocate($src, 255, 255, 255);
-            imagecolortransparent($src, $white);
-            imagepng($src, $path);
-            imagedestroy($src);
-        }
     }
 
 }

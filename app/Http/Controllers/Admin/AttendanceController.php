@@ -286,7 +286,6 @@ class AttendanceController extends Controller
     public function attendance_report(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
             'month'   => 'required|date_format:Y-m',
         ]);
         if ($validator->fails()) {

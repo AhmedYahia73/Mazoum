@@ -1680,12 +1680,9 @@ class ApiEventUersController extends Controller
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
-            generate_qr_png($link, $qr_tmp_path, 200, [0, 0, 0], true);
-            $background = Image::make($bg);
-            $qr         = Image::make($qr_tmp_path);
-            $x = intval(($background->width()  - $qr->width())  / 2);
-            $y = intval(($background->height() - $qr->height()) / 2);
-            $background->insert($qr, 'top-left', $x, $y);
+            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            make_qr_transparent(public_path($qr_code_path));
+            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
             $destination = public_path($qr_code_path);
             $new_img     = Image::make($destination);

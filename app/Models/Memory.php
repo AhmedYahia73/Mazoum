@@ -22,4 +22,8 @@ class Memory extends Model
         }
         return null;
     }
+
+    public function user(){
+        return $this->belongsTo(EventUsers::class, "event_user_id");
+    }
 }

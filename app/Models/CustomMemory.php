@@ -22,4 +22,8 @@ class CustomMemory extends Model
         }
         return null;
     }
+
+    public function user(){
+        return $this->belongsTo(CustomEventUsers::class, "custom_user_id");
+    }
 }

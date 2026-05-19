@@ -701,12 +701,8 @@ class ApiEventsController extends Controller
             $query->where("mobile", $request->mobile)
             ->orWhereRaw("CONCAT(code, mobile) = ?", [$request->mobile]);
         })
-        ->firstOrFail();
-        $qr = Qr_Code::
-        where("event_user_id", $event_user->id)
-        ->orderByDesc("id")
-        ->firstOrFail();
-        $qr_link = "https://www.mazoominvitations.com/event-login/" . $qr->uu_id;
+        ->firstOrFail(); 
+        $qr_link = "https://www.mazoominvitations.com/event-login/" . $event_user->code;
         $event_image = $event->image;
         $event_file = $event->file;
 

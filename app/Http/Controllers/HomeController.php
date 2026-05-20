@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Events\WattsChat as WattsChatEvent;
-
 use App\Models\Admin;
 use App\Models\CongratulationMessages;
 use App\Models\Desgins;
@@ -19,10 +18,8 @@ use App\Models\Parking;
 use App\Models\Pricing;
 use App\Models\Qr_Code;
 use App\Models\Setting;
-use App\Models\WattsChat;
+use App\Models\WattsChat as WattsChatModel;
 use App\Models\WebDesgins;
-use App\Events\WattsChat as WattsChatEvent;
-use App\Models\WattsChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -893,7 +890,7 @@ class HomeController extends Controller
             $type        = $messageData['type'] ?? 'text';
 
             // منع التكرار
-            if (WattsChat::where('message_id', $messageId)->exists()) {
+            if (WattsChatModel::where('message_id', $messageId)->exists()) {
                 return response()->json(['status' => 'already_processed'], 200);
             }
   
@@ -912,7 +909,7 @@ class HomeController extends Controller
             // اسم المرسل لو موجود
             $senderName = $value['contacts'][0]['profile']['name'] ?? null;
 
-            $message = WattsChat::create([
+            $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => $senderName,
                 'message'      => $messageText,

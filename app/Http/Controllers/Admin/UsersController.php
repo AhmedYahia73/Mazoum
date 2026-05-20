@@ -70,7 +70,7 @@ class UsersController extends Controller
 
         if($request->is_paid == "not_paid"){
             $rules['payment_method'] = 'required';
-            $rules['payment_type'] = 'required|in:link,phone';
+            $rules['payment_method_type'] = 'required|in:link,phone';
             $rules['payment_description'] = 'required';
         }
         // 2. إضافة القواعد الشرطية بناءً على النوع (Type)
@@ -119,7 +119,7 @@ class UsersController extends Controller
                 'employee_gender'         => $request->employee_gender,
                 'is_paid'                 => $request->is_paid,
                 'payment_method'          => $request->payment_method ?? null,
-                'payment_type'            => $request->payment_type ?? null,
+                'payment_method_type'            => $request->payment_method_type ?? null,
                 'payment_description'     => $request->payment_description ?? null,
             ]);
 
@@ -157,7 +157,7 @@ class UsersController extends Controller
                 'employee_gender'         => $request->employee_gender,
                 'is_paid'                 => $request->is_paid,
                 'payment_method'          => $request->payment_method ?? null,
-                'payment_type'            => $request->payment_type ?? null,
+                'payment_method_type'            => $request->payment_method_type ?? null,
                 'payment_description'     => $request->payment_description ?? null,
             ]);
 
@@ -199,7 +199,7 @@ class UsersController extends Controller
         ];
         if($request->is_paid == "not_paid"){
             $validate_arr['payment_method'] = 'required';
-            $validate_arr['payment_type'] = 'required|in:link,phone';
+            $validate_arr['payment_method_type'] = 'required|in:link,phone';
             $validate_arr['payment_description'] = 'required';
         }
         $validation = Validator::make($request->all(), $validate_arr);
@@ -225,7 +225,7 @@ class UsersController extends Controller
             'users_count' => $request->users_count ?? $order->users_count,
             'total' => $request->total,
             'payment_method' => $request->payment_method ?? $order->payment_method,
-            'payment_type' => $request->payment_type ?? $order->payment_type,
+            'payment_method_type' => $request->payment_method_type ?? $order->payment_type,
             'payment_description' => $request->payment_description ?? $order->payment_description,
         ]);
 

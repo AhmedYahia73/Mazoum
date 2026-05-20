@@ -113,7 +113,7 @@ class NegotaitionController extends Controller
             if($request->is_paid == "not_paid"){
                 $validation = Validator::make($request->all(), [
                     'payment_method' => 'required',
-                    'payment_type' => 'required|in:link,phone',
+                    'payment_method_type' => 'required|in:link,phone',
                     'payment_description' => 'required',
                 ]);
                 if ($validation->fails()) { // if Validate Make Error Return Message Error
@@ -175,7 +175,7 @@ class NegotaitionController extends Controller
                 'employee_gender' => $request->employee_gender,
                 'is_paid' => $request->is_paid,
                 'payment_method' => $request->payment_method,
-                'payment_type' => $request->payment_type,
+                'payment_method_type' => $request->payment_method_type,
                 'payment_description' => $request->payment_description,
             ]);
 
@@ -218,7 +218,7 @@ class NegotaitionController extends Controller
                 'employee_gender' => $request->employee_gender,
                 'is_paid' => $request->is_paid,
                 'payment_method' => $request->payment_method,
-                'payment_type' => $request->payment_type,
+                'payment_method_type' => $request->payment_method_type,
                 'payment_description' => $request->payment_description,
             ]);
 

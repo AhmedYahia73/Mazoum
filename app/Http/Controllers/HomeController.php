@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\WattsChat as WattsChatEvent;
+
 use App\Models\Admin;
 use App\Models\CongratulationMessages;
 use App\Models\Desgins;
@@ -18,6 +20,7 @@ use App\Models\Pricing;
 use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\WebDesgins;
+use App\Models\WattsChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -881,6 +884,42 @@ class HomeController extends Controller
 
         }
 
+        if (isset($data['entry'][0]['changes'][0]['value']['messages'])) {
+            $value       = $data['entry'][0]['changes'][0]['value'];
+            $messageData = $value['messages'][0];
+            $messageId   = $messageData['id'];
+            $type        = $messageData['type'] ?? 'text';
+
+            // منع التكرار
+            if (WattsChat::where('message_id', $messageId)->exists()) {
+                return response()->json(['status' => 'already_processed'], 200);
+            }
+  
+            // الرسالة الواردة دايماً من الـ customer
+            $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+
+            // استخراج نص الرسالة حسب النوع
+            $messageText = match($type) {
+                'text'        => $messageData['text']['body']                    ?? '',
+                'button'      => $messageData['button']['text']                  ?? '',
+                'interactive' => $messageData['interactive']['nfm_reply']['body'] ?? 
+                                 $messageData['interactive']['button_reply']['title'] ?? '',
+                default       => '[' . $type . ']',
+            };
+
+            // اسم المرسل لو موجود
+            $senderName = $value['contacts'][0]['profile']['name'] ?? null;
+
+            $message = WattsChat::create([
+                'phone'        => $customerPhone,
+                'name'         => $senderName,
+                'message'      => $messageText,
+                'is_sent_by_me'=> false,
+                'message_id'   => $messageId,
+            ]);
+
+            WattsChatEvent::dispatch($message);
+        }
         return response()->json(['status' => 'ok'], 200);
     }
 

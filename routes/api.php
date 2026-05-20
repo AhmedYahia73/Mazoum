@@ -26,6 +26,9 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         
     Route::controller('WattsChatController')
     ->prefix("watts_chat")->group(function () {
+        Route::get('/webhook', 'verifyWebhook')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/webhook', 'receiveMessage')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        // backward compat
         Route::get('/verifyWebhook', 'verifyWebhook')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::post('/receiveMessage', 'receiveMessage')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });

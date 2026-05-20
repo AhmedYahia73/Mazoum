@@ -33,35 +33,56 @@ class WattsChatController extends Controller
 
     // WHATSAPP_PHONE_NUMBER_ID, MY_OFFICIAL_PHONE_NUMBER, WHATSAPP_ACCESS_TOKEN
     public function receiveMessage(Request $request) {
-        $payload = $request->all();
+        $data = $request->all();
 
-        if (isset($payload['entry'][0]['changes'][0]['value']['messages'])) {
-            $value = $payload['entry'][0]['changes'][0]['value'];
+        info('WattsChat webhook received', $data);
+
+        // statuses (sent/delivered/read) — نتجاهلها
+        if (isset($data['entry'][0]['changes'][0]['value']['statuses'])) {
+            return response()->json(['status' => 'ok'], 200);
+        }
+
+        // رسائل واردة
+        if (isset($data['entry'][0]['changes'][0]['value']['messages'])) {
+            $value       = $data['entry'][0]['changes'][0]['value'];
             $messageData = $value['messages'][0];
-            $messageId = $messageData['id'];
+            $messageId   = $messageData['id'];
+            $type        = $messageData['type'] ?? 'text';
 
-            // 1. التأكد إن الرسالة دي مصلتش قبل كدة (عشان نمنع التكرار مع sendMessage)
-            $alreadyExists = WattsChat::where('message_id', $messageId)->exists();
-            if ($alreadyExists) {
+            // منع التكرار
+            if (WattsChat::where('message_id', $messageId)->exists()) {
                 return response()->json(['status' => 'already_processed'], 200);
             }
 
-            $my_phone = env('MY_OFFICIAL_PHONE_NUMBER');
-            $isSentByMe = (isset($messageData['from']) && $messageData['from'] == $my_phone);
+            $my_phone    = env('MY_OFFICIAL_PHONE_NUMBER');
+            $displayPhone = $value['metadata']['display_phone_number'] ?? $my_phone;
 
-            // تنظيف رقم التليفون
-            $customerPhone = preg_replace('/[^0-9]/', '', ($isSentByMe ? $messageData['to'] : $messageData['from']));
+            // الرسالة الواردة دايماً من الـ customer
+            $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+
+            // استخراج نص الرسالة حسب النوع
+            $messageText = match($type) {
+                'text'        => $messageData['text']['body']                    ?? '',
+                'button'      => $messageData['button']['text']                  ?? '',
+                'interactive' => $messageData['interactive']['nfm_reply']['body'] ?? 
+                                 $messageData['interactive']['button_reply']['title'] ?? '',
+                default       => '[' . $type . ']',
+            };
+
+            // اسم المرسل لو موجود
+            $senderName = $value['contacts'][0]['profile']['name'] ?? null;
 
             $message = WattsChat::create([
-                'phone' => $customerPhone,
-                'message' => $messageData['text']['body'] ?? '',
-                'is_sent_by_me' => $isSentByMe,
-                'message_id' => $messageId,
-                'my_phone' => $messageData['from'],
+                'phone'        => $customerPhone,
+                'name'         => $senderName,
+                'message'      => $messageText,
+                'is_sent_by_me'=> false,
+                'message_id'   => $messageId,
             ]);
 
             WattsChatEvent::dispatch($message);
         }
+
         return response()->json(['status' => 'success'], 200);
     }
 }

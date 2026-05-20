@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'AdminController@home');
 
+Route::post('/send_message', 'HomeController@sendMessage');
+
 Route::get('watts_chat', 'AdminWattsChatController@index');
 Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
 

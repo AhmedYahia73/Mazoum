@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\ImageManagerStatic as Image;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Validator;
 
 class HomeController extends Controller
 {
@@ -141,6 +142,21 @@ class HomeController extends Controller
             Parking::where('message_id', $message_id)->update([
                'status' => $status
             ]);
+
+            // ????? ??????? ??????? ?? WattsChat ??? status = sent
+            if ($status === 'sent' && !WattsChatModel::where('message_id', $message_id)->exists()) {
+                $recipient = $data['entry'][0]['changes'][0]['value']['statuses'][0]['recipient_id'] ?? null;
+                $userName  = $check_user_event ? $check_user_event->name : null;
+                if ($recipient) {
+                    WattsChatModel::create([
+                        'phone'         => preg_replace('/[^0-9]/', '', $recipient),
+                        'name'          => $userName,
+                        'message'       => 'template_message',
+                        'is_sent_by_me' => true,
+                        'message_id'    => $message_id,
+                    ]);
+                }
+            }
 
         } elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&
@@ -922,7 +938,63 @@ class HomeController extends Controller
         return response()->json(['status' => 'ok'], 200);
     }
 
+    public function sendMessage(Request $request)
+    {
+        // 1. التحقق من البيانات القادمة من الموقع
+        
+        $validator = Validator::make($request->all(), [
+            'phone'   => 'required',
+            'message' => 'required|string'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
 
+        $settings = Setting::first();
+        $watts_token = $settings->access_token;
+        $phone_numer_id = $settings->phone_numer_id;
+        $customerPhone = $request->phone;
+        $messageText = $request->message;
+
+        // 2. إرسال الرسالة إلى Meta WhatsApp API
+        $response = Http::withToken($watts_token)
+            ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+                'messaging_product' => 'whatsapp',
+                'recipient_type'    => 'individual',
+                'to'                => $customerPhone,
+                'type'              => 'text',
+                'text'              => [
+                    'preview_url' => false,
+                    'body'        => $messageText
+                ]
+            ]);
+
+        // 3. التعامل مع الرد من Meta
+        if ($response->successful()) {
+            // استخراج ID الرسالة من رد ميتا (أو إنشاء واحد عشوائي احتياطياً)
+            $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+
+            // حفظ الرسالة في قاعدة البيانات لظهورها في الشات
+            $message = WattsChatModel::create([
+                'phone'         => $customerPhone,
+                'name'          => 'Admin', // أو اسم الموظف الحالي
+                'message'       => $messageText,
+                'is_sent_by_me' => true,    // مهم جداً لتمييز إنك المُرسل
+                'message_id'    => $messageId,
+            ]);
+
+            // إطلاق الـ Event عشان الشات يتحدث في الـ Frontend (Real-time)
+            WattsChatEvent::dispatch($message);
+
+            return response()->json(['status' => 'success', 'data' => $message], 200);
+        }
+
+        // في حالة وجود خطأ من ميتا (مثل الرقم غير صحيح أو خارج نافذة الـ 24 ساعة)
+        return response()->json([
+            'status' => 'error', 
+            'error'  => $response->json()
+        ], 400);
+    }
 
 
 

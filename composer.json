@@ -55,7 +55,8 @@
             "app/Helpers/HtmlHelper.php",
             "app/Helpers/ModelHerlper.php",
             "app/Helpers/WhatsappHelper.php",
-            "app/Helpers/QrHelper.php"
+            "app/Helpers/QrHelper.php",
+            "app/Helpers/WattsChatHelper.php"
         ]
     },
     "autoload-dev": {

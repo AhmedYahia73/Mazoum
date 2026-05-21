@@ -14,7 +14,7 @@ class AdminWattsChatController extends Controller
     public function index(Request $request){
         $validator = Validator::make($request->all(), [
             'phone' => 'required',
-            'from' => 'required|sa,kw',
+            'from' => 'required|in:sa,kw',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

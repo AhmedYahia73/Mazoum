@@ -25,7 +25,7 @@ class AdminWattsChatController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $chatHistory = WattsChat::
         where('phone', $phone) 
-        where('from', $request->from) 
+        ->where('from', $request->from) 
         ->orderBy('created_at', 'asc')
         ->get();
 

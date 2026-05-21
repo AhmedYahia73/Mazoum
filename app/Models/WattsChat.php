@@ -14,6 +14,7 @@ class WattsChat extends Model
         'name',
         'message',
         'message_id',
-        'is_sent_by_me'
+        'is_sent_by_me',
+        "from",
     ];
 }

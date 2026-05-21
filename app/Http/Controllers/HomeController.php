@@ -146,8 +146,10 @@ class HomeController extends Controller
 
             // ????? ??????? ??????? ?? WattsChat ??? status = sent
             if ($status === 'sent' && !WattsChatModel::where('message_id', $message_id)->exists()) {
-                $recipient = $data['entry'][0]['changes'][0]['value']['statuses'][0]['recipient_id'] ?? null;
-                $userName  = $check_user_event ? $check_user_event->name : null;
+                $recipient    = $data['entry'][0]['changes'][0]['value']['statuses'][0]['recipient_id'] ?? null;
+                $userName     = $check_user_event ? $check_user_event->name : null;
+                $sentPhoneId  = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+                $fromSent     = ($sentPhoneId && $sentPhoneId == ($setting->sa_phone_numer_id ?? null)) ? 'sa' : 'kw';
                 if ($recipient) {
                     WattsChatModel::create([
                         'phone'         => preg_replace('/[^0-9]/', '', $recipient),
@@ -155,6 +157,7 @@ class HomeController extends Controller
                         'message'       => 'template_message',
                         'is_sent_by_me' => true,
                         'message_id'    => $message_id,
+                        'from'          => $fromSent,
                     ]);
                 }
             }
@@ -926,12 +929,18 @@ class HomeController extends Controller
             // اسم المرسل لو موجود
             $senderName = $value['contacts'][0]['profile']['name'] ?? null;
 
+            // تحديد المصدر sa أو kw بناءً على phone_number_id
+            $incomingPhoneId = $value['metadata']['phone_number_id'] ?? null;
+            $saPhoneId       = $setting->sa_phone_numer_id ?? null;
+            $from            = ($incomingPhoneId && $saPhoneId && $incomingPhoneId == $saPhoneId) ? 'sa' : 'kw';
+
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => $senderName,
                 'message'      => $messageText,
                 'is_sent_by_me'=> false,
                 'message_id'   => $messageId,
+                'from'         => $from,
             ]);
 
             WattsChatEvent::dispatch($message);
@@ -989,6 +998,7 @@ class HomeController extends Controller
                 'message'       => $messageText,
                 'is_sent_by_me' => true,    // مهم جداً لتمييز إنك المُرسل
                 'message_id'    => $messageId,
+                "from"          => $request->from,
             ]);
 
             // إطلاق الـ Event عشان الشات يتحدث في الـ Frontend (Real-time)

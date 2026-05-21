@@ -14,6 +14,7 @@ class AdminWattsChatController extends Controller
     public function index(Request $request){
         $validator = Validator::make($request->all(), [
             'phone' => 'required',
+            'from' => 'required|sa,kw',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -24,6 +25,7 @@ class AdminWattsChatController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $chatHistory = WattsChat::
         where('phone', $phone) 
+        where('from', $request->from) 
         ->orderBy('created_at', 'asc')
         ->get();
 

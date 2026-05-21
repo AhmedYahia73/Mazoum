@@ -35,6 +35,15 @@ class Admin
             }
             if ( Auth::user()->role == "scan_employee"){
                 $allowed = [ 
+                    "admin/excel-all-invited-users/*",
+                    "admin/excel-event-qr-details/*",
+                    "admin/excel-not-attend-event-details/*",
+                    "admin/excel-hold-event-details/*",
+                    "admin/excel-failed-event-details/*",
+                    "admin/excel-non-attendance-event-details/*",
+                    "admin/excel-confirmed-event-details/*",
+                    "admin/excel-confirmed-users-web-chat/*",
+                    "admin/excel-qr-sent-event-details/*",
                     "admin/event-messages",
                     "admin/scan_data",
                     "admin/employee_attend",

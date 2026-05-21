@@ -945,15 +945,22 @@ class HomeController extends Controller
         
         $validator = Validator::make($request->all(), [
             'phone'   => 'required',
-            'message' => 'required|string'
+            'message' => 'required|string',
+            "from" => "required|in:kw,sa",
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         } 
 
         $settings = Setting::first();
-        $watts_token = $settings->access_token;
-        $phone_numer_id = $settings->phone_numer_id;
+        if($request->from == "kw"){
+            $phone_numer_id = $settings->phone_numer_id;
+            $watts_token = $settings->access_token;
+        }
+        else{
+            $phone_numer_id = $settings->sa_phone_numer_id;
+            $watts_token = $settings->sa_access_token;
+        }
         $customerPhone = $request->phone;
         $messageText = $request->message;
 

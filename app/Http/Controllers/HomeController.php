@@ -267,6 +267,10 @@ class HomeController extends Controller
 
                     // $response2 = SendTemplateV9($to,$template_name2,$language,$phone_numer_id,$token);
                     $response2 = SendCongratulationArNewTemplate($to,$template_name2,$language,$phone_numer_id,$token);
+                    if ($response2 && $response2->getStatusCode() == 200) {
+                        $body2 = json_decode($response2->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
 
                 }
 
@@ -318,13 +322,9 @@ class HomeController extends Controller
 
                   $response = SendApologizedTemplate($to,$template_name,$language,$phone_numer_id,$token);
 
-                  if ($response && $response->getStatusCode() == 200) { // 200 OK
-
-                      // $response_data = $response->getBody()->getContents();
-
-                      // info($response_data);
-
-                      //dd($response_data,json_decode($response_data,true));
+                  if ($response && $response->getStatusCode() == 200) {
+                      $bodyR = json_decode($response->getBody()->getContents(), true);
+                      log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                   }
 
                     // Qr_Code::where('event_user_id', $user_event->id)->delete();
@@ -364,6 +364,10 @@ class HomeController extends Controller
 
                     // $response = SendTemplateV3($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
                     $response = SendWeddingDataV7ATemplate($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyL = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
 
                 }
 
@@ -384,6 +388,10 @@ class HomeController extends Controller
 
                     // $response = SendTemplateV7($to, $template_name, $language, $date, $phone_numer_id, $token);
                     $response = SendWeddingDataV9ArTemplate($to, $template_name, $language, $date, $phone_numer_id, $token);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyD = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyD['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
 
                 }
 
@@ -619,13 +627,12 @@ class HomeController extends Controller
 
                         $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->accept_count,$url_image,$phone_numer_id,$token);
 
-                        if ($response && $response->getStatusCode() == 200) { // 200 OK
-
-                            // $response_data = $response->getBody()->getContents();
-                            // info($response_data);
-                            //dd($response_data,json_decode($response_data,true));
+                        if ($response && $response->getStatusCode() == 200) {
 
                             $user_event->update([ 'qr_sent' => 'yes'  ]);
+
+                            $bodyQr = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyQr['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
 
                             EventUserLogs::create([
                               'log' => "تم ارسال ال QR Code",
@@ -682,11 +689,9 @@ class HomeController extends Controller
 
                     $response2 = SendCongratulationArNewTemplate($to,$template_name2,$language,$phone_numer_id,$token);
 
-                    if ($response2 && $response2->getStatusCode() == 200) { // 200 OK
-
-                        // $response_data2 = $response2->getBody()->getContents();
-                        // info($response_data2);
-                        //dd($response_data,json_decode($response_data,true));
+                    if ($response2 && $response2->getStatusCode() == 200) {
+                        $body2c = json_decode($response2->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name2, $body2c['messages'][0]['id'] ?? null, $user_event->name ?? null, $phone_numer_id);
                     }
 
                 }

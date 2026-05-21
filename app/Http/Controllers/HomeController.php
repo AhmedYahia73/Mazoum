@@ -154,7 +154,8 @@ class HomeController extends Controller
                     WattsChatModel::create([
                         'phone'         => preg_replace('/[^0-9]/', '', $recipient),
                         'name'          => $userName,
-                        'message'       => 'template_message',
+                        'message'       => null,
+                        'template_name' => null,
                         'is_sent_by_me' => true,
                         'message_id'    => $message_id,
                         'from'          => $fromSent,
@@ -239,6 +240,11 @@ class HomeController extends Controller
                     $func = 'SendArFlowV' . $available . 'Template';
                     if (function_exists($func)) {
                         $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
+                        if ($response6 && $response6->getStatusCode() == 200) {
+                            $body6 = json_decode($response6->getBody()->getContents(), true);
+                            $mid6  = $body6['messages'][0]['id'] ?? null;
+                            log_sent_watts_message($to, $template_name6, $mid6, $user_event->name, $phone_numer_id);
+                        }
                     }
 
                 } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {

@@ -43,7 +43,7 @@ class UserController extends Controller
           'name' => 'required',
           'custom_invetaion' => 'required|numeric',
           "custom_event_id" => "exists:custom_event,id",
-          "event_user_id" => "exists:event_users,id",
+          "event_user_id" => "exists:events,id",
           "password" => "required"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
@@ -74,7 +74,7 @@ class UserController extends Controller
             "custom_invetaion" => $request->custom_invetaion,
             "user_id" => $request->user()->id,
             "custom_event_id" => $request->custom_event_id ?? null,
-            "event_user_id" => $request->event_user_id ?? null,
+            "event_id" => $request->event_user_id ?? null,
             "password" => Hash::make($request->password),
             "balance" => $request->custom_invetaion
         ]);

@@ -12,7 +12,7 @@ class EventFamily extends Model
     public $timestamp = true;
 
     protected $fillable = [
-        'event_id' , 'name','mobile' , 'scan_qr'
+        'event_id' , 'name','mobile' , 'scan_qr', 'user_id'
     ];
 
 }

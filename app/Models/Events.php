@@ -26,6 +26,10 @@ class Events extends Model
         'image_height', 'image_width', 'text_color'
     ];
 
+    public function sub_user(){
+        return $this->hasMany('App\Models\User', 'event_id');
+    }
+
     public function getFileAttribute($value)
     {
         return Image_Path($value);

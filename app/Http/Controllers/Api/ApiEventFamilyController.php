@@ -102,6 +102,7 @@ class ApiEventFamilyController extends Controller
                     'name' => $arr['name'],
                     'mobile' => isset($arr['mobile']) ? ltrim($arr['mobile'],"+") : null,
                     'scan_qr' => 'no'
+                    "user_id" => $event->user_id ?? null,
                   ]);
                 }
             }

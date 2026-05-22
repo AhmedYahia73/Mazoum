@@ -323,7 +323,11 @@ class ApiEventsController extends Controller
         }
 
         $Item = Model::where(function ($query) use ($user) {
-              $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
+              $query->where('user_id', $user->id)
+              ->orWhere('assistant_id',$user->id)
+              ->orWhereHas("sub_user", function($query){
+                $query->where("users.id", auth()->user()->id);
+              });
         })->get(['id','title','address','file as image','date','time','sending_type']);
 
         if($Item != null && $Item->count() > 0) {

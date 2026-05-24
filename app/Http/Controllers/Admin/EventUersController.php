@@ -1349,7 +1349,7 @@ class EventUersController extends Controller
                             elseif($request->type && $request->type == "pdf"){
                                 $template_name = 'wedding__pdf';
                                 $image_path = $event->pdf;
-                                $header_type = 'pdf';
+                                $header_type = 'document';
                                 $send_buttons = false;
                             } 
                             else{

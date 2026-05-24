@@ -137,92 +137,116 @@ if (! function_exists('SendCustomMessageTemplate')) {
     }
 }
 
-    if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-        function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image", $send_buttons = true)
-        {
-            // 1. بناء الهيدر الديناميكي
-            $headerComponent = [
-                'type' => 'header',
-                'parameters' => [
+
+if (! function_exists('SendWeddingDataV1ArTemplate')) {
+
+    function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type = "image")
+    {
+
+        $arr = [
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $to,
+          'type' => 'template',
+          'template' => [
+                'name' => $template_name,
+                'language' => [
+                    'code' => $language
+                ],
+                'components' => [
                     [
-                        'type' => $header_type,
-                        $header_type => [
-                            'link' => $image_url
-                        ]
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => $header_type,
+                                $header_type => [
+                                    'link' => $image_url,
+                                ],
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $param_1
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_2
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_3
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_4
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_5
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_6
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'PAYLOAD',
+                                'payload' => 'attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'not-attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'location'
+                            ]
+                        ],
                     ]
                 ]
-            ];
+           ],
+        ];
 
-            if ($header_type === 'document') {
-                $headerComponent['parameters'][0]['document']['filename'] = 'Invitation.pdf';
-            }
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
 
-            // 2. بناء مكونات القالب الأساسية (الهيدر والبودي)
-            $components = [
-                $headerComponent,
-                [
-                    'type' => 'body',
-                    'parameters' => [
-                        ['type' => 'text', 'text' => $param_1],
-                        ['type' => 'text', 'text' => $param_2],
-                        ['type' => 'text', 'text' => $param_3],
-                        ['type' => 'text', 'text' => $param_4],
-                        ['type' => 'text', 'text' => $param_5],
-                        ['type' => 'text', 'text' => $param_6]
-                    ],
-                ]
-            ];
+        $client = new Client();
 
-            // 3. إذا كان القالب القديم ويحتاج أزرار (سيتم تفعيل هذا الشرط بناءً على نوع القالب)
-            if ($send_buttons) {
-                $components[] = [
-                    'type' => 'button',
-                    'sub_type' => 'quick_reply',
-                    'index' => '0',
-                    'parameters' => [['type' => 'payload', 'payload' => 'attend']]
-                ];
-                $components[] = [
-                    'type' => 'button',
-                    'sub_type' => 'quick_reply',
-                    'index' => '1',
-                    'parameters' => [['type' => 'payload', 'payload' => 'not-attend']]
-                ];
-                $components[] = [
-                    'type' => 'button',
-                    'sub_type' => 'quick_reply',
-                    'index' => '2',
-                    'parameters' => [['type' => 'payload', 'payload' => 'location']]
-                ];
-            }
+        $response = $client->post($fullUrl, [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+            ],
+            'json' => $arr,
+        ]);
 
-            $arr = [
-                'messaging_product' => 'whatsapp',
-                'recipient_type' => 'individual',
-                'to' => $to,
-                'type' => 'template',
-                'template' => [
-                    'name' => $template_name,
-                    'language' => [
-                        'code' => $language
-                    ],
-                    'components' => $components
-                ],
-            ];
+        return $response;
 
-            $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
-            $client = new \GuzzleHttp\Client();
-
-            $response = $client->post($fullUrl, [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$token,
-                ],
-                'json' => $arr,
-            ]);
-
-            return $response;
-        }
     }
+}
 
 
 

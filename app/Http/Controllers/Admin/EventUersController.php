@@ -3540,8 +3540,15 @@ class EventUersController extends Controller
                 }
             }
             
-        } catch(\Exception $e) {
-            dd($e->getMessage(), $e->getLine());
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            // لو فيسبوك رجع خطأ (زي 400)، الكود مش هيقفل 500، بل هيدخل هنا ويطبع تفاصيل الخطأ
+            $errorResponse = $e->getResponse();
+            $errorBody = json_decode($errorResponse->getBody()->getContents(), true);
+            
+            dd([
+                'error_from_facebook' => $errorBody,
+                'status_code' => $errorResponse->getStatusCode()
+            ]);
         }
     }
      

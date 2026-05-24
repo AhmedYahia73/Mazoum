@@ -901,6 +901,7 @@ class EventUersController extends Controller
     { 
        $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',
+            'user_id' => 'required|exists:users,id',
             'event_users.*.name' => 'required',
             'event_users.*.mobile' => 'required|numeric',
           	'event_users.*.users_count' => 'required|numeric|min:1',
@@ -929,7 +930,8 @@ class EventUersController extends Controller
                         'name' => $arr['name'],
                         'mobile' => ltrim($arr['mobile'],"+"),
                         'users_count' => $arr['users_count'],
-                        'status' => 'hold'
+                        'status' => 'hold',
+                        "user_id" => $request->user_id,
                     ]);
 
                   }

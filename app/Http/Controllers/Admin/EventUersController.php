@@ -1227,6 +1227,7 @@ class EventUersController extends Controller
             'users' => 'required|array', 
             'users.*.id' => 'required|exists:event_users,id',
             'users.*.users_count' => 'required|numeric',
+            'type' => 'in:image,video,pdf'
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1340,7 +1341,15 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
-                            $template_name = 'wedding_data_v1_ar';
+                            if($request->type && $request->type == "video"){
+                                $template_name = 'wedding__video';
+                            }
+                            elseif($request->type && $request->type == "pdf"){
+                                $template_name = 'wedding__pdf';
+                            }
+                            else{
+                                $template_name = 'wedding_data_v1_ar';
+                            }
                             $language = 'ar';
                             $image_url = $image_path;
                             $user_name = $user_event->name;

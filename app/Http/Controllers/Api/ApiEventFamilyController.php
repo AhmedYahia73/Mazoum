@@ -213,11 +213,4 @@ class ApiEventFamilyController extends Controller
             return $this->returnSuccessMessage('The event user has been successfully entered.');
         }
     }
-
-
-
-
-
-
-
 }

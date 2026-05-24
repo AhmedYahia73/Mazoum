@@ -49,6 +49,33 @@ if (! function_exists('get_whats_setting')) {
 
 }
 
+if (! function_exists('get_whats_v2_setting')) {
+
+    function get_whats_v2_setting($event)
+    {
+
+        $setting = Setting::first();
+
+      	//dd($event->country_code);
+
+        if($event->country_code == 'sa') {
+            $token     = $setting->access_token;
+            $sender_id = $setting->sender_id;
+        } else {
+          	//dd('ok');
+            $token     = $setting->sa_access_token;
+            $sender_id = $setting->sa_sender_id;
+        }
+
+        $arr['token'] = $token;
+        $arr['sender_id'] = $sender_id;
+
+        return $arr;
+
+    }
+
+}
+
 
 if (! function_exists('get_action')) {
 

@@ -3496,8 +3496,8 @@ class EventUersController extends Controller
 
                 
 
-                $token          = get_whats_setting($event)['token']; 
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                $token          = get_whats_v2_setting($event)['token']; 
+                $phone_numer_id = get_whats_v2_setting($event)['sender_id'];
 
 
                 $response = SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $header_type);

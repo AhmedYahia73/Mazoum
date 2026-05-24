@@ -136,84 +136,105 @@ if (! function_exists('SendCustomMessageTemplate')) {
 
     }
 }
+
+
+
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image")
+    function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
-        $components = [];
-
-        // 1. بناء الهيدر بناءً على النوع (صورة، فيديو، أو مستند PDF)
-        if ($header_type === 'document') {
-            $components[] = [
-                'type' => 'header',
-                'parameters' => [
-                    [
-                        'type' => 'document',
-                        'document' => [
-                            'link' => $image_url,
-                            'filename' => 'Invitation.pdf'
-                        ]
-                    ]
-                ]
-            ];
-        } elseif ($header_type === 'video') {
-            $components[] = [
-                'type' => 'header',
-                'parameters' => [
-                    [
-                        'type' => 'video',
-                        'video' => [
-                            'link' => $image_url
-                        ]
-                    ]
-                ]
-            ];
-        } else {
-            $components[] = [
-                'type' => 'header',
-                'parameters' => [
-                    [
-                        'type' => 'image',
-                        'image' => [
-                            'link' => $image_url
-                        ]
-                    ]
-                ]
-            ];
-        }
-
-        // 2. بناء البودي (المتغيرات الستة الظاهرة في الصورة الثانية لديك)
-        $components[] = [
-            'type' => 'body',
-            'parameters' => [
-                ['type' => 'text', 'text' => (string)$param_1],
-                ['type' => 'text', 'text' => (string)$param_2],
-                ['type' => 'text', 'text' => (string)$param_3],
-                ['type' => 'text', 'text' => (string)$param_4],
-                ['type' => 'text', 'text' => (string)$param_5],
-                ['type' => 'text', 'text' => (string)$param_6]
-            ]
-        ];
-
-        // 📝 ملاحظة: تم حذف مصفوفة الأزرار نهائياً لأن أزرارك مخصصة وثابتة في المنصة 
-        // وتظهر تلقائياً للمستخدم دون الحاجة لإرسالها عبر الـ API.
 
         $arr = [
-            'messaging_product' => 'whatsapp',
-            'recipient_type' => 'individual',
-            'to' => $to,
-            'type' => 'template',
-            'template' => [
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $to,
+          'type' => 'template',
+          'template' => [
                 'name' => $template_name,
                 'language' => [
                     'code' => $language
                 ],
-                'components' => $components
-            ]
+                'components' => [
+                    [
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => $header_type,
+                                $header_type => [
+                                    'link' => $image_url,
+                                ],
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $param_1
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_2
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_3
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_4
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_5
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_6
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'PAYLOAD',
+                                'payload' => 'attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'not-attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'location'
+                            ]
+                        ],
+                    ]
+                ]
+           ],
         ];
 
         $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
-        $client = new \GuzzleHttp\Client();
+
+        $client = new Client();
 
         $response = $client->post($fullUrl, [
             'headers' => [
@@ -223,6 +244,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
         ]);
 
         return $response;
+
     }
 }
 

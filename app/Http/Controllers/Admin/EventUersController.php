@@ -3363,6 +3363,13 @@ class EventUersController extends Controller
             "enter_event" => $enter_event
         ]);
     }
+
+    public function faild_users(Request $request, $id){ 
+        $faild_send = EventUsers::
+        where('event_id', $id) 
+        ->where('status', 'failed') 
+        ->get();
+    }
 }
 
 

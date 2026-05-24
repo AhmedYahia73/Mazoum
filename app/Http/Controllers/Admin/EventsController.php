@@ -808,6 +808,10 @@ class EventsController extends Controller
             ->orWhereNotNull('is_sent'); 
         })
         ->sum('users_count');
+        $faild_send = EventUsers::
+        where('event_id', $Item->id) 
+        ->where('status', 'failed') 
+        ->sum('users_count');
         $event_host = User::
         where("user_id", $Item->user_id)
         ->whereHas("event_users", function($query) use($Item){
@@ -829,6 +833,7 @@ class EventsController extends Controller
             "apologize" => $apologize,
             "not_confirm" => $not_confirm,
             "send_Qr" => $send_Qr,
+            "faild_send" => $faild_send,
             "event_host" => $event_host + 1,
         ]);
     }

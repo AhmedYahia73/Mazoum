@@ -140,42 +140,56 @@ if (! function_exists('SendCustomMessageTemplate')) {
 
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image", $send_buttons = true)
+    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image", $send_buttons = false)
     {
-        // 1. بناء الهيدر الديناميكي
-        $headerComponent = [
-            'type' => 'header',
-            'parameters' => [
-                [
-                    'type' => $header_type,
-                    $header_type => [
-                        'link' => $image_url
-                    ]
-                ]
-            ]
-        ];
+        // 1. بناء الهيدر الصريح لتجنب مشاكل الـ JSON Schema constraint 'enum'
+        $headerParameters = [];
 
         if ($header_type === 'document') {
-            $headerComponent['parameters'][0]['document']['filename'] = 'Invitation.pdf';
+            $headerParameters[] = [
+                'type' => 'document',
+                'document' => [
+                    'link' => $image_url,
+                    'filename' => 'Invitation.pdf'
+                ]
+            ];
+        } elseif ($header_type === 'video') {
+            $headerParameters[] = [
+                'type' => 'video',
+                'video' => [
+                    'link' => $image_url
+                ]
+            ];
+        } else {
+            // الافتراضي image
+            $headerParameters[] = [
+                'type' => 'image',
+                'image' => [
+                    'link' => $image_url
+                ]
+            ];
         }
 
-        // 2. بناء مكونات القالب الأساسية (الهيدر والبودي)
+        // 2. تجميع المكونات الأساسية
         $components = [
-            $headerComponent,
+            [
+                'type' => 'header',
+                'parameters' => $headerParameters
+            ],
             [
                 'type' => 'body',
                 'parameters' => [
-                    ['type' => 'text', 'text' => $param_1],
-                    ['type' => 'text', 'text' => $param_2],
-                    ['type' => 'text', 'text' => $param_3],
-                    ['type' => 'text', 'text' => $param_4],
-                    ['type' => 'text', 'text' => $param_5],
-                    ['type' => 'text', 'text' => $param_6]
+                    ['type' => 'text', 'text' => (string)$param_1],
+                    ['type' => 'text', 'text' => (string)$param_2],
+                    ['type' => 'text', 'text' => (string)$param_3],
+                    ['type' => 'text', 'text' => (string)$param_4],
+                    ['type' => 'text', 'text' => (string)$param_5],
+                    ['type' => 'text', 'text' => (string)$param_6]
                 ],
             ]
         ];
 
-        // 3. إذا كان القالب القديم ويحتاج أزرار (سيتم تفعيل هذا الشرط بناءً على نوع القالب)
+        // 3. إضافة الأزرار فقط للقالب القديم
         if ($send_buttons) {
             $components[] = [
                 'type' => 'button',

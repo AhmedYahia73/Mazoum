@@ -1331,7 +1331,6 @@ class EventUersController extends Controller
                           	//dd($token,$sender_id,$phone_numer_id);
                             // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
 
-                            $image_path = $event->file;
 
                             //$code = $user_event->mobile_code->code;
                             //$mobile = substr($user_event->mobile, 1);
@@ -1343,12 +1342,15 @@ class EventUersController extends Controller
 
                             if($request->type && $request->type == "video"){
                                 $template_name = 'wedding__video';
+                                $image_path = $event->video;
                             }
                             elseif($request->type && $request->type == "pdf"){
                                 $template_name = 'wedding__pdf';
+                                $image_path = $event->pdf;
                             }
                             else{
                                 $template_name = 'wedding_data_v1_ar';
+                                $image_path = $event->file;
                             }
                             $language = 'ar';
                             $image_url = $image_path;

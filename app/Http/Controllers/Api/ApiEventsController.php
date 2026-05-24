@@ -385,6 +385,7 @@ class ApiEventsController extends Controller
             'file' => 'required|mimes:pdf,jpg,png,jpeg',
             'image' => 'nullable|mimes:jpg,png,jpeg',
             'video' => 'nullable',
+            'pdf' => 'nullable',
             'showing_qr' => 'required',
             'lat' => 'required',
             'long' => 'required',
@@ -406,6 +407,7 @@ class ApiEventsController extends Controller
             'address.required' => 'موقع الحدث مطلوب',
             'showing_qr.required' => 'اظهار كود ال qr  مطلوب',
 
+            'file.required' =>  'المرفق مطلوب',
             'file.required' =>  'المرفق مطلوب',
             'file.mimes' =>  'يجب أن يكون امتداد الصوره jpg و png و jpeg ',
 
@@ -544,6 +546,7 @@ class ApiEventsController extends Controller
             'file' => 'required|mimes:pdf,jpg,png,jpeg',
             'image' => 'nullable|mimes:jpg,png,jpeg',
             'video' => 'nullable',
+            'pdf' => 'nullable',
             'showing_qr' => 'required',
             'lat' => 'required',
             'long' => 'required',
@@ -670,7 +673,7 @@ class ApiEventsController extends Controller
     {
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr',
-            'first_name','last_name','lat','long','date','time',
+            'first_name','last_name','lat','long','date','time', 'pdf',
             'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         ]);
 
@@ -715,6 +718,14 @@ class ApiEventsController extends Controller
             $request->file('video')->move($path, $video_name);
 
             $input['video'] = $video_name;
+        }
+
+        if ($request->file('pdf') != null) {
+            $extension3 = $request->file('pdf')->extension();
+            $pdf_name = uniqid() . '.' . $extension3;
+            $request->file('pdf')->move($path, $pdf_name);
+
+            $input['pdf'] = $pdf_name;
         }
 
         return  $input;

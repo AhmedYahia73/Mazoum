@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\Events as modelRequest;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Events as Model;
-use App\Models\EventUsers;
-use App\Models\EventMessages;
-use App\Models\CongratulationMessages;
-use App\Models\EventUserActions;
-use App\Models\EventFamily;
-use App\Models\MobileCodes;
+use App\Http\Requests\Events as modelRequest;
 use App\Models\Assistant;
+use App\Models\CongratulationMessages;
+use App\Models\EventFamily;
+use App\Models\EventMessages;
+use App\Models\Events as Model;
+use App\Models\EventUserActions;
+use App\Models\EventUsers;
+use App\Models\MobileCodes;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Testing\File;
+use Illuminate\Support\Facades\Validator;
 use Response;
 
 class EventsController extends Controller
@@ -1110,7 +1111,7 @@ class EventsController extends Controller
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
             'country_code', 'scan_assistant_id',
             'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
-            'image_height', 'image_width', 'text_color'
+            'image_height', 'image_width', 'text_color', 'pdf'
         ]);
 
         if(! isset($modelClass)) {
@@ -1151,6 +1152,16 @@ class EventsController extends Controller
 
         }
 
+        if($request->file('pdf') != null) {
+
+            $extension3 = $request->file('pdf')->extension();
+            $pdf_name = uniqid() . '.' . $extension3;
+            $request->file('pdf')->move($path, $pdf_name);
+
+            $input['pdf'] = $pdf_name;
+
+        }
+
         return  $input;
     }
 
@@ -1169,6 +1180,7 @@ class EventsController extends Controller
         $this->delete_image($event->image);
         $this->delete_image($event->video);
         $this->delete_image($event->file);
+        $this->delete_image($event->pdf);
         $event->forceDelete();
         
         return response()->json([
@@ -1177,7 +1189,7 @@ class EventsController extends Controller
     }
     
 
-    public function delete_image($image){
+    public function delete_image($imagePath){
         try { 
             File::delete($imagePath); 
         } catch (\Throwable $th) {

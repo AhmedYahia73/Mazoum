@@ -3502,7 +3502,7 @@ class EventUersController extends Controller
 
 
                 $response = SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $header_type);
-                dd($response->getBody());
+                dd($response->json());
                 if ($response != null && $response->getStatusCode() == 200) {
                     $user->update([
                         'balance' => $user->balance - $users_count

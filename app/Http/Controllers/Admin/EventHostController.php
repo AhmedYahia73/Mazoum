@@ -316,7 +316,8 @@ class EventHostController extends Controller
           'custom_invetaion' => 'required|numeric',
           "custom_event_id" => "exists:custom_event,id",
           "event_id" => "exists:events,id",
-          "password" => "required"
+          "password" => "required",
+          "user_id" => "required|exists:users,id"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -330,17 +331,7 @@ class EventHostController extends Controller
             ]);
 
         }
-        $user_id = 0;
-        if($request->event_id){ 
-            $user_id = Events::
-            where("id", $request->event_id)
-            ->first()->user_id;
-        }
-        if($request->custom_event_id){ 
-            $user_id = CustomEvent::
-            where("id", $request->custom_event_id)
-            ->first()->user_id;
-        }
+        $user_id = $request->user_id; 
         $user = User::
         where("id", $user_id)
         ->first();

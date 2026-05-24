@@ -3443,8 +3443,7 @@ class EventUersController extends Controller
         $users = Model::
         whereIn("id", $users_ids)
         ->get();
-        // الاسم ,عدد الدعوات
-        try{
+        // الاسم ,عدد الدعوات 
             foreach ($users as $key => $user) {
                 $users_count = $user->users_count;
                 $param1 = $user->name;
@@ -3539,17 +3538,7 @@ class EventUersController extends Controller
                     return response()->json(['errors', 'فشل الارسال', 400]);
                 }
             }
-            
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-            // لو فيسبوك رجع خطأ (زي 400)، الكود مش هيقفل 500، بل هيدخل هنا ويطبع تفاصيل الخطأ
-            $errorResponse = $e->getResponse();
-            $errorBody = json_decode($errorResponse->getBody()->getContents(), true);
-            
-            dd([
-                'error_from_facebook' => $errorBody,
-                'status_code' => $errorResponse->getStatusCode()
-            ]);
-        }
+             
     }
      
 }

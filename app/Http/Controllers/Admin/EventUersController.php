@@ -1343,20 +1343,14 @@ class EventUersController extends Controller
                             if($request->type && $request->type == "video"){
                                 $template_name = 'wedding__video';
                                 $image_path = $event->video;
-                                $header_type = 'video';
-                                $send_buttons = false;
                             }
                             elseif($request->type && $request->type == "pdf"){
                                 $template_name = 'wedding__pdf';
                                 $image_path = $event->pdf;
-                                $header_type = 'document';
-                                $send_buttons = false;
                             }
                             else{
                                 $template_name = 'wedding_data_v1_ar';
                                 $image_path = $event->file;
-                                $header_type = 'image';
-                                $send_buttons = false;
                             }
                             $language = 'ar';
                             $image_url = $image_path;
@@ -1379,7 +1373,7 @@ class EventUersController extends Controller
                             $token          = 'EABIy7zT1dfYBO304MlaYIQZBalGto0d1oPSCKHXEosSCsaLIdxE6QgftNNSLuhG37zirzBTMpK8HprkTRtlLyQZB1evrzBItZBW8y8LgZAYQ1pd6y64GtnMmKUZCjlY0QAZBhvu0VErD7fPzO8iz0cg0OrZBC8ovZA1F5ZCLzWa85nwaL1jWP8WYaa8yI1Ffkmvsy0QHjRrU5bSMJLS8b9bt7ZA2c0Ys8WYvlTMufprZCQ5ZCiAGTqGfzO9LcVY8S9CdpuY1PZBD1phEneQZDZD';
                           	*/
  
-                            $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+                            $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
 
                             // if($event->country_code == 'kw') {
 

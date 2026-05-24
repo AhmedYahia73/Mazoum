@@ -136,14 +136,13 @@ if (! function_exists('SendCustomMessageTemplate')) {
 
     }
 }
-
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image", $send_buttons = false)
+    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image")
     {
         $components = [];
 
-        // 1. بناء الهيدر الديناميكي
+        // 1. بناء الهيدر بناءً على النوع (صورة، فيديو، أو مستند PDF)
         if ($header_type === 'document') {
             $components[] = [
                 'type' => 'header',
@@ -183,7 +182,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
             ];
         }
 
-        // 2. بناء البودي (تأكدنا من الصور أنهم 6 متغيرات صراحةً)
+        // 2. بناء البودي (المتغيرات الستة الظاهرة في الصورة الثانية لديك)
         $components[] = [
             'type' => 'body',
             'parameters' => [
@@ -196,42 +195,8 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
             ]
         ];
 
-        // 3. تعديل الأزرار لتطابق الأزرار الـ "المخصصة" (Custom) الظاهرة في صورتك 🎯
-        if ($send_buttons) {
-            $components[] = [
-                'type' => 'button',
-                'sub_type' => 'quick_reply',
-                'index' => 0,
-                'parameters' => [
-                    [
-                        'type' => 'text',      // 👈 تم التعديل إلى text لتتوافق مع الأزرار المخصصة
-                        'text' => 'attend'
-                    ]
-                ]
-            ];
-            $components[] = [
-                'type' => 'button',
-                'sub_type' => 'quick_reply',
-                'index' => 1,
-                'parameters' => [
-                    [
-                        'type' => 'text',
-                        'text' => 'not-attend'
-                    ]
-                ]
-            ];
-            $components[] = [
-                'type' => 'button',
-                'sub_type' => 'quick_reply',
-                'index' => 2,
-                'parameters' => [
-                    [
-                        'type' => 'text',
-                        'text' => 'location'
-                    ]
-                ]
-            ];
-        }
+        // 📝 ملاحظة: تم حذف مصفوفة الأزرار نهائياً لأن أزرارك مخصصة وثابتة في المنصة 
+        // وتظهر تلقائياً للمستخدم دون الحاجة لإرسالها عبر الـ API.
 
         $arr = [
             'messaging_product' => 'whatsapp',

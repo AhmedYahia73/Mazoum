@@ -143,7 +143,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
     {
         $components = [];
 
-        // 1. بناء الهيدر بناءً على النوع
+        // 1. بناء الهيدر الديناميكي
         if ($header_type === 'document') {
             $components[] = [
                 'type' => 'header',
@@ -183,7 +183,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
             ];
         }
 
-        // 2. بناء البودي (متغيرات النص من 1 إلى 6)
+        // 2. بناء البودي (تأكدنا من الصور أنهم 6 متغيرات صراحةً)
         $components[] = [
             'type' => 'body',
             'parameters' => [
@@ -196,30 +196,39 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
             ]
         ];
 
-        // 3. إضافة الأزرار (تم تعديل الكابيتال payload إلى سمول لضمان الـ Schema)
+        // 3. تعديل الأزرار لتطابق الأزرار الـ "المخصصة" (Custom) الظاهرة في صورتك 🎯
         if ($send_buttons) {
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
-                'index' => '0',
+                'index' => 0,
                 'parameters' => [
-                    ['type' => 'payload', 'payload' => 'attend'] // 👈 تم تعديل payload لتكون سمول
+                    [
+                        'type' => 'text',      // 👈 تم التعديل إلى text لتتوافق مع الأزرار المخصصة
+                        'text' => 'attend'
+                    ]
                 ]
             ];
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
-                'index' => '1',
+                'index' => 1,
                 'parameters' => [
-                    ['type' => 'payload', 'payload' => 'not-attend']
+                    [
+                        'type' => 'text',
+                        'text' => 'not-attend'
+                    ]
                 ]
             ];
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
-                'index' => '2',
+                'index' => 2,
                 'parameters' => [
-                    ['type' => 'payload', 'payload' => 'location']
+                    [
+                        'type' => 'text',
+                        'text' => 'location'
+                    ]
                 ]
             ];
         }

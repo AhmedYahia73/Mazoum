@@ -3437,10 +3437,11 @@ class EventUersController extends Controller
             ],400);
         }
 
+        $users_ids = array_column($request->users, "id");
         $event = Events::
         findOrFail($request->event_id);
         $users = Model::
-        whereIn("id", $request->users)
+        whereIn("id", $users_ids)
         ->get();
         // الاسم ,عدد الدعوات
         try{

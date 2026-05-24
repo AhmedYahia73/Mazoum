@@ -3530,15 +3530,17 @@ class EventUersController extends Controller
                         "send_type" => "meta"
                     ]);
 
-                    return response()->json(['success', 'تم الأرسال بنجاح']);
                 } else {
                     $user->update([
                         'status' => 'failed',
                     ]);
-                    return response()->json(['errors', 'فشل الارسال', 400]);
                 }
             }
             
+            return response()->json([
+                'success'=> 'تم الأرسال بنجاح',
+                'user' => $users
+            ]);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             // لو فيسبوك رجع خطأ (زي 400)، الكود مش هيقفل 500، بل هيدخل هنا ويطبع تفاصيل الخطأ
             $errorResponse = $e->getResponse();

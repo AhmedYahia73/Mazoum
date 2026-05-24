@@ -1344,13 +1344,12 @@ class EventUersController extends Controller
                                 $template_name = 'wedding__video';
                                 $image_path = $event->video;
                                 $header_type = 'video';
-                                $send_buttons
                             }
                             elseif($request->type && $request->type == "pdf"){
                                 $template_name = 'wedding__pdf';
                                 $image_path = $event->pdf;
-                                $header_type = 'document';
-                            }
+                                $header_type = 'pdf';
+                            } 
                             else{
                                 $template_name = 'wedding_data_v1_ar';
                                 $image_path = $event->file;

@@ -3426,7 +3426,7 @@ class EventUersController extends Controller
 
     public function send_invite_utility_msg(Request $request){
        $validator = Validator::make($request->all(), [
-            'event_id' => 'required|exists:events:id',
+            'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required|exists:event_users,id',
             'users.*.count' => 'required|numeric',

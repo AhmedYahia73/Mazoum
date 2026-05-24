@@ -3365,11 +3365,184 @@ class EventUersController extends Controller
     }
 
     public function faild_users(Request $request, $id){ 
-        $faild_send = EventUsers::
-        where('event_id', $id) 
-        ->where('status', 'failed') 
-        ->get();
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::
+        where('event_id',$id)
+        ->where('status','failed') 
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        }) 
+        ->paginate(15)
+        ->withQueryString() 
+        ->through(function($item) { 
+            return [
+                "id" => $item->id,
+                "users_count" => $item->accept_count, 
+                'event_id' => $item->event_id,
+                'uu_id' => $item->uu_id,
+                'message_id' => $item->message_id,
+                'name' => $item->name,
+                'mobile' => $item->mobile,
+                'status' => $item->status,
+                'scan' => $item->scan,
+                'scan_at' => $item->scan_at,
+                'get_location' => $item->get_location,
+                'accept_count' => $item->accept_count,
+                'is_sent' => $item->is_sent,
+                'is_delivered' => $item->is_delivered,
+                'qr_sent' => $item->qr_sent,
+                'is_accepted' => $item->is_accepted,
+                'is_refused' => $item->is_refused,
+                'log' => $item->log,
+                'sent_from' => $item->sent_from,
+                'is_read' => $item->is_read,
+                'error_title' => $item->error_title,
+                'error' => $item->error,
+                'confirmed_at' => $item->confirmed_at,
+                'is_open' => $item->is_open,
+                'is_new_sent' => $item->is_new_sent,
+                'scan_count' => $item->scan_count,
+                'is_send_congratulation' => $item->is_send_congratulation,
+                'code' => $item->code,
+                "send_time" => $item->send_time,
+                "accept_time" => $item->accept_time
+            ];
+        });
+
+        $title = 'كل الدعوات (Faild Send)';
+
+
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title,  
+        ]); 
     }
+
+    public function send_invite_utility_msg(Request $request){
+       $validator = Validator::make($request->all(), [
+            'event_id' => 'required|exists:events:id',
+            'users' => 'required|array',
+            'users.*.id' => 'required|exists:event_users,id',
+            'users.*.count' => 'required|numeric',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        $event = Events::
+        findOrFail($request->event_id);
+        $users = Model::
+        whereIn("id", $request->users)
+        ->get();
+        // الاسم ,عدد الدعوات
+        try{
+            foreach ($users as $key => $user) {
+                $users_count = $user->users_count;
+                $param1 = $user->name;
+                $param2 = $user->users_count; 
+
+                $qr_record = Qr_Code::where('event_user_id', $user->id)->latest()->first();
+                if ($qr_record) {
+                    $uu_id      = $qr_record->uu_id;
+                    $image_name = $qr_record->qr;
+                } else {
+                    $uu_id      = $this->unique_uu_id();
+                    $image_name = $uu_id . '-test-qr.png';
+                    Qr_Code::create([
+                        'event_user_id' => $user->id,
+                        'event_id'      => $user->event_id,
+                        'qr'            => $image_name,
+                        'uu_id'         => $uu_id,
+                        'counter'       => 0,
+                    ]);
+                }
+                $user->update([
+                    'status' => 'hold',
+                    'users_count' => $request->users[$key]['count'],
+                    'scan' => null,
+                    'scan_at' => null,
+                    'get_location' => null,
+                    'message_id' => null,
+                    'is_sent' => null,
+                    'sent_from' => null,
+                    'is_delivered' => null,
+                    'is_read' => null,
+                    'qr_sent' => null,
+                    'is_accepted' => null,
+                    'is_refused' => null,
+                    'error_title' => null,
+                    'error' => null,
+                    'log' => null,
+                ]);
+                
+                $mobile = $user->mobile; 
+                $to = $mobile;
+                $to = str_replace("+","",$to);
+                
+                $template_name = 'wedding__masj';
+                $image_url = $event->file;
+                $header_type = 'image';
+                $send_buttons = true;
+                $language = 'ar'; 
+
+                
+
+                $token          = get_whats_setting($event)['token'];
+                $sender_id      = get_whats_setting($event)['sender_id'];
+                $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+
+                $response = SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $header_type);
+                if ($response != null && $response->getStatusCode() == 200) {
+                    $user->update([
+                        'balance' => $user->balance - $users_count
+                    ]);
+
+                    // $body = $response->getBody();
+                    // $data = json_decode($body, true);
+
+                    $response_data = $response->getBody()->getContents();
+                    $data = json_decode($response_data, true);
+
+                    //dd($data);
+                    // dd(11,$response_data,json_decode($response_data,true));
+
+                    if(array_key_exists('messages', $data) && count($data['messages']) >= 0 && array_key_exists('id', $data['messages'][0])) {
+                        $message_id = $data['messages'][0]['id'];
+                    } else {
+                        $message_id = 0;
+                    }
+
+                    $user->update([
+                        'is_sent' => 'yes',
+                        'sent_from' => 'dashboard',
+                        'status' => 'sent',
+                        'message_id' => $message_id,
+                        "send_type" => "meta"
+                    ]);
+
+                    return response()->json(['success', 'تم الأرسال بنجاح']);
+                } else {
+                    $user->update([
+                        'status' => 'failed',
+                    ]);
+                    return response()->json(['errors', 'فشل الارسال', 400]);
+                }
+            }
+            
+        } catch(\Exception $e) {
+            dd($e->getMessage(), $e->getLine());
+        }
+    }
+     
 }
 
 

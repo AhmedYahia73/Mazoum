@@ -249,6 +249,100 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
 }
 
 
+if (! function_exists('SendWeddingDataV1ArTemplate')) {
+
+    function SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
+    {
+
+        $arr = [
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $to,
+          'type' => 'template',
+          'template' => [
+                'name' => $template_name,
+                'language' => [
+                    'code' => $language
+                ],
+                'components' => [
+                    [
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => $header_type,
+                                $header_type => [
+                                    'link' => $image_url,
+                                ],
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $param_1
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_2
+                            ],
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'PAYLOAD',
+                                'payload' => 'attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'not-attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'location'
+                            ]
+                        ],
+                    ]
+                ]
+           ],
+        ];
+
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
+
+        $client = new Client();
+
+        $response = $client->post($fullUrl, [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+            ],
+            'json' => $arr,
+        ]);
+
+        return $response;
+
+    }
+}
+
+
 
 if (! function_exists('SendWeddingDataV2ArTemplate')) {
 

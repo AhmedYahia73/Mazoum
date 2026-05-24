@@ -137,77 +137,90 @@ if (! function_exists('SendCustomMessageTemplate')) {
     }
 }
 
-
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
     function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type = "image", $send_buttons = false)
     {
-        // 1. بناء الهيدر الصريح لتجنب مشاكل الـ JSON Schema constraint 'enum'
-        $headerParameters = [];
+        $components = [];
 
+        // 1. بناء الهيدر بناءً على النوع
         if ($header_type === 'document') {
-            $headerParameters[] = [
-                'type' => 'document',
-                'document' => [
-                    'link' => $image_url,
-                    'filename' => 'Invitation.pdf'
+            $components[] = [
+                'type' => 'header',
+                'parameters' => [
+                    [
+                        'type' => 'document',
+                        'document' => [
+                            'link' => $image_url,
+                            'filename' => 'Invitation.pdf'
+                        ]
+                    ]
                 ]
             ];
         } elseif ($header_type === 'video') {
-            $headerParameters[] = [
-                'type' => 'video',
-                'video' => [
-                    'link' => $image_url
+            $components[] = [
+                'type' => 'header',
+                'parameters' => [
+                    [
+                        'type' => 'video',
+                        'video' => [
+                            'link' => $image_url
+                        ]
+                    ]
                 ]
             ];
         } else {
-            // الافتراضي image
-            $headerParameters[] = [
-                'type' => 'image',
-                'image' => [
-                    'link' => $image_url
+            $components[] = [
+                'type' => 'header',
+                'parameters' => [
+                    [
+                        'type' => 'image',
+                        'image' => [
+                            'link' => $image_url
+                        ]
+                    ]
                 ]
             ];
         }
 
-        // 2. تجميع المكونات الأساسية
-        $components = [
-            [
-                'type' => 'header',
-                'parameters' => $headerParameters
-            ],
-            [
-                'type' => 'body',
-                'parameters' => [
-                    ['type' => 'text', 'text' => (string)$param_1],
-                    ['type' => 'text', 'text' => (string)$param_2],
-                    ['type' => 'text', 'text' => (string)$param_3],
-                    ['type' => 'text', 'text' => (string)$param_4],
-                    ['type' => 'text', 'text' => (string)$param_5],
-                    ['type' => 'text', 'text' => (string)$param_6]
-                ],
+        // 2. بناء البودي (متغيرات النص من 1 إلى 6)
+        $components[] = [
+            'type' => 'body',
+            'parameters' => [
+                ['type' => 'text', 'text' => (string)$param_1],
+                ['type' => 'text', 'text' => (string)$param_2],
+                ['type' => 'text', 'text' => (string)$param_3],
+                ['type' => 'text', 'text' => (string)$param_4],
+                ['type' => 'text', 'text' => (string)$param_5],
+                ['type' => 'text', 'text' => (string)$param_6]
             ]
         ];
 
-        // 3. إضافة الأزرار فقط للقالب القديم
+        // 3. إضافة الأزرار (تم تعديل الكابيتال payload إلى سمول لضمان الـ Schema)
         if ($send_buttons) {
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
                 'index' => '0',
-                'parameters' => [['type' => 'payload', 'payload' => 'attend']]
+                'parameters' => [
+                    ['type' => 'payload', 'payload' => 'attend'] // 👈 تم تعديل payload لتكون سمول
+                ]
             ];
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
                 'index' => '1',
-                'parameters' => [['type' => 'payload', 'payload' => 'not-attend']]
+                'parameters' => [
+                    ['type' => 'payload', 'payload' => 'not-attend']
+                ]
             ];
             $components[] = [
                 'type' => 'button',
                 'sub_type' => 'quick_reply',
                 'index' => '2',
-                'parameters' => [['type' => 'payload', 'payload' => 'location']]
+                'parameters' => [
+                    ['type' => 'payload', 'payload' => 'location']
+                ]
             ];
         }
 
@@ -222,7 +235,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
                     'code' => $language
                 ],
                 'components' => $components
-            ],
+            ]
         ];
 
         $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';

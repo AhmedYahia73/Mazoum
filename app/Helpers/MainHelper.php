@@ -31,7 +31,7 @@ if (! function_exists('get_whats_setting')) {
 
       	//dd($event->country_code);
 
-        if($event->country_code == 'sa') {
+        if($event->country_code == 'kw') {
             $token     = $setting->access_token;
             $sender_id = $setting->sender_id;
         } else {

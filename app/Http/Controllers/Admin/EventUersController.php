@@ -3445,6 +3445,7 @@ class EventUersController extends Controller
         ->get();
         // الاسم ,عدد الدعوات
         try{
+            $msg = [];
             foreach ($users as $key => $user) {
                 $users_count = $user->users_count;
                 $param1 = $user->name;
@@ -3490,14 +3491,12 @@ class EventUersController extends Controller
                 
                 $template_name = 'wedding__masj';
                 $image_url = $event->file;
-                $header_type = 'image';
-                $send_buttons = true;
+                $header_type = 'image'; 
                 $language = 'ar'; 
 
                 
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
+                $token          = get_whats_setting($event)['token']; 
                 $phone_numer_id = get_whats_setting($event)['sender_id'];
 
 
@@ -3534,12 +3533,18 @@ class EventUersController extends Controller
                     $user->update([
                         'status' => 'failed',
                     ]);
+                    $msg[] = $user;
                 }
             }
-            
+            if(count($msg) > 0){
+
+                return response()->json([
+                    'errors'=> 'عدد الدعوات الفاشلة ' . count($msg),
+                    'user' => $msg
+                ]);
+            }
             return response()->json([
                 'success'=> 'تم الأرسال بنجاح',
-                'user' => $users
             ]);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             // لو فيسبوك رجع خطأ (زي 400)، الكود مش هيقفل 500، بل هيدخل هنا ويطبع تفاصيل الخطأ

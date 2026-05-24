@@ -249,7 +249,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
 }
 
 
-if (! function_exists('SendWeddingDataV1ArTemplate')) {
+if (! function_exists('SendWeddingUtilityV1ArTemplate')) {
 
     function SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
     {

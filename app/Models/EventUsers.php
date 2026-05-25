@@ -24,7 +24,7 @@ class EventUsers extends Model
 
     public function enter()
     {
-        return $this->belongsTo('App\Models\EnterUserEvent', 'event_user_id');
+        return $this->hasMany('App\Models\EnterUserEvent', 'event_user_id');
     }
 
     public function msgs(){

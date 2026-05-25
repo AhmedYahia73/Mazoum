@@ -287,8 +287,9 @@ Route::get('confirmed-users-web-chat/{id}', 'EventUersController@confirmed_users
 Route::get('excel-confirmed-users-web-chat/{id}', 'EventUersController@excel_confirmed_users_web_chat');
 
 
-// import
+// import 
 Route::post('event-user-import', 'EventUersController@import');
+Route::post('import_users', 'EventUersController@import_users');
 
 
 Route::get('qr-sent-event-details/{id}', 'EventUersController@qr_sent_event_details');

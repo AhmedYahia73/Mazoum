@@ -900,6 +900,57 @@ class EventUersController extends Controller
     public function save_event_users(Request $request)
     { 
        $validator = Validator::make($request->all(), [
+            'event_id' => 'required|exists:events,id', 
+            'event_users.*.name' => 'required',
+            'event_users.*.mobile' => 'required|numeric',
+          	'event_users.*.users_count' => 'required|numeric|min:1',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $event_id = $request->event_id;
+
+        $event = Events::where('id', $event_id)->firstOrFail();
+
+        if($request->event_users != null && ! empty($request->event_users)) {
+
+            foreach ($request->event_users as $arr) {
+                if($arr['name'] != null && $arr['mobile'] != null && is_numeric($arr['mobile']) && $arr['users_count'] != null && is_numeric($arr['users_count'])) {
+
+                  $check = Model::withTrashed()->where('event_id',$event_id)->where('mobile',ltrim($arr['mobile'],"+"))->count();
+
+                  if($check == 0) {
+
+                    Model::withTrashed()->create([
+                        'event_id' => $event_id,
+                        'name' => $arr['name'],
+                        'mobile' => ltrim($arr['mobile'],"+"),
+                        'users_count' => $arr['users_count'],
+                        'status' => 'hold', 
+                    ]);
+
+                  }
+
+                }
+            }
+
+        }
+
+
+        return response()->json([
+            'success' => 'تم الحفظ بنجاح', 
+        ]);
+
+    }
+
+
+    // user_save_event_users
+    public function user_save_event_users(Request $request)
+    { 
+       $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',
             'user_id' => 'required|exists:users,id',
             'event_users.*.name' => 'required',

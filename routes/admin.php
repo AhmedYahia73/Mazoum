@@ -221,6 +221,7 @@ Route::get('save_event_users', function() {
 Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
 Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
 Route::post('save_event_users', 'EventUersController@save_event_users');
+Route::post('user_save_event_users', 'EventUersController@user_save_event_users');
 
 Route::get('faild_users/{id}', 'EventUersController@faild_users');
 Route::post('send_invite_utility_msg', 'EventUersController@send_invite_utility_msg');

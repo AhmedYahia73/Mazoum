@@ -3487,7 +3487,7 @@ class EventUersController extends Controller
         ->through(function($item) { 
             return [
                 "id" => $item->id,
-                "users_count" => $item->accept_count, 
+                "users_count" => $item->users_count, 
                 'event_id' => $item->event_id,
                 'uu_id' => $item->uu_id,
                 'message_id' => $item->message_id,

@@ -3553,8 +3553,23 @@ class EventUersController extends Controller
         try{
             $msg = [];
             foreach ($users as $key => $user) {
+
+                $user_name   = $user->name;
+                $event_title   = $event->title;
+                $event_day   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                $event_address   = $event->address;
+                $event_time   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
                 $users_count = $user->users_count;
-                $param1 = $user->name;
+                $setting = Setting::first();
+
+                $param1 = $user_name . PHP_EOL . PHP_EOL .
+                $event_title . PHP_EOL . PHP_EOL .
+                "و ذلك بمشيئة الله تعالى يوم" . $event_day . 
+                " الموافق 📆 " . $event->date . PHP_EOL . PHP_EOL .
+                "مكان الحفل " . $event_address . PHP_EOL . PHP_EOL .
+                "الاستقبال⏱️ " . $event_time . PHP_EOL . PHP_EOL .
+                "خدمة عملاء معزوم" . PHP_EOL .
+                "966599272904 - 96597378181";
                 $param2 = $user->users_count; 
 
                 $qr_record = Qr_Code::where('event_user_id', $user->id)->latest()->first();

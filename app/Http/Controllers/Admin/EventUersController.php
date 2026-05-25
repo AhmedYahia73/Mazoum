@@ -2576,6 +2576,7 @@ class EventUersController extends Controller
         where('event_id',$Item->id)
         ->where('qr_sent','yes')
         ->where("accept_count", ">", 0)
+        ->with("enter")
         //->where('qr_sent', 'yes')
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
@@ -2620,7 +2621,15 @@ class EventUersController extends Controller
                 'is_send_congratulation' => $item->is_send_congratulation,
                 'code' => $item->code,
                 "send_time" => $item->send_time,
-                "accept_time" => $item->accept_time
+                "accept_time" => $item->accept_time,
+                "user_enrance" => $item->enter
+                ->map(function($element){
+                    return [
+                        "count" => $element->count,
+                        "date" => $element->created_at->format("Y-m-d"),
+                        "time" => $element->created_at->format("h:i A"),
+                    ];
+                })
             ];
         });
 

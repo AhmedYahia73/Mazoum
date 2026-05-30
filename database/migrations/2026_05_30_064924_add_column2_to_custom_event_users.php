@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumn1ToCustomEventUsers extends Migration
+class AddColumn2ToCustomEventUsers extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,8 @@ class AddColumn1ToCustomEventUsers extends Migration
     public function up()
     {
         Schema::table('custom_event_users', function (Blueprint $table) {
-            $table->enum("status", ["pending", "confirm", "apologize"])->default("pending");
+            $table->integer("confirm_count")->default(0);
+            $table->integer("apologize_count")->default(0);
         });
     }
 

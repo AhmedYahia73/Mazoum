@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\CustomEvent;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventUsers;
-use Illuminate\Support\Facades\Validator;
+use App\Models\CustomMessage;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CustomEventController extends Controller
 {
@@ -193,4 +195,90 @@ class CustomEventController extends Controller
 
         return  $input;
     }
+    
+
+    public function event_report($id)
+    {
+        $Item = Model::findOrFail($id);
+        $visitors_count = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('users_count');
+        $qr_count = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->where('scan','yes')
+        ->sum('scan_count');
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("event_id", $Item->id);
+        })
+        ->count();
+        $congratulation_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "congratulation")
+        ->count();
+        $apologize_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "apologize")
+        ->count();
+        $apologize_count = CustomEventUsers::
+        where("custom_event_id", $Item->id)
+        ->where("status", "apologize")
+        ->count();
+        $confirm_count = CustomEventUsers::
+        where("custom_event_id", $Item->id)
+        ->where("status", "confirm")
+        ->count();
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'visitors_count' =>  $visitors_count, 
+            'qr_count' =>  $qr_count, 
+            'event_host' =>  $event_host, 
+            
+            'congratulation_msg' =>  $congratulation_msg, 
+            'apologize_msg' =>  $apologize_msg, 
+            'apologize_count' =>  $apologize_count, 
+            'confirm_count' =>  $confirm_count, 
+        ]); 
+    }
+    
+    public function congratulation_msg($id){
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "congratulation")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    } 
+    
+    public function apologize_msg($id){
+        // status
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "apologize")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    } 
 }

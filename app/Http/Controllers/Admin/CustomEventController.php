@@ -888,11 +888,11 @@ class CustomEventController extends Controller
         $apologize_count = CustomEventUsers::
         where("custom_event_id", $Item->id)
         ->where("status", "apologize")
-        ->count();
+        ->sum("apologize_count");
         $confirm_count = CustomEventUsers::
         where("custom_event_id", $Item->id)
         ->where("status", "confirm")
-        ->count();
+        ->sum("confirm_count");
 
         return response()->json([
             'Item' =>  $Item, 
@@ -1189,22 +1189,36 @@ class CustomEventController extends Controller
     public function status(Request $request, $id){
         $validator = Validator::make($request->all(), [
             "status" => "required|in:confirm,apologize",
+            "count" => "required|integer"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
                 'errors' => $validator->errors(),
             ],400);
-        } 
-        CustomEventUsers::
-        where("id", $id)
-        ->update([
-            "status" => $request->status
-        ]);
+        }  
+
+        if($request->status == "confirm"){
+            CustomEventUsers::
+            where("id", $id)
+            ->update([
+                "status" => $request->status,
+                "confirm_count" => $request->count,
+            ]);
+        }
+        else{
+            CustomEventUsers::
+            where("id", $id)
+            ->update([
+                "status" => $request->status,
+                "apologize_count" => $request->count,
+            ]);
+        }
 
         return response()->json([ 
             "success" => "You update data success",
         ]);
     }
+
 }
 
 

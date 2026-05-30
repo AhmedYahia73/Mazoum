@@ -1187,9 +1187,13 @@ class CustomEventController extends Controller
     }
 
     public function status(Request $request, $id){
+    
+        $custom_event = CustomEventUsers::
+        findOrFail($id);
+        $count = $custom_event->users_count - $custom_event->confirm_count - $custom_event->apologize_count;
         $validator = Validator::make($request->all(), [
             "status" => "required|in:confirm,apologize",
-            "count" => "required|integer"
+            "count" => "required|integer|max:" . $count
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1198,16 +1202,14 @@ class CustomEventController extends Controller
         }  
 
         if($request->status == "confirm"){
-            CustomEventUsers::
-            where("id", $id)
+            $custom_event
             ->update([
                 "status" => $request->status,
                 "confirm_count" => $request->count,
             ]);
         }
         else{
-            CustomEventUsers::
-            where("id", $id)
+            $custom_event
             ->update([
                 "status" => $request->status,
                 "apologize_count" => $request->count,

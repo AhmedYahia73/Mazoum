@@ -62,14 +62,45 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // استخدام المسار الداخلي المطلق للسيرفر لكي يتمكن mPDF من قراءة الصورة بدون الحاجة للإنترنت
+        // استخدام المسار الداخلي المطلق للسيرفر
         $pdfFile = $event->getRawOriginal('pdf');
         $pdfPath = public_path('images/' . $pdfFile);
         if ($pdfFile && file_exists($pdfPath)) {
             $image = str_replace('\\', '/', $pdfPath);
         } else {
-            // fallback image if the file doesn't exist
             $image = str_replace('\\', '/', public_path('img/no-image.png'));
+        }
+
+        // ضغط الصورة لتقليل حجم الـ PDF (لكي يفتحها WhatsApp مباشرة بدون تحميل)
+        $compressedImagePath = null;
+        if ($image && file_exists($image)) {
+            try {
+                $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+                $srcImage = null;
+                if ($ext === 'png') {
+                    $srcImage = @imagecreatefrompng($image);
+                } elseif (in_array($ext, ['jpg', 'jpeg'])) {
+                    $srcImage = @imagecreatefromjpeg($image);
+                }
+
+                if ($srcImage) {
+                    // نضغط إلى 794x1123 (A4 على 96 DPI) لتقليل الحجم
+                    $targetW = 794;
+                    $targetH = 1123;
+                    $resized = imagecreatetruecolor($targetW, $targetH);
+                    imagecopyresampled($resized, $srcImage, 0, 0, 0, 0,
+                        $targetW, $targetH, imagesx($srcImage), imagesy($srcImage));
+                    imagedestroy($srcImage);
+
+                    $compressedImagePath = sys_get_temp_dir() . '/pdf_bg_' . uniqid() . '.jpg';
+                    imagejpeg($resized, $compressedImagePath, 80); // جودة 80% كافية
+                    imagedestroy($resized);
+
+                    $image = $compressedImagePath;
+                }
+            } catch (\Throwable $ex) {
+                // نستمر بالصورة الأصلية إذا فشل الضغط
+            }
         }
 
         try {
@@ -146,6 +177,10 @@ a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; pa
         // Delete the PDF after sending to save server space
         if (file_exists($pdf_path)) {
             @unlink($pdf_path);
+        }
+        // Delete compressed temp image if created
+        if ($compressedImagePath && file_exists($compressedImagePath)) {
+            @unlink($compressedImagePath);
         }
         
         if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true' && isset($api['message']) && $api['message'] == 'ok') {

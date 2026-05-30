@@ -33,7 +33,7 @@
             position: relative;
             width: 595px;  /* عرض الـ A4 بـ البكسل عند 72dpi */
             height: 842px; /* طول الـ A4 بـ البكسل */
-            background-image: url('https://mazoom.online/images/69f84857eec35.jpg"'); /* حط هنا اسم الصورة بتاعتك */
+            background-image: url('https://mazoom.online/images/69f84857eec35.jpg'); /* حط هنا اسم الصورة بتاعتك */
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;

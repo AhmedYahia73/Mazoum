@@ -73,16 +73,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         }
 
         try {
-            // تحويل الصورة إلى Base64 لضمان ظهورها كخلفية في mPDF بدون أي مشاكل
-            $imageBase64 = '';
-            $imageMime = 'image/jpeg';
-            if ($image && file_exists($image)) {
-                $imageData = file_get_contents($image);
-                $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
-                $imageMime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                $imageBase64 = 'data:' . $imageMime . ';base64,' . base64_encode($imageData);
-            }
-
             $config = [
                 'margin_left'   => 0,
                 'margin_right'  => 0,
@@ -90,22 +80,51 @@ class SendCustomEventPdfJob implements ShouldQueue
                 'margin_bottom' => 0,
                 'margin_header' => 0,
                 'margin_footer' => 0,
+                'format'        => 'A4',
             ];
-            
-            // نبني HTML يحتوي على الصورة كـ background مباشرة في body عبر Base64
-            $html = view('PDF.customPDF', compact('confirm_link', 'apologize_link', 'imageBase64'))->render();
 
-            $pdf = PDF::loadHTML($html, $config);
-            
+            // إنشاء mPDF مباشرة
+            $mpdf = new \Mpdf\Mpdf($config);
+
+            // وضع الصورة كخلفية كاملة للصفحة باستخدام Image() API مباشرة
+            // A4 = 210mm x 297mm
+            if ($image && file_exists($image)) {
+                $mpdf->Image($image, 0, 0, 210, 297, '', '', true, false);
+            }
+
+            // بناء HTML الأزرار فقط (بدون صورة) بـ CSS بسيط جداً
+            $buttonsHtml = '
+<html><head><meta charset="UTF-8">
+<style>
+body { margin: 0; padding: 0; font-family: Arial; }
+table { margin: 0 auto; }
+td { padding-left: 6mm; padding-right: 6mm; }
+a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; padding-right: 6mm; font-size: 12pt; font-weight: bold; text-decoration: none; color: #ffffff; }
+.a1 { background-color: #1e6b40; }
+.a2 { background-color: #8e2020; }
+</style>
+</head><body>
+<table cellpadding="0" cellspacing="0">
+<tr>
+<td><a href="' . $confirm_link . '" class="a1">تأكيد الحضور</a></td>
+<td><a href="' . $apologize_link . '" class="a2">الاعتذار عن الحضور</a></td>
+</tr>
+</table>
+</body></html>';
+
+            // تحديد موضع الأزرار من أعلى الصفحة (297mm - 35mm من الأسفل = 262mm)
+            $mpdf->SetY(262);
+            $mpdf->WriteHTML($buttonsHtml);
+
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
-            
+
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);
             }
-            
+
             $pdf_path = $directory . '/' . $filename;
-            $pdf->save($pdf_path);
+            $mpdf->Output($pdf_path, 'F');
         } catch (\Exception $e) {
             Log::error("PDF Generation Error in Job: " . $e->getMessage());
             return;

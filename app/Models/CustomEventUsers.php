@@ -31,6 +31,7 @@ class CustomEventUsers extends Model
         'send_qr',
         'user_id',
         "resend_qr",
+        "status", //"pending", "confirm", "apologize"
     ];
 
     public function enter()

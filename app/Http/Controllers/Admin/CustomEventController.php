@@ -10,6 +10,7 @@ use App\Models\CustomEventUsers;
 use App\Models\EnterUserCustomEvent;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
+use App\Models\CustomMessage;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -876,12 +877,32 @@ class CustomEventController extends Controller
             $query->where("event_id", $Item->id);
         })
         ->count();
+        $congratulation_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "congratulation")
+        ->count();
+        $apologize_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "apologize")
+        ->count();
+        $apologize_count = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("status", "apologize")
+        ->count();
+        $congratulation_count = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("status", "confirm")
+        ->count();
 
         return response()->json([
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
             'qr_count' =>  $qr_count, 
             'event_host' =>  $event_host, 
+            'congratulation_msg' =>  $congratulation_msg, 
+            'apologize_msg' =>  $apologize_msg, 
+            'apologize_count' =>  $apologize_count, 
+            'congratulation_count' =>  $congratulation_count, 
         ]); 
     }
 
@@ -1097,6 +1118,89 @@ class CustomEventController extends Controller
 
         return response()->json([
             "enter_event" => $enter_event
+        ]);
+    } 
+    
+    public function congratulation_msg($id){
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "congratulation")
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    } 
+    
+    public function apologize_msg($id){
+        // status
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "apologize")
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    } 
+    
+    public function send_message(Request $request){
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'custom_user_id' => 'required|exists:custom_event_users,id',
+            "type" => "required|in:congratulation,apologize",
+            "msg" => "required"
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+
+        $messages = CustomMessage::create([
+            'custom_event_id' => $request->custom_event_id,
+            'custom_user_id' => $request->custom_user_id,
+            'msg' => $request->msg,
+            'type' => $request->type,
+        ]);
+
+        return response()->json([
+            "message" => $messages,
+            "success" => "You add data success",
+        ]);
+    }
+
+    public function status(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            "status" => "required|in:confirm,apologize",
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+        Model::
+        where("id", $id)
+        ->update([
+            "status" => $request->status
+        ]);
+
+        return response()->json([ 
+            "success" => "You update data success",
         ]);
     }
 }

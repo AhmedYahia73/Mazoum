@@ -427,6 +427,8 @@ Route::resource('custom_events', 'CustomEventController', [
 
 Route::delete('custom_events/force_destroy/{id}', 'CustomEventController@force_destroy');
 Route::post('custom_events/force_multi_delete', 'CustomEventController@force_multi_delete');
+Route::get('custom_events/confirm_count/{id}', 'CustomEventController@confirm_count');
+Route::get('custom_events/apologize_count/{id}', 'CustomEventController@apologize_count');
 Route::get('custom_events/congratulation_msg/{id}', 'CustomEventController@congratulation_msg');
 Route::get('custom_events/apologize_msg/{id}', 'CustomEventController@apologize_msg');
 Route::post('custom_events/send_message', 'CustomEventController@send_message');

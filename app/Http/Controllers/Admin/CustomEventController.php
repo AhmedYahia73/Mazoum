@@ -1208,6 +1208,52 @@ class CustomEventController extends Controller
         ]);
     } 
     
+    public function confirm_count(Request $request, $id){
+    
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("confirm_count", ">", 0)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->paginate(15);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,  
+        ]); 
+    } 
+    
+    public function apologize_count(Request $request, $id){
+        
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("apologize_count", ">", 0)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->paginate(15);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,  
+        ]); 
+    } 
+    
     public function send_message(Request $request){
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',

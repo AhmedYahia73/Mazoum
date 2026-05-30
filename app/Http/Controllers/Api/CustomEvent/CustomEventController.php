@@ -196,8 +196,7 @@ class CustomEventController extends Controller
         return  $input;
     }
     
-
-    public function event_report($id)
+    public function custom_event_report($id)
     {
         $Item = Model::findOrFail($id);
         $visitors_count = CustomEventUsers::
@@ -222,24 +221,82 @@ class CustomEventController extends Controller
         ->where("type", "apologize")
         ->count();
         $apologize_count = CustomEventUsers::
-        where("custom_event_id", $Item->id)
-        ->where("status", "apologize")
-        ->count();
+        where("custom_event_id", $Item->id) 
+        ->sum("apologize_count");
         $confirm_count = CustomEventUsers::
-        where("custom_event_id", $Item->id)
-        ->where("status", "confirm")
-        ->count();
+        where("custom_event_id", $Item->id) 
+        ->sum("confirm_count");
 
         return response()->json([
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
             'qr_count' =>  $qr_count, 
             'event_host' =>  $event_host, 
-            
             'congratulation_msg' =>  $congratulation_msg, 
             'apologize_msg' =>  $apologize_msg, 
             'apologize_count' =>  $apologize_count, 
             'confirm_count' =>  $confirm_count, 
+        ]); 
+    }
+
+    public function all_event_users(Request $request, $id)
+    {
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->get();
+        $invetations = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('users_count');
+        $attendance = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('scan_count');
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events, 
+            'invetations' =>  $invetations, 
+            'attendance' =>  $attendance, 
+        ]); 
+    }
+
+    public function scan_users(Request $request, $id)
+    {
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("scan_count", ">", 0)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->get();
+        $invetations = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('users_count');
+        $attendance = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->sum('scan_count');
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events, 
+            'invetations' =>  $invetations, 
+            'attendance' =>  $attendance, 
         ]); 
     }
     

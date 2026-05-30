@@ -57,6 +57,12 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/send_memories', 'send_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });
  
+    Route::get('/custom_event_report/{id}', 'Api\CustomEvent\CustomEventController@custom_event_report');
+    Route::get('/all_event_users/{id}', 'Api\CustomEvent\CustomEventController@all_event_users');
+    Route::get('/scan_users/{id}', 'Api\CustomEvent\CustomEventController@scan_users');
+    Route::get('/congratulation_msg/{id}', 'Api\CustomEvent\CustomEventController@congratulation_msg');
+    Route::get('/apologize_msg/{id}', 'Api\CustomEvent\CustomEventController@apologize_msg');
+
     Route::post('/custom_event/{id}', 'Api\CustomEvent\CustomEventController@update');
     Route::resource('custom_event','Api\CustomEvent\CustomEventController',['names' => 'user.custom_event']);
 

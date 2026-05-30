@@ -62,13 +62,14 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // جلب الصورة كـ Base64 لكي تظهر دائماً بدون الحاجة لدومين أو إنترنت
-        $image = '';
+        // استخدام المسار الداخلي المطلق للسيرفر لكي يتمكن mPDF من قراءة الصورة بدون الحاجة للإنترنت
         $pdfFile = $event->getRawOriginal('pdf');
-        $pdfPath = $pdfFile ? public_path('images/' . $pdfFile) : '';
-        if ($pdfPath && file_exists($pdfPath)) {
-            $ext = pathinfo($pdfPath, PATHINFO_EXTENSION);
-            $image = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($pdfPath));
+        $pdfPath = public_path('images/' . $pdfFile);
+        if ($pdfFile && file_exists($pdfPath)) {
+            $image = str_replace('\\', '/', $pdfPath);
+        } else {
+            // fallback image if the file doesn't exist
+            $image = str_replace('\\', '/', public_path('img/no-image.png'));
         }
 
         try {

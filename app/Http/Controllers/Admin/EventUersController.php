@@ -3413,7 +3413,7 @@ class EventUersController extends Controller
             "scan_count" => $Item?->scan_count,
             "users_count" => $Item?->users_count,
             "available" => $Item?->users_count - $Item?->scan_count,
-            "status" => $Item->is_refused == 'yes' ? "refused" : ($Item->accept_count < 1 ? "not_confirmed" : "accepted"),
+            "status" => $Item?->is_refused == 'yes' ? "refused" : ($Item?->accept_count < 1 ? "not_confirmed" : "accepted"),
         ]);
     }
 

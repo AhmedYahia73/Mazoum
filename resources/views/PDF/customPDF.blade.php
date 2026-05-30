@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>دعوة زفاف إلكترونية</title>
     <style>
-        /* إعدادات الصفحة وتحسينها للـ PDF (mPDF Safe) */
         @page {
             size: A4 portrait;
             margin: 0;
@@ -18,7 +17,6 @@
             text-align: center;
         }
 
-        /* استخدام صورة خلفية كعنصر حقيقي لتجنب مشاكل background-image في mPDF مع الـ base64 */
         .bg-image {
             position: absolute;
             top: 0;
@@ -28,55 +26,67 @@
             z-index: -1;
         }
 
-        /* حاوية الأزرار التفاعلية - استخدام التمركز العادي (Absolute) لأن mPDF لا يدعم Flexbox */
         .buttons-container {
             position: absolute;
-            bottom: 120px; /* ارتفاع مناسب من الأسفل بدلاً من 12% لضمان الدقة في mPDF */
+            bottom: 12%; 
             left: 0;
             width: 100%;
             text-align: center;
         }
 
-        /* الستايل العام المشترك للأزرار */
+        .btn-table {
+            margin: 0 auto;
+            width: 85%;
+            max-width: 460px;
+        }
+
+        .btn-cell {
+            width: 50%;
+            text-align: center;
+            padding: 0 10px; /* مسافة بين الزرين */
+        }
+
         .inv-btn {
-            display: inline-block;
-            padding: 12px 25px; 
+            display: block; 
+            padding: 12px 20px; 
             font-size: 16px; 
             font-weight: bold;
             text-decoration: none;
             color: #ffffff;
-            text-align: center;
             border-radius: 30px; 
-            border: 1.5px solid #ffffff; /* إطار أبيض يحدد الزرار */
-            margin: 0 10px; /* مسافة بين الزرين */
+            border: 1.5px solid #ffffff; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* زرار تأكيد الحضور (أخضر زمردي فخم ثابت لأن mPDF لا يدعم linear-gradient بشكل كامل بدون أخطاء) */
         .btn-accept {
-            background-color: #1a5133;
+            background-color: #276e4a;
         }
 
-        /* زرار الاعتذار (أحمر عنابي/ملكي ثابت) */
         .btn-decline {
-            background-color: #8c2323;
+            background-color: #a62d2d;
         }
 
     </style>
 </head>
 <body>
 
-    <!-- صورة الخلفية -->
     <img src="{{ $image }}" class="bg-image" />
 
-    <!-- الأزرار -->
     <div class="buttons-container">
-        <a href="{{ $confirm_link }}" class="inv-btn btn-accept">
-            تأكيد الحضور
-        </a>
-        
-        <a href="{{ $apologize_link }}" class="inv-btn btn-decline">
-            الاعتذار عن الحضور
-        </a>
+        <table class="btn-table" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="btn-cell">
+                    <a href="{{ $confirm_link }}" class="inv-btn btn-accept">
+                        تأكيد الحضور
+                    </a>
+                </td>
+                <td class="btn-cell">
+                    <a href="{{ $apologize_link }}" class="inv-btn btn-decline">
+                        الاعتذار عن الحضور
+                    </a>
+                </td>
+            </tr>
+        </table>
     </div>
 
 </body>

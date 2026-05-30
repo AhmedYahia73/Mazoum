@@ -73,10 +73,10 @@ class Events extends Model
         });
         static::updating(function ($model) {
             if (auth()->check() &&
-            (auth()->user()->role == 'employee' &&
+            ((auth()->user()->role == 'employee' &&
             $model->assistant_id != auth()->id()) || 
             (auth()->user()->role == 'scan_employee' &&
-            $model->scan_assistant_id != auth()->id())) {
+            $model->scan_assistant_id != auth()->id()))) {
                 return false;
             }
         });

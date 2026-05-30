@@ -1125,6 +1125,7 @@ class CustomEventController extends Controller
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "congratulation")
+        ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,
@@ -1144,6 +1145,7 @@ class CustomEventController extends Controller
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "apologize")
+        ->get()
         ->map(function($item){
             return [
                 "id" => $item->id,

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>دعوة زفاف إلكترونية</title>
     <style>
-        /* إعدادات الصفحة الأساسية وتحسينها للـ PDF */
+        /* إعدادات الصفحة وتحسينها للـ PDF */
         @page {
-            size: A4 portrait; /* يمكنك تغييرها لـ landscape لو الدعوة بالعرض */
+            size: A4 portrait;
             margin: 0;
         }
         
@@ -23,17 +23,16 @@
             align-items: center;
             background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* للتأكيد أن المتصفح هيطبع الخلفيات والألوان في الـ PDF */
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
-        
-        /* حاوية الدعوة - بمقاسات الـ A4 القياسية */
+
+        /* كارت الدعوة بأبعاد الـ A4 وثابت عليه الخلفية */
         .invitation-card {
             position: relative;
-            width: 595px;  /* عرض الـ A4 بـ البكسل عند 72dpi */
-            height: 842px; /* طول الـ A4 بـ البكسل */
-            background-image: url('https://mazoom.online/images/69f84857eec35.jpg'); /* حط هنا اسم الصورة بتاعتك */
+            width: 595px;  
+            height: 842px; 
+            background-image: url("https://mazoom.online/images/69f84857eec35.jpg"); 
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
@@ -41,57 +40,63 @@
             overflow: hidden;
         }
 
-        /* الزرار الذكي عالي التباين والشفافية */
-        .rsvp-btn {
+        /* حاوية الأزرار التفاعلية */
+        .buttons-container {
             position: absolute;
-            
-            /* التحكم في مكان الزرار فوق الصورة (عدل النسب دي حسب مكان كلمة "تأكيد الحضور") */
-            bottom: 12%; 
+            bottom: 12%; /* يتحكم في الارتفاع من الأسفل (تقدر تعدله حسب الرغبة) */
             left: 50%;
             transform: translateX(-50%);
-            
-            /* الأبعاد والحجم */
-            width: 75%;
-            max-width: 320px;
-            padding: 16px 32px;
-            
-            /* الخطوط والتكست */
-            font-size: 22px;
+            width: 85%;
+            max-width: 460px; 
+            display: flex;
+            gap: 15px; 
+            justify-content: center;
+        }
+
+        /* الستايل العام المشترك للأزرار */
+        .inv-btn {
+            flex: 1; 
+            padding: 12px 20px; 
+            font-size: 16px; 
             font-weight: 700;
-            color: #ffffff;
             text-decoration: none;
             text-align: center;
-            letter-spacing: 0.5px;
-            
-            /* الشفافية والألوان (مزيج ذهبي فخم شبه شفاف تظهر تفاصيل الخلفية) */
-            background: linear-gradient(135deg, rgba(197, 160, 89, 0.82), rgba(142, 108, 45, 0.82));
-            
-            /* تأثير الزجاج البلوري (لو المحول بيدعمه) */
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            
-            /* الحواف والحدود */
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 50px;
-            
-            /* الظلال لإعطاء عمق ثنائي الأبعاد يظهر بوضوح في الـ PDF */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25), 
-                        inset 0 4px 10px rgba(255, 255, 255, 0.2);
-            
+            border-radius: 30px; 
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1.5px solid rgba(255, 255, 255, 0.35); /* إطار أبيض شفاف يحدد الزرار */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 
+                        inset 0 2px 5px rgba(255, 255, 255, 0.25);
             transition: all 0.3s ease;
             cursor: pointer;
-            display: block;
+            white-space: nowrap; 
         }
 
-        /* تأثيرات التحويم (تظهر لو العميل فتح الـ PDF على الكمبيوتر أو الموبايل) */
-        .rsvp-btn:hover {
-            background: linear-gradient(135deg, rgba(197, 160, 89, 0.95), rgba(142, 108, 45, 0.95));
-            box-shadow: 0 12px 30px rgba(142, 108, 45, 0.4);
-            border-color: rgba(255, 255, 255, 0.8);
-            transform: translateX(-50%) scale(1.02);
+        /* زرار تأكيد الحضور (تدريج أخضر زمردي فخم شبه شفاف) */
+        .btn-accept {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(39, 110, 74, 0.85), rgba(20, 61, 40, 0.85));
         }
 
-        /* تظبيط الطباعة والـ PDF عشان ميبقاش فيه هوامش بيضاء */
+        .btn-accept:hover {
+            background: linear-gradient(135deg, rgba(39, 110, 74, 0.95), rgba(20, 61, 40, 0.95));
+            box-shadow: 0 8px 25px rgba(20, 61, 40, 0.5);
+            transform: scale(1.03);
+        }
+
+        /* زرار الاعتذار (تدريج أحمر عنابي/ملكي دافئ شبه شفاف) */
+        .btn-decline {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(166, 45, 45, 0.85), rgba(107, 24, 24, 0.85));
+        }
+
+        .btn-decline:hover {
+            background: linear-gradient(135deg, rgba(166, 45, 45, 0.95), rgba(107, 24, 24, 0.95));
+            box-shadow: 0 8px 25px rgba(107, 24, 24, 0.5);
+            transform: scale(1.03);
+        }
+
+        /* تظبيط الهوامش عند التحويل لـ PDF */
         @media print {
             body {
                 background-color: transparent;
@@ -108,9 +113,15 @@
 <body>
 
     <div class="invitation-card">
-        <a href="https://your-rsvp-link-here.com" class="rsvp-btn" target="_blank">
-            تأكيد الحضور
-        </a>
+        <div class="buttons-container">
+            <a href="https://your-accept-link.com" class="inv-btn btn-accept" target="_blank">
+                تأكيد الحضور
+            </a>
+            
+            <a href="https://your-decline-link.com" class="inv-btn btn-decline" target="_blank">
+                الاعتذار عن الحضور
+            </a>
+        </div>
     </div>
 
 </body>

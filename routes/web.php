@@ -16,7 +16,7 @@ use App\Http\Controllers\HomeController;
 
 
 
-Route::get('/', function () {
+Route::get('/testt', function () {
     return view("PDF.customPDF");
 });
 Route::get('test/{event_user_id}', function ($event_user_id) {

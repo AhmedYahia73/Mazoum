@@ -12,117 +12,89 @@
             padding: 0;
         }
         
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            text-align: center;
         }
 
-        /* كارت الدعوة بأبعاد الـ A4 وثابت عليه الخلفية */
-        .invitation-card {
-            position: relative;
-            width: 595px;  
-            height: 842px; 
-            background-image: url("{{ $image }}"); 
-            background-size: 100% 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            overflow: hidden;
+        /* صورة الخلفية بديلة لـ background-image لتجنب مشاكل mPDF */
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
         }
 
         /* حاوية الأزرار التفاعلية */
         .buttons-container {
             position: absolute;
-            bottom: 12%; /* يتحكم في الارتفاع من الأسفل (تقدر تعدله حسب الرغبة) */
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 12%; 
+            left: 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-table {
+            margin: 0 auto;
             width: 85%;
-            max-width: 460px; 
-            display: flex;
-            gap: 15px; 
-            justify-content: center;
+            max-width: 460px;
+        }
+
+        .btn-cell {
+            width: 50%;
+            text-align: center;
+            padding: 0 10px; /* مسافة بين الزرين تحل مشكلة الالتصاق */
         }
 
         /* الستايل العام المشترك للأزرار */
         .inv-btn {
-            flex: 1; 
+            display: block; 
             padding: 12px 20px; 
             font-size: 16px; 
             font-weight: 700;
             text-decoration: none;
             text-align: center;
             border-radius: 30px; 
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border: 1.5px solid rgba(255, 255, 255, 0.35); /* إطار أبيض شفاف يحدد الزرار */
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 
-                        inset 0 2px 5px rgba(255, 255, 255, 0.25);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            border: 1.5px solid #ffffff; 
+            color: #ffffff;
             white-space: nowrap; 
         }
 
-        /* زرار تأكيد الحضور (تدريج أخضر زمردي فخم شبه شفاف) */
+        /* زرار تأكيد الحضور - ألوان Hex آمنة جداً لمكتبة mPDF لتجنب الأيرور */
         .btn-accept {
-            color: #ffffff;
-            background: linear-gradient(135deg, rgba(39, 110, 74, 0.85), rgba(20, 61, 40, 0.85));
+            background: linear-gradient(135deg, #236242, #113523);
         }
 
-        .btn-accept:hover {
-            background: linear-gradient(135deg, rgba(39, 110, 74, 0.95), rgba(20, 61, 40, 0.95));
-            box-shadow: 0 8px 25px rgba(20, 61, 40, 0.5);
-            transform: scale(1.03);
-        }
-
-        /* زرار الاعتذار (تدريج أحمر عنابي/ملكي دافئ شبه شفاف) */
+        /* زرار الاعتذار - ألوان Hex آمنة جداً لمكتبة mPDF */
         .btn-decline {
-            color: #ffffff;
-            background: linear-gradient(135deg, rgba(166, 45, 45, 0.85), rgba(107, 24, 24, 0.85));
+            background: linear-gradient(135deg, #8E2626, #5B1414);
         }
 
-        .btn-decline:hover {
-            background: linear-gradient(135deg, rgba(166, 45, 45, 0.95), rgba(107, 24, 24, 0.95));
-            box-shadow: 0 8px 25px rgba(107, 24, 24, 0.5);
-            transform: scale(1.03);
-        }
-
-        /* تظبيط الهوامش عند التحويل لـ PDF */
-        @media print {
-            body {
-                background-color: transparent;
-            }
-            .invitation-card {
-                box-shadow: none;
-                width: 100%;
-                height: 100%;
-                page-break-inside: avoid;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <div class="invitation-card">
-        <div class="buttons-container">
-            <a href="{{ $confirm_link }}" class="inv-btn btn-accept" target="_blank">
-                تأكيد الحضور
-            </a>
-            
-            <a href="{{ $apologize_link }}" class="inv-btn btn-decline" target="_blank">
-                الاعتذار عن الحضور
-            </a>
-        </div>
+    <img src="{{ $image }}" class="bg-image" />
+
+    <div class="buttons-container">
+        <table class="btn-table" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="btn-cell">
+                    <a href="{{ $confirm_link }}" class="inv-btn btn-accept" target="_blank">
+                        تأكيد الحضور
+                    </a>
+                </td>
+                <td class="btn-cell">
+                    <a href="{{ $apologize_link }}" class="inv-btn btn-decline" target="_blank">
+                        الاعتذار عن الحضور
+                    </a>
+                </td>
+            </tr>
+        </table>
     </div>
 
 </body>

@@ -11,17 +11,27 @@
         body {
             margin: 0;
             padding: 0;
-            width: 595pt;
-            height: 842pt;
             font-family: Arial, sans-serif;
-            background-image: url("{{ $imageBase64 }}");
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: center center;
         }
+        /* الحاوية الرئيسية بحجم A4 بالضبط */
+        .page-wrapper {
+            position: relative;
+            width: 210mm;
+            height: 297mm;
+            overflow: hidden;
+        }
+        /* صورة الخلفية تملأ الصفحة بالكامل */
+        .bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 210mm;
+            height: 297mm;
+        }
+        /* الأزرار فوق الصورة */
         .buttons-container {
             position: absolute;
-            bottom: 100pt;
+            bottom: 25mm;
             left: 0;
             width: 100%;
             text-align: center;
@@ -30,28 +40,26 @@
             margin: 0 auto;
         }
         .btn-cell {
-            padding: 0 12pt;
+            padding: 0 5mm;
         }
         .inv-btn {
             display: block;
-            padding: 12pt 22pt;
-            font-size: 13pt;
+            padding: 4mm 8mm;
+            font-size: 14pt;
             font-weight: bold;
             text-decoration: none;
             color: #ffffff;
-            border-radius: 25pt;
+            border-radius: 20pt;
             border: 2pt solid #ffffff;
             white-space: nowrap;
         }
-        .btn-accept {
-            background-color: #1e6b40;
-        }
-        .btn-decline {
-            background-color: #8e2020;
-        }
+        .btn-accept  { background-color: #1e6b40; }
+        .btn-decline { background-color: #8e2020; }
     </style>
 </head>
 <body>
+<div class="page-wrapper">
+    <img src="{{ $imageBase64 }}" class="bg-img" />
     <div class="buttons-container">
         <table class="btn-table" cellpadding="0" cellspacing="0">
             <tr>
@@ -64,5 +72,6 @@
             </tr>
         </table>
     </div>
+</div>
 </body>
 </html>

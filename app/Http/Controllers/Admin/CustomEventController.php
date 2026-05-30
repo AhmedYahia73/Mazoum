@@ -626,6 +626,35 @@ class CustomEventController extends Controller
         Model::whereIn('id', $request->items)->delete();
         return response()->json(['success' => 'تم حذف البيانات بنجاح']);
     } 
+    
+    public function force_destroy($id)
+    {
+        // نستخدم withTrashed() تحسباً لو كان العنصر محذوفاً ناعماً بالفعل وتريد حذفه نهائياً
+        $Item = Model::withTrashed()->findOrFail($id);
+        
+        $Item->forceDelete(); // حذف نهائي من قاعدة البيانات
+        
+        return response()->json([
+            'success' => 'تم حذف البيانات نهائياً بنجاح', 
+        ]); 
+    }
+
+    public function force_multi_delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'items'   => 'required|array',
+            'items.*' => 'required|exists:custom_event,id',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+        
+        // استخدام forceDelete للحذف الجماعي النهائي
+        Model::withTrashed()->whereIn('id', $request->items)->forceDelete();
+        
+        return response()->json(['success' => 'تم حذف البيانات المحددة نهائياً بنجاح']);
+    }
 
     private function gteInput($request, $modelClass)
     {

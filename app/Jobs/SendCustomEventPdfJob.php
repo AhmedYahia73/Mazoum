@@ -11,7 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use PDF;
+use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as PDF;
 
 class SendCustomEventPdfJob implements ShouldQueue
 {

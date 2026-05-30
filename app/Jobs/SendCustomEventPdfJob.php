@@ -63,21 +63,34 @@ class SendCustomEventPdfJob implements ShouldQueue
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
         // $event->pdf attribute is the Image_Path($value) which returns the full URL
-        $image = $event->pdf;
-
-        // Generate PDF
-        $pdf = PDF::loadView('PDF.customPDF', compact('confirm_link', 'apologize_link', 'image'));
-        
-        $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
-        
-        // Ensure directory exists
-        $directory = public_path('temp_pdfs');
-        if (!file_exists($directory)) {
-            mkdir($directory, 0777, true);
+        // In CLI/Jobs, asset() generates localhost URLs which mPDF fails to download.
+        // We will convert it to base64 to ensure mPDF can render it without network issues.
+        $image = '';
+        $pdfFile = $event->getRawOriginal('pdf');
+        $pdfPath = $pdfFile ? public_path('images/' . $pdfFile) : '';
+        if ($pdfPath && file_exists($pdfPath)) {
+            $ext = pathinfo($pdfPath, PATHINFO_EXTENSION);
+            $image = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($pdfPath));
         }
-        
-        $pdf_path = $directory . '/' . $filename;
-        $pdf->save($pdf_path);
+
+        try {
+            // Generate PDF
+            $pdf = PDF::loadView('PDF.customPDF', compact('confirm_link', 'apologize_link', 'image'));
+            
+            $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
+            
+            // Ensure directory exists
+            $directory = public_path('temp_pdfs');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0777, true);
+            }
+            
+            $pdf_path = $directory . '/' . $filename;
+            $pdf->save($pdf_path);
+        } catch (\Exception $e) {
+            Log::error("PDF Generation Error in Job: " . $e->getMessage());
+            return;
+        }
         
         $pdf_url = asset('temp_pdfs/' . $filename);
 

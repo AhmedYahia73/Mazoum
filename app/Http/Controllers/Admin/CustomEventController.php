@@ -1329,6 +1329,37 @@ class CustomEventController extends Controller
         ]);
     }
 
+
+    public function confirm_custom_event(Request $request, $id){
+    
+        $custom_event = CustomEventUsers::
+        findOrFail($id);
+        $count = $custom_event->users_count - $custom_event->confirm_count - $custom_event->apologize_count; 
+        $custom_event
+        ->update([
+            "confirm_count" => $count,
+        ]); 
+
+        return response()->json([ 
+            "success" => "You update data success",
+        ]);
+    }
+
+    public function apologize_custom_event(Request $request, $id){
+    
+        $custom_event = CustomEventUsers::
+        findOrFail($id);
+        $count = $custom_event->users_count - $custom_event->confirm_count - $custom_event->apologize_count; 
+        $custom_event
+        ->update([
+            "apologize_count" => $count,
+        ]); 
+
+        return response()->json([ 
+            "success" => "You update data success",
+        ]);
+    }
+
 }
 
 

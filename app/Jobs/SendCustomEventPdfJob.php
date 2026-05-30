@@ -62,12 +62,28 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // جلب الرابط الكامل للصورة (خلفية الدعوة) بناءً على طلبك من الـ Model
-        $image = $event->pdf;
+        // جلب الصورة كـ Base64 لكي تظهر دائماً بدون الحاجة لدومين أو إنترنت
+        $image = '';
+        $pdfFile = $event->getRawOriginal('pdf');
+        $pdfPath = $pdfFile ? public_path('images/' . $pdfFile) : '';
+        if ($pdfPath && file_exists($pdfPath)) {
+            $ext = pathinfo($pdfPath, PATHINFO_EXTENSION);
+            $image = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($pdfPath));
+        }
 
         try {
+            // إعداد هوامش الصفحة بصفر لضمان خروجها كصفحة واحدة فقط
+            $config = [
+                'margin_left'   => 0,
+                'margin_right'  => 0,
+                'margin_top'    => 0,
+                'margin_bottom' => 0,
+                'margin_header' => 0,
+                'margin_footer' => 0,
+            ];
+            
             // Generate PDF
-            $pdf = PDF::loadView('PDF.customPDF', compact('confirm_link', 'apologize_link', 'image'));
+            $pdf = PDF::loadView('PDF.customPDF', compact('confirm_link', 'apologize_link', 'image'), [], $config);
             
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
             

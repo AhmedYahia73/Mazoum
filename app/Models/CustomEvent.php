@@ -23,7 +23,7 @@ class CustomEvent extends Model
         "qr_width", "qr_x", "qr_y", "lat", "lng",
         'scan_assistant_id', "resend_qr", 
         'image_height', 'image_width', 'text_color',
-        "video",
+        "video", "pdf",
     ];
     protected $appends = ["map", "video_url"];
    
@@ -40,6 +40,11 @@ class CustomEvent extends Model
     }
 
     public function getImageAttribute($value)
+    {
+        return Image_Path($value);
+    }
+
+    public function getPdfAttribute($value)
     {
         return Image_Path($value);
     }

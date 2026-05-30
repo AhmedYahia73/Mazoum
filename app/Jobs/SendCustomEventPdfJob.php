@@ -73,7 +73,16 @@ class SendCustomEventPdfJob implements ShouldQueue
         }
 
         try {
-            // إعداد هوامش الصفحة بصفر لضمان خروجها كصفحة واحدة فقط
+            // تحويل الصورة إلى Base64 لضمان ظهورها كخلفية في mPDF بدون أي مشاكل
+            $imageBase64 = '';
+            $imageMime = 'image/jpeg';
+            if ($image && file_exists($image)) {
+                $imageData = file_get_contents($image);
+                $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+                $imageMime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                $imageBase64 = 'data:' . $imageMime . ';base64,' . base64_encode($imageData);
+            }
+
             $config = [
                 'margin_left'   => 0,
                 'margin_right'  => 0,
@@ -83,12 +92,13 @@ class SendCustomEventPdfJob implements ShouldQueue
                 'margin_footer' => 0,
             ];
             
-            // Generate PDF
-            $pdf = PDF::loadView('PDF.customPDF', compact('confirm_link', 'apologize_link', 'image'), [], $config);
+            // نبني HTML يحتوي على الصورة كـ background مباشرة في body عبر Base64
+            $html = view('PDF.customPDF', compact('confirm_link', 'apologize_link', 'imageBase64'))->render();
+
+            $pdf = PDF::loadHTML($html, $config);
             
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
             
-            // Ensure directory exists
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);

@@ -32,7 +32,7 @@
             position: relative;
             width: 595px;  
             height: 842px; 
-            background-image: url("https://mazoom.online/images/69f84857eec35.jpg"); 
+            background-image: url("{{ $image }}"); 
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
@@ -114,11 +114,11 @@
 
     <div class="invitation-card">
         <div class="buttons-container">
-            <a href="https://your-accept-link.com" class="inv-btn btn-accept" target="_blank">
+            <a href="{{ $confirm_link }}" class="inv-btn btn-accept" target="_blank">
                 تأكيد الحضور
             </a>
             
-            <a href="https://your-decline-link.com" class="inv-btn btn-decline" target="_blank">
+            <a href="{{ $apologize_link }}" class="inv-btn btn-decline" target="_blank">
                 الاعتذار عن الحضور
             </a>
         </div>

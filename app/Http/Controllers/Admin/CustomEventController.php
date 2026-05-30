@@ -1042,6 +1042,7 @@ class CustomEventController extends Controller
         	'custom_event_id' => 'required|exists:custom_event,id',
             'users' => 'required|array',
             'users.*' => 'required|exists:custom_event_users,id',
+            "type" => "required|in:pdf,image"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1083,8 +1084,14 @@ class CustomEventController extends Controller
                     "⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
                     "📍مكان الحفـل " . $event->address ;
 
-                  // $api=$client->sendChatMessage($to,$body);
-                  $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
+                if($request->type == "pdf"){
+                    \App\Jobs\SendCustomEventPdfJob::dispatch($row->id, $event->id, $ultramsg_token, $instance_id);
+                    // Mock API response since it's processed in background
+                    $api = ['sent' => 'true', 'message' => 'ok'];
+                }
+                else{
+                    $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
+                }
 
                 //   dd($api);
 

@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomEvent extends Model
 {
+    use SoftDeletes;
+    protected $dates = ['deleted_at'];
     protected $table = 'custom_event';
 
     public $timestamp = true;

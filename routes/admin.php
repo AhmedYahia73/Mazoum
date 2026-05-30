@@ -424,6 +424,7 @@ Route::resource('custom_events', 'CustomEventController', [
     'except' => ['update'],
 ]);
 
+Route::get('custom_events/deleted_custom_events', 'CustomEventController@deleted_custom_events');
 Route::get('custom_events/congratulation_msg/{id}', 'CustomEventController@congratulation_msg');
 Route::get('custom_events/apologize_msg/{id}', 'CustomEventController@apologize_msg');
 Route::post('custom_events/send_message', 'CustomEventController@send_message');

@@ -534,7 +534,28 @@ class CustomEventController extends Controller
             'Item' => $Item,
         ]); 
     }
+    
+    public function deleted_custom_events(Request $request)
+    {
+        $query = Model::onlyTrashed();
 
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                ->orWhere('address', 'like', "%$search%");
+            });
+        }
+
+        // Pagination
+        $Item = $query->paginate(15); // عدد العناصر في الصفحة
+
+        return response()->json([
+            'Item' => $Item,
+        ]); 
+    }
 
     /**
      * Show the form for creating a new resource.

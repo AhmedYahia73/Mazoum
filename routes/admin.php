@@ -423,6 +423,13 @@ Route::resource('custom_events', 'CustomEventController', [
     'names' => 'admin.custom_events',
     'except' => ['update'],
 ]);
+
+Route::get('custom_events/congratulation_msg/{id}', 'CustomEventController@congratulation_msg');
+Route::get('custom_events/apologize_msg/{id}', 'CustomEventController@apologize_msg');
+Route::post('custom_events/send_message', 'CustomEventController@send_message');
+Route::put('custom_events/status/{id}', 'CustomEventController@status');
+Route::post('new-send-custom-event-invitation', 'CustomEventController@new_send_event_invitation');
+
 Route::get('custom_open_users/{id}', 'CustomEventController@custom_open_users');
 Route::post('custom_events/multi_delete', 'CustomEventController@multi_delete');
 Route::post('custom_events/{id}', 'CustomEventController@update');
@@ -437,11 +444,6 @@ Route::get('custom_events/{id}/event-users', 'CustomEventController@event_users'
 Route::get('custom_events/{id}/all_event_users', 'CustomEventController@all_event_users');
 Route::get('custom_events/{id}/enter-event', 'CustomEventController@enter_event');
 
-Route::get('custom_events/congratulation_msg/{id}', 'CustomEventController@congratulation_msg');
-Route::get('custom_events/apologize_msg/{id}', 'CustomEventController@apologize_msg');
-Route::post('custom_events/send_message', 'CustomEventController@send_message');
-Route::put('custom_events/status/{id}', 'CustomEventController@status');
-Route::post('new-send-custom-event-invitation', 'CustomEventController@new_send_event_invitation');
 
 Route::post('delete_selected_custom_event_users', 'CustomEventController@delete_selected_event_users');
 

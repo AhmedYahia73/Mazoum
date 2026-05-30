@@ -62,16 +62,8 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // $event->pdf attribute is the Image_Path($value) which returns the full URL
-        // In CLI/Jobs, asset() generates localhost URLs which mPDF fails to download.
-        // We will convert it to base64 to ensure mPDF can render it without network issues.
-        $image = '';
-        $pdfFile = $event->getRawOriginal('pdf');
-        $pdfPath = $pdfFile ? public_path('images/' . $pdfFile) : '';
-        if ($pdfPath && file_exists($pdfPath)) {
-            $ext = pathinfo($pdfPath, PATHINFO_EXTENSION);
-            $image = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($pdfPath));
-        }
+        // جلب الرابط الكامل للصورة (خلفية الدعوة) بناءً على طلبك من الـ Model
+        $image = $event->pdf;
 
         try {
             // Generate PDF

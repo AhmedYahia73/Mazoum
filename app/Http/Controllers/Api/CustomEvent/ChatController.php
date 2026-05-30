@@ -50,6 +50,9 @@ class ChatController extends Controller
     }
 
     public function custom_msgs(Request $request, $id){
+        $custom_event = CustomEventUsers::
+        with("event")
+        ->findOrFail($id)?->event;
         $chat = CustomChat::
         where("user_id", $request->user()->id)
         ->where("custom_user_id", $id)
@@ -67,7 +70,8 @@ class ChatController extends Controller
         });
 
         return response()->json([
-            "chat" => $chat
+            "chat" => $chat,
+            "custom_event" => $custom_event,
         ]);
     }
 
@@ -224,6 +228,9 @@ class ChatController extends Controller
     }
 
     public function event_msgs(Request $request, $id){
+        $event = EventUsers::
+        with("event")
+        ->findOrFail($id)?->event;
         $chat = EventChat::
         where("user_id", $request->user()->id)
         ->where("event_user_id", $id)
@@ -241,7 +248,8 @@ class ChatController extends Controller
         });
 
         return response()->json([
-            "chat" => $chat
+            "chat" => $chat,
+            "event" => $event,
         ]);
     }
 

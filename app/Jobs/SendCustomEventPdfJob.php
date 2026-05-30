@@ -65,6 +65,11 @@ class SendCustomEventPdfJob implements ShouldQueue
         // استخدام المسار الداخلي المطلق للسيرفر
         $pdfFile = $event->getRawOriginal('pdf');
         $pdfPath = public_path('images/' . $pdfFile);
+
+        Log::info('PDF Job - pdfFile: ' . $pdfFile);
+        Log::info('PDF Job - pdfPath: ' . $pdfPath);
+        Log::info('PDF Job - exists: ' . (file_exists($pdfPath) ? 'YES' : 'NO'));
+
         if ($pdfFile && file_exists($pdfPath)) {
             $image = str_replace('\\', '/', $pdfPath);
         } else {

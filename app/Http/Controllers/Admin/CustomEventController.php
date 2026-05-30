@@ -885,11 +885,11 @@ class CustomEventController extends Controller
         where("custom_event_id", $Item->id)
         ->where("type", "apologize")
         ->count();
-        $apologize_count = CustomMessage::
+        $apologize_count = Model::
         where("custom_event_id", $Item->id)
         ->where("status", "apologize")
         ->count();
-        $congratulation_count = CustomMessage::
+        $congratulation_count = Model::
         where("custom_event_id", $Item->id)
         ->where("status", "confirm")
         ->count();

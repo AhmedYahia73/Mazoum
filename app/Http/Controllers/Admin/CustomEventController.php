@@ -889,7 +889,7 @@ class CustomEventController extends Controller
         where("custom_event_id", $Item->id)
         ->where("status", "apologize")
         ->count();
-        $congratulation_count = CustomEventUsers::
+        $confirm_count = CustomEventUsers::
         where("custom_event_id", $Item->id)
         ->where("status", "confirm")
         ->count();
@@ -902,7 +902,7 @@ class CustomEventController extends Controller
             'congratulation_msg' =>  $congratulation_msg, 
             'apologize_msg' =>  $apologize_msg, 
             'apologize_count' =>  $apologize_count, 
-            'congratulation_count' =>  $congratulation_count, 
+            'confirm_count' =>  $confirm_count, 
         ]); 
     }
 

@@ -886,12 +886,10 @@ class CustomEventController extends Controller
         ->where("type", "apologize")
         ->count();
         $apologize_count = CustomEventUsers::
-        where("custom_event_id", $Item->id)
-        ->where("status", "apologize")
+        where("custom_event_id", $Item->id) 
         ->sum("apologize_count");
         $confirm_count = CustomEventUsers::
-        where("custom_event_id", $Item->id)
-        ->where("status", "confirm")
+        where("custom_event_id", $Item->id) 
         ->sum("confirm_count");
 
         return response()->json([
@@ -1204,14 +1202,12 @@ class CustomEventController extends Controller
         if($request->status == "confirm"){
             $custom_event
             ->update([
-                "status" => $request->status,
                 "confirm_count" => $request->count,
             ]);
         }
         else{
             $custom_event
             ->update([
-                "status" => $request->status,
                 "apologize_count" => $request->count,
             ]);
         }

@@ -919,6 +919,10 @@ class CustomEventController extends Controller
         $Item = Model::
         where("id", $id)
         ->first();
+        return response()->json([
+            "Item" => $Item
+        ]);
+        dd($Item);
         $visitors_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->sum('users_count');

@@ -57,13 +57,7 @@ class UserController extends Controller
                 "errors" => "custom_event_id or event_user_id is required"
             ]);
 
-        }
-        $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-        if($available < $request->custom_invetaion || auth()->user()->balance < $request->custom_invetaion){
-            return response()->json([
-                "errors" => "عدد الدعوات لا تكفى"
-            ]);
-        }
+        } 
         auth()->user()->custom_invetaion -= $request->custom_invetaion;
         auth()->user()->balance -= $request->custom_invetaion;
         auth()->user()->save();

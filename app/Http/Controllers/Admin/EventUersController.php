@@ -16,15 +16,16 @@ use App\Models\EventUsers;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
 use App\Models\Setting;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Response;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\DB;
 
 class EventUersController extends Controller
 {
@@ -3433,6 +3434,20 @@ class EventUersController extends Controller
         where("uu_id",$request->qr_id)
         ->firstOrFail();
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
+        $user_data = User::
+        where("id", $Item->user_id)
+        ->first();
+        if(!$user_data){
+            $user_data = User::
+            where("id", $Item?->event?->id)
+            ->first();
+        }
+        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
+         if($Item->users_count >= $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        }
         if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
             return response()->json([
                 'errors' => 'عفوا هذا QR غير متاح', 

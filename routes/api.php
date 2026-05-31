@@ -69,6 +69,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     Route::controller('Api\CustomEvent\PackageController')
     ->prefix("package")->group(function () {
         Route::get('/', 'view');
+        Route::get('/my_package', 'my_package');
         Route::post('/negotaition', 'negotaition');
         Route::get('/custom_template/{id}', 'custom_template');
         Route::get('/event_template/{id}', 'event_template');

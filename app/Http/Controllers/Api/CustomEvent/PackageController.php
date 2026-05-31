@@ -603,9 +603,6 @@ class PackageController extends Controller
                     $user = User::
                     where("id", $row->event->user_id)
                     ->first();
-                    $user->update([
-                        "send_custom_invetaion" => $user->send_custom_invetaion + $users_count
-                    ]);
 
                     $uu_id = uniqid();
 
@@ -719,18 +716,10 @@ class PackageController extends Controller
                 }
                 $users_count = $row->users_count;
                 $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-                if($users_count >= $available){
-                    return response()->json([
-                        "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
-                    ], 400);
-                }
+            
                 // __________________________________________________________________________________
                 $this->update_qr($row,$row->uu_id);
-                // __________________________________________________________________________________
-                if(!$row->send_qr){
-                    auth()->user()->send_custom_invetaion += $users_count;
-                    auth()->user()->save();
-                }
+              
                 // __________________________________________________________________________________
                 if($row != null && $row->mobile != null && $event != null) {
 
@@ -816,11 +805,7 @@ class PackageController extends Controller
             return response()->json([
                 "errors" => "لقد ارسلت الدعوة سابقا"
             ], 400);
-        }
-        if(!$event_user->send_qr){
-            auth()->user()->send_custom_invetaion += 1;
-            auth()->user()->save();
-        }
+        } 
         $event_user->send_qr = true;
         $event_user->save();
 
@@ -848,18 +833,11 @@ class PackageController extends Controller
         }
         $users_count = $event_user->users_count;
         $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
-        if($users_count >= $available){
-            return response()->json([
-                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
-            ], 400);
-        }
+       
         // __________________________________________________________________________________
         $this->update_qr($event_user,$event_user->uu_id);
         // __________________________________________________________________________________
-        if(!$event_user->send_qr){
-            auth()->user()->send_custom_invetaion += $users_count;
-            auth()->user()->save();
-        }
+     
         // __________________________________________________________________________________
         $event_user->send_qr = 1;
         $event_user->save();
@@ -1165,6 +1143,18 @@ class PackageController extends Controller
         }
 
         return [$r, $g, $b];
+    }
+
+    public function my_package(){
+        $total = auth()->user()->custom_invetaion;
+        $send = auth()->user()->send_custom_invetaion;
+        $available = $total - $send;
+
+        return response()->json([
+            "total" => $total,
+            "send" => $send,
+            "available" => $available,
+        ]);
     }
 }
 

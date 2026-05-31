@@ -109,10 +109,7 @@ class CustomEventController extends Controller
         $users_count = collect($request->event_users)->sum('users_count');
         $user = User::
         where("id", $event->user_id)
-        ->first();
-        $user->update([
-            "send_custom_invetaion" => $user->send_custom_invetaion + $users_count
-        ]);
+        ->first(); 
 
         return response()->json([
             'success' =>  'تم الحفظ بنجاح', 
@@ -150,10 +147,7 @@ class CustomEventController extends Controller
                     $users_count = $arr['users_count'] - $row->users_count;
                     $user = User::
                     where("id", $row->user_id)
-                    ->first();
-                    $user->update([
-                        "send_custom_invetaion" => $user->send_custom_invetaion + $users_count
-                    ]);
+                    ->first(); 
 
                     $uu_id = uniqid();
 

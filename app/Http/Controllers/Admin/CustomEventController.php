@@ -916,12 +916,7 @@ class CustomEventController extends Controller
 
     public function event_report($id)
     {
-        $Item = Model::
-        get();
-        return response()->json([
-            "Item" => $Item
-        ]);
-        dd($Item);
+        $Item = Model::findOrFail($id);
         $visitors_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->sum('users_count');

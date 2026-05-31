@@ -916,7 +916,7 @@ class CustomEventController extends Controller
 
     public function event_report($id)
     {
-        $Item = CustomEvent::
+        $Item = Model::
         where("id", $id)
         ->first();
         return response()->json([

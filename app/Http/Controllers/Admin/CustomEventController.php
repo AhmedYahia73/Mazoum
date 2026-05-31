@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
+use App\Models\CustomEvent;
 use App\Models\CustomEventFamily; 
 use App\Models\CustomEventUsers;
 use App\Models\EnterUserCustomEvent;
@@ -916,7 +917,7 @@ class CustomEventController extends Controller
 
     public function event_report($id)
     {
-        $Item = Model::
+        $Item = CustomEvent::
         where("id", $id)
         ->first();
         return response()->json([

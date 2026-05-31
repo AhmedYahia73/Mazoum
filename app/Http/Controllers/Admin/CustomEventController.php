@@ -926,8 +926,8 @@ class CustomEventController extends Controller
         ->sum('scan_count');
         $event_host = User::
         where("user_id", $Item->user_id)
-        ->orWhereHas("event_users", function($query) use($Item){
-            $query->where("event_id", $Item->id);
+        ->orWhereHas("sub_users", function($query) use($Item){
+            $query->where("users.id", $Item->user_id);
         })
         ->count();
         $congratulation_msg = CustomMessage::

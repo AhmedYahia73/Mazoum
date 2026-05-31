@@ -915,38 +915,36 @@ class CustomEventController extends Controller
 
 
     public function event_report($id)
-    {
-        $Item = Model::findOrFail($id);
+    { 
         $visitors_count = CustomEventUsers::
-        where('custom_event_id',$Item->id)
+        where('custom_event_id',$id)
         ->sum('users_count');
         $qr_count = CustomEventUsers::
-        where('custom_event_id',$Item->id)
+        where('custom_event_id',$id)
         ->where('scan','yes')
         ->sum('scan_count');
         $event_host = User::
         where("user_id", $Item->user_id)
-        ->orWhereHas("event_users", function($query) use($Item){
-            $query->where("event_id", $Item->id);
+        ->orWhereHas("event_users", function($query) use($id){
+            $query->where("event_id", $id);
         })
         ->count();
         $congratulation_msg = CustomMessage::
-        where("custom_event_id", $Item->id)
+        where("custom_event_id", $id)
         ->where("type", "congratulation")
         ->count();
         $apologize_msg = CustomMessage::
-        where("custom_event_id", $Item->id)
+        where("custom_event_id", $id)
         ->where("type", "apologize")
         ->count();
         $apologize_count = CustomEventUsers::
-        where("custom_event_id", $Item->id) 
+        where("custom_event_id", $id) 
         ->sum("apologize_count");
         $confirm_count = CustomEventUsers::
-        where("custom_event_id", $Item->id) 
+        where("custom_event_id", $id) 
         ->sum("confirm_count");
 
-        return response()->json([
-            'Item' =>  $Item, 
+        return response()->json([ 
             'visitors_count' =>  $visitors_count, 
             'qr_count' =>  $qr_count, 
             'event_host' =>  $event_host, 

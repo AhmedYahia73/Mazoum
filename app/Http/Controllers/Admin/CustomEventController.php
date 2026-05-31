@@ -926,7 +926,7 @@ class CustomEventController extends Controller
         ->sum('scan_count');
         $event_host = User::
         where("user_id", $Item->user_id)
-        ->whereHas("event_users", function($query) use($Item){
+        ->orWhereHas("event_users", function($query) use($Item){
             $query->where("event_id", $Item->id);
         })
         ->count();

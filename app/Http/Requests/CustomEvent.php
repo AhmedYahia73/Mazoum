@@ -46,6 +46,7 @@ class CustomEvent extends FormRequest
                     'image_height' => ['required'],
                     'image_width' => ['required'],
                     'text_color' => ['required'],
+                    'show_data_pdf' => ['required', "boolean"],
                     'pdf' => ['required', 'image'],
                 ];
 
@@ -76,6 +77,7 @@ class CustomEvent extends FormRequest
                     'image_height' => ['numeric'],
                     'image_width' => ['numeric'],
                     'text_color' => ['required'],
+                    'show_data_pdf' => ['required', "boolean"],
                     'pdf' => ['required', 'image'],
                 ];
 

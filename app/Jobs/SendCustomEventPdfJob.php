@@ -62,12 +62,23 @@ class SendCustomEventPdfJob implements ShouldQueue
         $to = $row->mobile;
         $day_name = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
 
-        $caption = $row->name . PHP_EOL . PHP_EOL .
-            $event->title . PHP_EOL . PHP_EOL .
-            "وذلك بمشيئة الله يوم " . $day_name ." الموافق" . PHP_EOL . PHP_EOL .
-            $event->date . " 📆" . PHP_EOL . PHP_EOL .
-            "⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
-            "📍مكان الحفـل " . $event->address ;
+        if($event->show_data_pdf){
+            
+
+            $caption = $row->name . PHP_EOL . PHP_EOL .
+                $event->title . PHP_EOL . PHP_EOL .
+                "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق"  . $event->date . " 📆" 
+                . PHP_EOL . PHP_EOL .
+                "وقت الاستقبال ⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
+                "📍مكان الحفـل " . $event->address  . PHP_EOL . PHP_EOL .
+                "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
+                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
+        }
+        else{ 
+            $caption = $row->name . PHP_EOL . PHP_EOL .
+                "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
+                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
+        }
 
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);

@@ -42,10 +42,20 @@ class SendCustomEventPdfJob implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('PDF Job Started - User ID: ' . $this->userId . ', Event ID: ' . $this->eventId);
         $row = CustomEventUsers::find($this->userId);
         $event = CustomEvent::find($this->eventId);
 
-        if (!$row || !$row->mobile || !$event) {
+        if (!$row) {
+            Log::error('PDF Job Error - CustomEventUsers row not found for ID: ' . $this->userId);
+            return;
+        }
+        if (!$event) {
+            Log::error('PDF Job Error - CustomEvent row not found for ID: ' . $this->eventId);
+            return;
+        }
+        if (!$row->mobile) {
+            Log::warning('PDF Job Warning - CustomEventUsers mobile is empty for ID: ' . $this->userId);
             return;
         }
 
@@ -74,13 +84,16 @@ class SendCustomEventPdfJob implements ShouldQueue
             $image = str_replace('\\', '/', $pdfPath);
         } else {
             $image = str_replace('\\', '/', public_path('img/no-image.png'));
+            Log::warning('PDF Job - background image not found, using fallback no-image.png');
         }
 
         // ضغط الصورة لتقليل حجم الـ PDF (لكي يفتحها WhatsApp مباشرة بدون تحميل)
         $compressedImagePath = null;
         if ($image && file_exists($image)) {
+            Log::info('PDF Job - Starting image compression for image: ' . $image . ' (Size: ' . filesize($image) . ' bytes)');
             try {
                 $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+                Log::info('PDF Job - image extension: ' . $ext);
                 $srcImage = null;
                 if ($ext === 'png') {
                     $srcImage = @imagecreatefrompng($image);
@@ -89,6 +102,7 @@ class SendCustomEventPdfJob implements ShouldQueue
                 }
 
                 if ($srcImage) {
+                    Log::info('PDF Job - GD srcImage resource created successfully');
                     // نضغط إلى 794x1123 (A4 على 96 DPI) لتقليل الحجم
                     $targetW = 794;
                     $targetH = 1123;
@@ -98,12 +112,19 @@ class SendCustomEventPdfJob implements ShouldQueue
                     imagedestroy($srcImage);
 
                     $compressedImagePath = sys_get_temp_dir() . '/pdf_bg_' . uniqid() . '.jpg';
-                    imagejpeg($resized, $compressedImagePath, 80); // جودة 80% كافية
+                    $quality = 80;
+                    if (imagejpeg($resized, $compressedImagePath, $quality)) {
+                        Log::info('PDF Job - Image compressed successfully. Temp path: ' . $compressedImagePath . ' (Size: ' . filesize($compressedImagePath) . ' bytes)');
+                        $image = $compressedImagePath;
+                    } else {
+                        Log::error('PDF Job - Failed to save imagejpeg to: ' . $compressedImagePath);
+                    }
                     imagedestroy($resized);
-
-                    $image = $compressedImagePath;
+                } else {
+                    Log::warning('PDF Job - GD srcImage resource could not be created for extension: ' . $ext);
                 }
             } catch (\Throwable $ex) {
+                Log::error('PDF Job - Exception in image compression: ' . $ex->getMessage() . PHP_EOL . $ex->getTraceAsString());
                 // نستمر بالصورة الأصلية إذا فشل الضغط
             }
         }
@@ -118,6 +139,7 @@ class SendCustomEventPdfJob implements ShouldQueue
                 'margin_footer' => 0,
                 'format'        => 'A4',
             ];
+            Log::info('PDF Job - Initializing mPDF with config: ' . json_encode($config));
 
             // إنشاء mPDF مباشرة
             $mpdf = new \Mpdf\Mpdf($config);
@@ -125,7 +147,10 @@ class SendCustomEventPdfJob implements ShouldQueue
             // وضع الصورة كخلفية كاملة للصفحة باستخدام Image() API مباشرة
             // A4 = 210mm x 297mm
             if ($image && file_exists($image)) {
+                Log::info('PDF Job - Adding image to PDF via Image(): ' . $image);
                 $mpdf->Image($image, 0, 0, 210, 297, '', '', true, false);
+            } else {
+                Log::error('PDF Job - Image file does not exist when rendering PDF: ' . $image);
             }
 
             // بناء HTML الأزرار فقط (بدون صورة) بـ CSS بسيط جداً
@@ -148,6 +173,8 @@ a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; pa
 </table>
 </body></html>';
 
+            Log::info('PDF Job - Writing HTML content: ' . $buttonsHtml);
+
             // تحديد موضع الأزرار من أعلى الصفحة (297mm - 35mm من الأسفل = 262mm)
             $mpdf->SetY(262);
             $mpdf->WriteHTML($buttonsHtml);
@@ -157,39 +184,60 @@ a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; pa
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);
+                Log::info('PDF Job - Created temp_pdfs directory');
             }
 
             $pdf_path = $directory . '/' . $filename;
+            Log::info('PDF Job - Outputting PDF file to: ' . $pdf_path);
             $mpdf->Output($pdf_path, 'F');
+            
+            if (file_exists($pdf_path)) {
+                Log::info('PDF Job - PDF file created successfully (Size: ' . filesize($pdf_path) . ' bytes)');
+            } else {
+                Log::error('PDF Job - PDF file was NOT created at: ' . $pdf_path);
+            }
         } catch (\Exception $e) {
-            Log::error("PDF Generation Error in Job: " . $e->getMessage());
+            Log::error("PDF Job - Exception in PDF Generation: " . $e->getMessage() . PHP_EOL . $e->getTraceAsString());
             return;
         }
         
         $pdf_url = asset('temp_pdfs/' . $filename);
+        Log::info('PDF Job - Generated PDF URL: ' . $pdf_url);
 
+        Log::info('PDF Job - Initializing UltraMsg API with Token: ' . $this->ultramsg_token . ', Instance ID: ' . $this->instance_id);
         $client = new \UltraMsg\WhatsAppApi($this->ultramsg_token, $this->instance_id);
         
         $priority = 0;
         $referenceId = "SDK";
         $nocache = true;
         
+        Log::info('PDF Job - Sending document via WhatsApp to: ' . $to);
         $api = $client->sendDocumentMessage($to, 'invitation.pdf', $pdf_url, $caption, $priority, $referenceId, $nocache);
+        Log::info('PDF Job - WhatsApp API response: ' . json_encode($api));
         
         // Wait a few seconds to ensure Ultramsg server downloaded the file
+        Log::info('PDF Job - Sleeping 5 seconds before clean up...');
         sleep(5);
 
         // Delete the PDF after sending to save server space
         if (file_exists($pdf_path)) {
-            @unlink($pdf_path);
+            if (@unlink($pdf_path)) {
+                Log::info('PDF Job - Cleaned up PDF file: ' . $pdf_path);
+            } else {
+                Log::error('PDF Job - Failed to delete PDF file: ' . $pdf_path);
+            }
         }
         // Delete compressed temp image if created
         if ($compressedImagePath && file_exists($compressedImagePath)) {
-            @unlink($compressedImagePath);
+            if (@unlink($compressedImagePath)) {
+                Log::info('PDF Job - Cleaned up compressed image file: ' . $compressedImagePath);
+            } else {
+                Log::error('PDF Job - Failed to delete compressed image file: ' . $compressedImagePath);
+            }
         }
         
         if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true' && isset($api['message']) && $api['message'] == 'ok') {
-            // Success
+            Log::info('PDF Job - Success message sent to ' . $to);
             // $row->update(['is_new_sent' => 1]);
         } else {
             Log::error("Failed to send PDF to {$to} via Ultramsg.", ['response' => $api]);

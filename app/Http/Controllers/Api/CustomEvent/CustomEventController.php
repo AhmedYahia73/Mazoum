@@ -49,7 +49,7 @@ class CustomEventController extends Controller
                         . "بارك الله لهما وجمع بينهم في خير .\n"
                         . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
                         . "الموافق " . $event->date . "\n"
-                        . "وقت الاستقبال " . $event->time . " مساءً\n"
+                        . "وقت الاستقبال " . $event->time . " مساءًًً\n"
                         . "مكان الحفل " . $event->address . "\n"
                         . "عدد الدعوات " . $custom_event_user->users_count;
 

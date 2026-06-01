@@ -262,7 +262,7 @@ class EventUersController extends Controller
                         $row->event->title . PHP_EOL . PHP_EOL .
                         " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
                         $row->event->date  . PHP_EOL . PHP_EOL .
-                        " وقت الاستقبال ⏱️ " . $row->event->time . " مساءً" . PHP_EOL . PHP_EOL .
+                        " وقت الاستقبال ⏱️ " . $row->event->time . " مساءًً" . PHP_EOL . PHP_EOL .
                         "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 
                         "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                         "فضلاً الدخول على الرابط والضغط على (قبـول الدعـوة) لتأكيد الحضور، أو اختيار (الاعتذار) في حال عـدم التمكن من الحضور." . PHP_EOL .
@@ -546,7 +546,7 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
-                            //$time = $event->time . ' مساءً';
+                            //$time = $event->time . ' مساءًً';
                           	$date = $request->date;
                           	$time = $request->time;
 
@@ -1477,7 +1477,7 @@ class EventUersController extends Controller
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                             $param_4   = $event->address;
-                            $param_5   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
+                            $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
 							$param_6   = $users_count;
 
                           	/*
@@ -3584,7 +3584,7 @@ class EventUersController extends Controller
                 $event_title   = $event->title;
                 $event_day   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                 $event_address   = $event->address;
-                $event_time   = $event->time != null ? $event->time .' مساء ' : '07:00 مساء';
+                $event_time   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
                 $users_count = $user->users_count;
                 $setting = Setting::first();
 

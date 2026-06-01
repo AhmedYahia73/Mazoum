@@ -55,7 +55,7 @@ class PackageController extends Controller
                         . "بارك الله لهما وجمع بينهم في خير .\n"
                         . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
                         . "الموافق " . $event->date . "\n"
-                        . "وقت الاستقبال " . $event->time . " مساءً\n"
+                        . "وقت الاستقبال " . $event->time . " مساءًًً\n"
                         . "مكان الحفل " . $event->address . "\n"
                         . "عدد الدعوات " . $custom_event_user->users_count;
 
@@ -76,7 +76,7 @@ class PackageController extends Controller
                         . "بارك الله لهما وجمع بينهم في خير .\n"
                         . "وذلك بمشيئة الله تعالى يوم " . $day_name . "\n"
                         . "الموافق " . $event->date . "\n"
-                        . "وقت الاستقبال " . $event->time . " مساءً\n"
+                        . "وقت الاستقبال " . $event->time . " مساءًًً\n"
                         . "مكان الحفل " . $event->address . "\n"
                         . "عدد الدعوات " . $event_user->users_count;
 
@@ -733,7 +733,7 @@ class PackageController extends Controller
                     $event->title . PHP_EOL . PHP_EOL .
                     "وذلك بمشيئة الله يوم " . $day_name ." الموافق" . PHP_EOL . PHP_EOL .
                     $event->date . " 📆" . PHP_EOL . PHP_EOL .
-                    "⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
+                    "⏱️الساعـة " . $event->time . " مساءًًاً" . PHP_EOL . PHP_EOL .
                     "📍مكان الحفـل " . $event->address ;
 
                   // $api=$client->sendChatMessage($to,$body);

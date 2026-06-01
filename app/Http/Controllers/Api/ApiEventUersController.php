@@ -632,7 +632,7 @@ class ApiEventUersController extends Controller
                                 $param_2   = $event->title;
                                 $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                                 $param_4   = $event->address;
-                                $param_5   = $event->time != null ? $event->time : '07:00 مساء';
+                                $param_5   = $event->time != null ? $event->time : '07:00 مساءً';
                                 $param_6   = $users_count;
 
                                 if($event->sending_type == 'old_send') {
@@ -693,7 +693,7 @@ class ApiEventUersController extends Controller
                                     $row->event->title . PHP_EOL . PHP_EOL .
                                     "وذلك بمشيئة الله يوم " . $day_name ." الموافق" . PHP_EOL . PHP_EOL .
                                     $row->event->date . " 📆" . PHP_EOL . PHP_EOL .
-                                    "⏱️الساعـة " . $row->event->time . " مساءاً" . PHP_EOL . PHP_EOL .
+                                    "⏱️الساعـة " . $row->event->time . " مساءًاً" . PHP_EOL . PHP_EOL .
                                     "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL .
                                     "لتأكيد الحضـور أو الاعتذار الرجاء الضغط على للينك لإظهار تفاصيل المناسبة وستلام كود الدخول الخاص بكم" . PHP_EOL . PHP_EOL .
                                     "https://mazoom.online/event/login";
@@ -890,7 +890,7 @@ class ApiEventUersController extends Controller
                         $param_2   = $event->title;
                         $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                         $param_4   = $event->address;
-                        $param_5   = $event->time != null ? $event->time : '07:00 مساء';
+                        $param_5   = $event->time != null ? $event->time : '07:00 مساءً';
 
                         //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
                         $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;

@@ -59,12 +59,12 @@ if (! function_exists('get_whats_v2_setting')) {
       	//dd($event->country_code);
 
         if($event->country_code == 'sa') {
-            $token     = $setting->access_token;
-            $sender_id = $setting->sender_id;
+            $token     = $setting->sa_access_token2;
+            $sender_id = $setting->sa_sender_id2;
         } else {
           	//dd('ok');
-            $token     = $setting->sa_access_token;
-            $sender_id = $setting->sa_sender_id;
+            $token     = $setting->kw_access_token2;
+            $sender_id = $setting->kw_sender_id2;
         }
 
         $arr['token'] = $token;

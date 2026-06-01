@@ -10,6 +10,10 @@ Route::get('/', 'AdminController@home');
 Route::post('/send_message', [HomeController::class, 'sendMessage']);
 
 Route::get('watts_chat', 'AdminWattsChatController@index');
+
+Route::get('profile', 'ProfileController@profile');
+Route::post('update_profile', 'ProfileController@update_profile');
+
 Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');

@@ -1355,5 +1355,3 @@ class CustomEventController extends Controller
     }
 
 }
-
-

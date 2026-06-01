@@ -31,7 +31,10 @@ class SettingController extends Controller
             'en_key_words' => 'required',
             'ar_key_words' => 'required',
             'mobile' => 'required',
-            'logo' => 'nullable|image',
+            'logo' => 'nullable|image', 
+            'sa_access_token2' => "required",
+            'sa_phone_numer_id2' => "required",
+            'sa_sender_id2' => "required",
         ]);
         if ($validation->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

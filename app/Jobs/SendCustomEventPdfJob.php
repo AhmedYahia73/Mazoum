@@ -157,13 +157,25 @@ class SendCustomEventPdfJob implements ShouldQueue
 }
 body { margin: 0; padding: 0; font-family: Arial; background-color: transparent; }
 table { margin: 0 auto; }
-td { padding-left: 6mm; padding-right: 6mm; }
-a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; padding-right: 6mm; font-size: 12pt; font-weight: bold; text-decoration: none; color: #ffffff; }
+td { padding-left: 4mm; padding-right: 4mm; }
+a { 
+    display: block; 
+    padding-top: 4.5mm; 
+    padding-bottom: 4.5mm; 
+    padding-left: 10mm; 
+    padding-right: 10mm; 
+    font-size: 14pt; 
+    font-weight: bold; 
+    text-decoration: none; 
+    color: #ffffff; 
+    border-radius: 6px; 
+    text-align: center; 
+}
 .a1 { background-color: #1e6b40; }
 .a2 { background-color: #8e2020; }
 </style>
 </head><body>
-<table cellpadding="0" cellspacing="0">
+<table cellpadding="0" cellspacing="0" dir="rtl">
 <tr>
 <td><a href="' . $confirm_link . '" class="a1">تأكيد الحضور</a></td>
 <td><a href="' . $apologize_link . '" class="a2">الاعتذار عن الحضور</a></td>

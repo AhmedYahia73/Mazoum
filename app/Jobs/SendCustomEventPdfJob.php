@@ -143,21 +143,19 @@ class SendCustomEventPdfJob implements ShouldQueue
 
             // إنشاء mPDF مباشرة
             $mpdf = new \Mpdf\Mpdf($config);
+            $mpdf->showImageErrors = true;
 
-            // وضع الصورة كخلفية كاملة للصفحة باستخدام Image() API مباشرة
-            // A4 = 210mm x 297mm
-            if ($image && file_exists($image)) {
-                Log::info('PDF Job - Adding image to PDF via Image(): ' . $image);
-                $mpdf->Image($image, 0, 0, 210, 297, '', '', true, false);
-            } else {
-                Log::error('PDF Job - Image file does not exist when rendering PDF: ' . $image);
-            }
-
-            // بناء HTML الأزرار فقط (بدون صورة) بـ CSS بسيط جداً
+            // بناء HTML مع وضع الصورة كخلفية للصفحة باستخدام CSS @page
             $buttonsHtml = '
 <html><head><meta charset="UTF-8">
 <style>
-body { margin: 0; padding: 0; font-family: Arial; }
+@page {
+    background-image: url("' . $image . '");
+    background-image-resize: 6;
+    background-repeat: no-repeat;
+    margin: 0;
+}
+body { margin: 0; padding: 0; font-family: Arial; background-color: transparent; }
 table { margin: 0 auto; }
 td { padding-left: 6mm; padding-right: 6mm; }
 a { display: block; padding-top: 3mm; padding-bottom: 3mm; padding-left: 6mm; padding-right: 6mm; font-size: 12pt; font-weight: bold; text-decoration: none; color: #ffffff; }

@@ -122,6 +122,12 @@ class NegotaitionController extends Controller
                     ],400);
                 }
             }
+            $user = User::where("id", $request->user_id)
+            ->first();
+            if($request->is_paid == "paid" && $request->users_count){
+                $user->custom_invetaion += $request->users_count;
+                $user->save();
+            }
             $validate_arr = $validation->validated();
             $this->save_order($request, $validate_arr);
         }

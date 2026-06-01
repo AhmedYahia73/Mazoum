@@ -138,6 +138,10 @@ class UsersController extends Controller
                 'is_paid'                 => $request->is_paid,
             ]);
         }
+        if($request->is_paid == "paid"){
+            $user->custom_invetaion += $request->users_count;
+            $user->save();
+        }
 
         // حالة السعر الثابت (Fixed Price)
         if ($request->type == 'fixed-price') {
@@ -215,6 +219,10 @@ class UsersController extends Controller
 
         $user = User::findOrFail($order->user_id);
 
+        if($request->is_paid == "paid" && $request->users_count){
+            $user->custom_invetaion += ($request->users_count - $order->users_count);
+            $user->save();
+        }
         $order->update([
             'start_subscription_date' => $request->start_subscription_date,
             'duration_type' => $request->duration_type,

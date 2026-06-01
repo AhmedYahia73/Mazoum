@@ -639,6 +639,9 @@ class EventsController extends Controller
                 ->orWhere('mobile', 'like', "%$s%");
             });
         }
+        if($request->status){
+            $query->where("status", $request->status);
+        }
 
         // ⭐ Pagination
         $event_users = $query->paginate(20);

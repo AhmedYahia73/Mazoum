@@ -166,24 +166,35 @@ class SendCustomEventPdfJob implements ShouldQueue
     background-repeat: no-repeat;
     margin: 0;
 }
-body { margin: 0; padding: 0; font-family: Arial; background-color: transparent; }
-table { margin: 0 auto; }
-td { padding-left: 4mm; padding-right: 4mm; }
+body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: transparent; }
+table { 
+    margin: 0 auto; 
+    border-collapse: separate; 
+    border-spacing: 12mm 0; 
+}
+td { 
+    padding: 0; 
+    width: 65mm;
+}
 a { 
     display: block; 
     padding-top: 4.5mm; 
     padding-bottom: 4.5mm; 
-    padding-left: 10mm; 
-    padding-right: 10mm; 
-    font-size: 14pt; 
+    font-size: 15pt; 
     font-weight: bold; 
     text-decoration: none; 
     color: #ffffff; 
-    border-radius: 6px; 
+    border-radius: 8px; 
     text-align: center; 
 }
-.a1 { background-color: #1e6b40; }
-.a2 { background-color: #8e2020; }
+.a1 { 
+    background-color: #10b981; 
+    border: 1.5pt solid #059669;
+}
+.a2 { 
+    background-color: #ef4444; 
+    border: 1.5pt solid #dc2626;
+}
 </style>
 </head><body>
 <table cellpadding="0" cellspacing="0" dir="rtl">
@@ -196,8 +207,8 @@ a {
 
             Log::info('PDF Job - Writing HTML content: ' . $buttonsHtml);
 
-            // تحديد موضع الأزرار من أعلى الصفحة (297mm - 35mm من الأسفل = 262mm)
-            $mpdf->SetY(262);
+            // تحديد موضع الأزرار من أعلى الصفحة (297mm - 29mm من الأسفل = 268mm)
+            $mpdf->SetY(268);
             $mpdf->WriteHTML($buttonsHtml);
 
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';

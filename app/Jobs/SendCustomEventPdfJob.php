@@ -156,17 +156,15 @@ class SendCustomEventPdfJob implements ShouldQueue
             $mpdf = new \Mpdf\Mpdf($config);
             $mpdf->showImageErrors = true;
 
-            // بناء HTML مع وضع الصورة كخلفية للصفحة باستخدام CSS @page
-            $buttonsHtml = '
-<html><head><meta charset="UTF-8">
-<style>
+            // 1. كتابة التنسيقات (CSS)
+            $stylesheet = '
 @page {
     background-image: url("' . $image . '");
     background-image-resize: 6;
     background-repeat: no-repeat;
     margin: 0;
 }
-body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: transparent; }
+body { background-color: transparent; font-family: Arial, sans-serif; margin: 0; padding: 0; }
 table { 
     margin: 0 auto; 
     border-collapse: separate; 
@@ -194,22 +192,24 @@ a {
 .a2 { 
     background-color: #ef4444; 
     border: 1.5pt solid #dc2626;
-}
-</style>
-</head><body>
+}';
+            $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
+
+            // 2. تحديد الموضع الرأسي بدقة (SetY) قبل كتابة كود الأزرار
+            // A4 = 297mm height. We set it to 268mm so buttons reside at the bottom
+            $mpdf->SetY(268);
+
+            // 3. كتابة كود الـ HTML للأزرار فقط كـ HTML_BODY لتفادي إعادة تعيين الـ Margins أو موضع المؤشر
+            $buttonsHtml = '
 <table cellpadding="0" cellspacing="0" dir="rtl">
 <tr>
 <td><a href="' . $confirm_link . '" class="a1">تأكيد الحضور</a></td>
 <td><a href="' . $apologize_link . '" class="a2">الاعتذار عن الحضور</a></td>
 </tr>
-</table>
-</body></html>';
+</table>';
 
             Log::info('PDF Job - Writing HTML content: ' . $buttonsHtml);
-
-            // تحديد موضع الأزرار من أعلى الصفحة (297mm - 29mm من الأسفل = 268mm)
-            $mpdf->SetY(268);
-            $mpdf->WriteHTML($buttonsHtml);
+            $mpdf->WriteHTML($buttonsHtml, \Mpdf\HTMLParserMode::HTML_BODY);
 
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
 

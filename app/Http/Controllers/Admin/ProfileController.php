@@ -32,5 +32,5 @@ class ProfileController extends Controller
         return response()->json([
             "success" => "You update data success"
         ]);
-    }
+    } 
 }

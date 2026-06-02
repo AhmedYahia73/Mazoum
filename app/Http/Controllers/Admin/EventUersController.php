@@ -3409,6 +3409,7 @@ class EventUersController extends Controller
  
         return response()->json([
             "id" => $Item?->id,
+            "event_id" => $Item?->event_id,
             "user_name" => $Item?->name,
             "user_mobile" => $Item?->mobile, 
             "event_name" => $Item?->event?->title,

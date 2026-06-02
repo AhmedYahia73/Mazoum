@@ -1084,7 +1084,9 @@ class CustomEventController extends Controller
                     $api = ['sent' => 'true', 'message' => 'ok'];
                 }
                 else{
+                    info('sendImageMessage to: ' . $to . ' image: ' . $image);
                     $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
+                    info('sendImageMessage response: ' . json_encode($api));
                 }
 
                 //   dd($api);

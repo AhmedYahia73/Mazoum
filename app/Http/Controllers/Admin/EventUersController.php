@@ -3445,7 +3445,7 @@ class EventUersController extends Controller
             ->first();
         }
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
-         if($Item->users_count >= $available){
+        if($request->users_count >= $available){
             return response()->json([
                 "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
             ], 400);

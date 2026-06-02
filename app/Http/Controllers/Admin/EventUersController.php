@@ -3456,7 +3456,7 @@ class EventUersController extends Controller
             ],400);
 
         }
-        $user_data->send_custom_invetaion += $Item->users_count;
+        $user_data->send_custom_invetaion += $request->users_count;
         $user_data->save();
         EnterUserEvent::create([
             "event_user_id" => $Item->id,

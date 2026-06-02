@@ -983,6 +983,15 @@ class EventsController extends Controller
                 "errors" => 'User is not subscriber'
             ], 400);
         }
+        
+        if($request->is_paid == "paid" && $order->is_paid == "not_paid") {
+            $Item->send_custom_invetaion += $request->users_count;
+            $Item->save();
+        }
+        if($request->is_paid == "paid" && $order->is_paid == "paid") {
+            $Item->send_custom_invetaion += $request->users_count - $order->users_count;
+            $Item->save();
+        }
         $order->update([
             "total" => $request->package_price,
             "payment_type" => $request->payment_type,

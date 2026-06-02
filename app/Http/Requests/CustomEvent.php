@@ -47,7 +47,7 @@ class CustomEvent extends FormRequest
                     'image_width' => ['required'],
                     'text_color' => ['required'],
                     'show_data_pdf' => ['required', "boolean"],
-                    'pdf' => ['required', 'image'],
+                    'pdf' => ['required'],
                 ];
 
             case 'PUT':
@@ -78,7 +78,7 @@ class CustomEvent extends FormRequest
                     'image_width' => ['numeric'],
                     'text_color' => ['required'],
                     'show_data_pdf' => ['required', "boolean"],
-                    'pdf' => ['required', 'image'],
+                    'pdf' => ['required'],
                 ];
 
             default:

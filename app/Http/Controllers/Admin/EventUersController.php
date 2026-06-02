@@ -3408,6 +3408,7 @@ class EventUersController extends Controller
         ->with("event")->first(); 
  
         return response()->json([
+            "id" => $Item?->id,
             "user_name" => $Item?->name,
             "user_mobile" => $Item?->mobile, 
             "event_name" => $Item?->event?->title,
@@ -3439,7 +3440,7 @@ class EventUersController extends Controller
         ->first();
         if(!$user_data){
             $user_data = User::
-            where("id", $Item?->event?->id)
+            where("id", $Item?->event?->user_id)
             ->first();
         }
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;

@@ -1370,7 +1370,7 @@ class CustomEventController extends Controller
         ->whereHas("event_users", function($query) use($Item){
             $query->where("custom_event_id", $Item->id);
         })
-        ->count();
+        ->get();
 
         return response()->json([ 
             "Item" => $Item,

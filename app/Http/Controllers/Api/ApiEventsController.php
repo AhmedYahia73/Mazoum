@@ -703,7 +703,7 @@ class ApiEventsController extends Controller
         $input = $request->only([
             'title','lat', 'long', 'address', 'showing_qr',
             'first_name','last_name','lat','long','date','time', 'pdf',
-            'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
+            'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y',
         ]);
 
         if (! isset($modelClass)) {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Libs\Upload;
+use Illuminate\Support\Facades\File;
 
 if (! function_exists('upload')) {
 

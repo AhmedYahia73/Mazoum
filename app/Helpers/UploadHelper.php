@@ -31,10 +31,15 @@ if (! function_exists('Image_Path')) {
     function Image_Path($img = null) {
 
         $existImage = public_path('images/' . $img);
+        $secondExistImage = public_path('public/images/' . $img);
 
         if (! File::exists($existImage) || $img == null) {
             return asset('img/no-image.png');
-        } else {
+        }
+        elseif(File::exists($secondExistImage)) {
+            return asset('public/images') . '/' . $img;
+        }
+        else {
             return asset('images') . '/' . $img;
         }
     }

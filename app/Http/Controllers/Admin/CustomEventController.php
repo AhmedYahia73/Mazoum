@@ -944,6 +944,12 @@ class CustomEventController extends Controller
         $confirm_count = CustomEventUsers::
         where("custom_event_id", $Item->id) 
         ->sum("confirm_count");
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("custom_event_id", $Item->id);
+        })
+        ->count();
 
         return response()->json([
             'Item' =>  $Item, 
@@ -954,6 +960,7 @@ class CustomEventController extends Controller
             'apologize_msg' =>  $apologize_msg, 
             'apologize_count' =>  $apologize_count, 
             'confirm_count' =>  $confirm_count, 
+            'event_host' =>  $event_host, 
         ]); 
     }
 
@@ -1353,6 +1360,21 @@ class CustomEventController extends Controller
 
         return response()->json([ 
             "success" => "You update data success",
+        ]);
+    }
+    
+    public function host_custom_event(Request $request, $id){
+        $Item = Model::findOrFail($id);
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("custom_event_id", $Item->id);
+        })
+        ->count();
+
+        return response()->json([ 
+            "Item" => $Item,
+            "event_host" => $event_host
         ]);
     }
 

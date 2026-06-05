@@ -51,8 +51,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     
     Route::controller('Api\CustomEvent\MemoryController')
     ->prefix("memories")->group(function () {
-        Route::get('/custom_memories/{id}', 'custom_memories');
-        Route::get('/memories/{id}', 'memories');
+        Route::get('/custom_memories/{id}', 'custom_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::get('/memories/{id}', 'memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::post('/send_custom_memories', 'send_custom_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::post('/send_memories', 'send_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });

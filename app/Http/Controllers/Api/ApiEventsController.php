@@ -128,7 +128,23 @@ class ApiEventsController extends Controller
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
             });
-
+            $send_Qr = EventUsers::
+            where('event_id', $Item->id)
+            ->where('qr_sent','yes')
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count'])
+            ->map(function($item){
+                $item->scan_status = $item->users_count > $item->scan_count;
+                return $item;
+            });
+            $confirm_web_users = EventUsers::
+            where('event_id', $Item->id)
+            ->where("send_type", "link")
+            ->where('qr_sent','yes')
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count'])
+            ->map(function($item){
+                $item->scan_status = $item->users_count > $item->scan_count;
+                return $item;
+            });
             $scaned_qr_users = EventUsers::
             where(function($query) use($Item, $user){
                 $query->where('event_id',$Item->id)
@@ -250,12 +266,23 @@ class ApiEventsController extends Controller
             //     'count' => $confirmed_without_attend->sum('users_count'),
             //     'users' => $confirmed_without_attend
             // ];
-
             $arr9 = [
                 'title_en' => 'non_attendance_users',
                 'title_ar' => '',
                 'count' => $non_attendance_users->sum('available'),
                 'users' => $non_attendance_users
+            ];
+            $arr10 = [
+                'title_en' => 'send_Qr',
+                'title_ar' => '',
+                'count' => $send_Qr->sum('accept_count'),
+                'users' => $send_Qr
+            ];
+            $arr11 = [
+                'title_en' => 'confirm_web_users',
+                'title_ar' => '',
+                'count' => $confirm_web_users->sum('accept_count'),
+                'users' => $confirm_web_users
             ];
 
             $event_details[] = $arr1;
@@ -267,6 +294,8 @@ class ApiEventsController extends Controller
             $event_details[] = $arr7;
             // $event_details[] = $arr8;
             $event_details[] = $arr9;
+            $event_details[] = $arr10;
+            $event_details[] = $arr11;
 
           	$mobiles = EventUsers::where('event_id',$Item->id)->pluck('mobile')->toArray();
 

@@ -723,7 +723,7 @@ class ApiEventsController extends Controller
         $input['user_id'] = $user_id;
         //////////////////////////////////////////////////
 
-        $path = 'public/images';
+        $path = 'images';
 
         if ($request->file('file') != null) {
             $extension = $request->file('file')->extension();

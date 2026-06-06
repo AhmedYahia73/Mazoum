@@ -38,8 +38,10 @@ class UserController extends Controller
                 "id" => $item->id,
                 "mobile_code" => $item->mobile_code,
                 "mobile" => $item->mobile,
-                "name" => $item->name, 
+                "name" => $item->name,
                 "custom_invetaion" => $item->custom_invetaion,
+                "send_custom_invetaion" => $item->send_custom_invetaion,
+                "total" => $item->custom_invetaion + $item->send_custom_invetaion,
             ];
         });
 
@@ -59,6 +61,8 @@ class UserController extends Controller
                 "mobile" => $item->mobile,
                 "name" => $item->name, 
                 "custom_invetaion" => $item->custom_invetaion,
+                "send_custom_invetaion" => $item->send_custom_invetaion,
+                "total" => $item->custom_invetaion + $item->send_custom_invetaion,
             ];
         });
 

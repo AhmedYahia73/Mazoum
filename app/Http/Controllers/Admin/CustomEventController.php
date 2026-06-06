@@ -1435,84 +1435,78 @@ class CustomEventController extends Controller
 
             foreach($request->users as $item) {
 
-                $user_event = Model::withTrashed()->find($item);
+                $user_event = CustomEventUsers::withTrashed()->find($item);
 
-                if($user_event != null) {
+                $url_button = '?q=' . $event->lat . ',' . $event->lng;
 
-                    $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+                $user_name = $user_event->name;
 
-                    $user_name = $user_event->name;
+                $mobile = $user_event->mobile;
 
-                    $mobile = $user_event->mobile;
+                //$to = $code.$mobile;
+                $to = $mobile;
+                $to = str_replace("+","",$to);
 
-                    //$to = $code.$mobile;
-                    $to = $mobile;
-                    $to = str_replace("+","",$to);
+                //$time = $event->time . ' مساءًً';
+                $date = $request->date;
+                $time = $request->time;
 
-                    //$time = $event->time . ' مساءًً';
-                    $date = $request->date;
-                    $time = $request->time;
+                $template_name = 'car_msg3_';
 
-                    $template_name = 'car_msg3_';
+                if($request->sending_type2 == 'old_send') {
 
-                    if($request->sending_type2 == 'old_send') {
+                    $language = 'ar';
 
-                        $language = 'ar';
+                    $token          = get_whats_setting($event)['token'];
+                    $sender_id      = get_whats_setting($event)['sender_id'];
+                    $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-                        $token          = get_whats_setting($event)['token'];
-                        $sender_id      = get_whats_setting($event)['sender_id'];
-                        $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    $param_1 = $message;
+                    $param_2 = $time;
+                    $param_3 = $date;
 
-                        $param_1 = $message;
-                        $param_2 = $time;
-                        $param_3 = $date;
+                    $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
 
-                        $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
- 
-                        if ($response != null && $response->getStatusCode() == 200) {
+                    if ($response != null && $response->getStatusCode() == 200) {
 
-                            $body = $response->getBody();
-                            $data = json_decode($body, true);
-
-                        } else {
-                            $user_event->update([
-                                'status' => 'failed-v2',
-                            ]);
-                        }
+                        $body = $response->getBody();
+                        $data = json_decode($body, true);
 
                     } else {
-
-                        $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم ". $date ." في تمــام الساعة "  . $time . "  تشرفينــا لحضور " . $request->message2 . ' 🌺🌺 ';
-
-                        // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
-
-                        // $api=$client->sendChatMessage($to,$body);
-                        $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
-                        $api2 = $client->sendLocationMessage($to,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
-
-                        // $qr_code_row = Qr_Code::where('event_user_id',$arr['id'])->latest()->first();
-
-                        // if($qr_code_row) {
-                        //     $image_link = url('qr_code/' . $qr_code_row->qr);
-                        //     // $api3 = $client->sendImageMessage($to,$image_link,$caption2,$priority,$referenceId,$nocache);
-                        // }
-
-                        if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
-                            // dd('ok');
-                            info('error sending');
-                        } else {
-                            // dd('not ok',$api);
-                            $errors = $errors + 1;
-                        }
-
-
-
-
+                        $user_event->update([
+                            'status' => 'failed-v2',
+                        ]);
                     }
 
                 } else {
-                    $errors = $errors + 1;
-                }
+
+                    $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم ". $date ." في تمــام الساعة "  . $time . "  تشرفينــا لحضور " . $request->message2 . ' 🌺🌺 ';
+
+                    // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
+
+                    // $api=$client->sendChatMessage($to,$body);
+                    $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+                    $api2 = $client->sendLocationMessage($to,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
+
+                    // $qr_code_row = Qr_Code::where('event_user_id',$arr['id'])->latest()->first();
+
+                    // if($qr_code_row) {
+                    //     $image_link = url('qr_code/' . $qr_code_row->qr);
+                    //     // $api3 = $client->sendImageMessage($to,$image_link,$caption2,$priority,$referenceId,$nocache);
+                    // }
+
+                    if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+                        // dd('ok');
+                        info('error sending');
+                    } else {
+                        // dd('not ok',$api);
+                        $errors = $errors + 1;
+                    }
+
+
+
+
+                } 
             }
 
             return response()->json([

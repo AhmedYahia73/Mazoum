@@ -33,6 +33,7 @@ class UserEvents_Data extends JsonResource
             'mobile' => $this->mobile,
             'phone' => str_replace('+','',$code).$this->mobile,
             "scan_status" => $this->users_count > $this->scan_count,
+            "accept_count" => $this->accept_count,
         ];
 
 

@@ -435,7 +435,7 @@ Route::post('custom_events/force_multi_delete', 'CustomEventController@force_mul
 Route::get('custom_events/confirm_count/{id}', 'CustomEventController@confirm_count');
 Route::get('custom_events/apologize_count/{id}', 'CustomEventController@apologize_count');
 Route::post('custom_events/host_custom_create', 'CustomEventController@host_custom_create');
-Route::get('custom_events/host_custom_update/{id}', 'CustomEventController@host_custom_update');
+Route::put('custom_events/host_custom_update/{id}', 'CustomEventController@host_custom_update');
 Route::get('custom_events/host_custom_event/{id}', 'CustomEventController@host_custom_event');
 Route::get('custom_events/congratulation_msg/{id}', 'CustomEventController@congratulation_msg');
 Route::get('custom_events/apologize_msg/{id}', 'CustomEventController@apologize_msg');

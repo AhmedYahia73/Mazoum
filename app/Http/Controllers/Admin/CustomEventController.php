@@ -15,6 +15,7 @@ use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -1372,6 +1373,71 @@ class CustomEventController extends Controller
         return response()->json([ 
             "Item" => $Item,
             "event_host" => $event_host
+        ]);
+    }
+    
+    public function host_custom_create(Request $request){
+        $validator = Validator::make($request->all(), [
+          'mobile_code' => 'required|exists:mobile_codes,id',
+          'mobile' => 'required',
+          'name' => 'required',
+          'custom_invetaion' => 'required|numeric',
+          "custom_event_id" => "required|exists:custom_event,id",
+          "password" => "required",
+          "user_id" => "required|exists:users,id",
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        if(!$request->custom_event_id && !$request->event_user_id){
+            return response()->json([
+                "errors" => "custom_event_id or event_user_id is required"
+            ]);
+
+        } 
+
+        $user = User::findOrFail($request->user_id);
+        $user->custom_invetaion -= $request->custom_invetaion;
+        $user->balance -= $request->custom_invetaion;
+        $user->save();
+        User::create([
+            "mobile_code" => $request->mobile_code,
+            "mobile" => $request->mobile,
+            "name" => $request->name,
+            "custom_invetaion" => $request->custom_invetaion,
+            "user_id" => $user->id,
+            "custom_event_id" => $request->custom_event_id ?? null,
+            "event_id" => $request->event_user_id ?? null,
+            "password" => Hash::make($request->password),
+            "balance" => $request->custom_invetaion
+        ]);
+
+        return response()->json([
+            "success" => "You add data success"
+        ]);
+    }
+
+    public function host_custom_update(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+          "password" => "required"
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+  
+        User::
+        where("id", $id) 
+        ->update([
+            "password" => Hash::make($request->password)
+        ]);
+
+        return response()->json([
+            "success" => "You update data success"
         ]);
     }
 

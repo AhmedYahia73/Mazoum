@@ -113,7 +113,9 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
 
     Route::controller('Api\CustomEvent\UserController')
     ->prefix("user")->group(function () {
-        Route::get('/', 'view');    
+        Route::get('/', 'view');   
+        Route::get('/custom', 'custom');   
+        Route::get('/event', 'event');   
         Route::get('/lists', 'lists');    
         Route::put('/update/{id}', 'update');    
         Route::post('/add', 'create');    

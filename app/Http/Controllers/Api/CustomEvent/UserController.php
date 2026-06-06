@@ -27,6 +27,44 @@ class UserController extends Controller
         return response()->json([
             "users" => $users
         ]);
+    } 
+    
+    public function custom(){
+        $users = User::where("user_id", auth()->user()->id)
+        ->whereNotNull("custom_event_id")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "mobile_code" => $item->mobile_code,
+                "mobile" => $item->mobile,
+                "name" => $item->name, 
+                "custom_invetaion" => $item->custom_invetaion,
+            ];
+        });
+
+        return response()->json([
+            "users" => $users
+        ]);
+    }
+
+    public function event(){
+        $users = User::where("user_id", auth()->user()->id)
+        ->whereNotNull("event_id")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "mobile_code" => $item->mobile_code,
+                "mobile" => $item->mobile,
+                "name" => $item->name, 
+                "custom_invetaion" => $item->custom_invetaion,
+            ];
+        });
+
+        return response()->json([
+            "users" => $users
+        ]);
     }
 
     public function lists(){

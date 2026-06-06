@@ -1516,7 +1516,7 @@ class CustomEventController extends Controller
             }
 
             return response()->json([
-                'success' => 'تم الأرسال بنجاح', 
+                'success' => 'تم الأرسال بنجاح..', 
             ]); 
             
 

@@ -946,9 +946,7 @@ class CustomEventController extends Controller
         ->sum("confirm_count");
         $event_host = User::
         where("user_id", $Item->user_id)
-        ->whereHas("event_users", function($query) use($Item){
-            $query->where("custom_event_id", $Item->id);
-        })
+        ->orWhere("id", $Item->user_id)
         ->count();
 
         return response()->json([
@@ -1367,9 +1365,7 @@ class CustomEventController extends Controller
         $Item = Model::findOrFail($id);
         $event_host = User::
         where("user_id", $Item->user_id)
-        ->whereHas("event_users", function($query) use($Item){
-            $query->where("custom_event_id", $Item->id);
-        })
+        ->orWhere("id", $Item->user_id)
         ->get();
 
         return response()->json([ 

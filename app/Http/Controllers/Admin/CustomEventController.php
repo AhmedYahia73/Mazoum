@@ -7,10 +7,11 @@ use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily; 
 use App\Models\CustomEventUsers;
+use App\Models\CustomMessage;
 use App\Models\EnterUserCustomEvent;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
-use App\Models\CustomMessage;
+use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -1374,4 +1375,156 @@ class CustomEventController extends Controller
         ]);
     }
 
+    public function remember_users_to_event(Request $request)
+    {
+       $validator = Validator::make($request->all(), [ 
+            'message' => 'required',
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'users' => 'required|array',
+            'users.*' => 'required|exists:custom_event_users,id',
+          	'file'  => 'nullable',
+            'date' => 'required',
+            'time' => 'required',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $setting = Setting::first(); 
+
+        $event_id = $request->custom_event_id;
+
+        $event = Model::where('id', $event_id)->firstOrFail();
+
+      	$message = $request->message;
+
+        $url_button = '?q=' . $event->lat . ',' . $event->lng;
+
+      	$path = 'images';
+      	$filename = '';
+
+        if($request->file('file') != null && $request->file != null) {
+
+            $extension = $request->file('file')->extension();
+            $filename = uniqid() . '.' . $extension;
+            $request->file('file')->move($path, $filename);
+
+            $url_image = asset('images/'.$filename);
+
+        } else {
+            $url_image = $event->image;
+        }
+
+        /* ***************************************************************************** */
+
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
+
+        /* ***************************************************************************** */
+
+        try {
+
+            $errors = 0;
+
+            foreach($request->users as $item) {
+
+                $user_event = Model::withTrashed()->find($item);
+
+                if($user_event != null) {
+
+                    $url_button = '?q=' . $user_event->event->lat . ',' . $user_event->event->long;
+
+                    $user_name = $user_event->name;
+
+                    $mobile = $user_event->mobile;
+
+                    //$to = $code.$mobile;
+                    $to = $mobile;
+                    $to = str_replace("+","",$to);
+
+                    //$time = $event->time . ' مساءًً';
+                    $date = $request->date;
+                    $time = $request->time;
+
+                    $template_name = 'car_msg3_';
+
+                    if($request->sending_type2 == 'old_send') {
+
+                        $language = 'ar';
+
+                        $token          = get_whats_setting($event)['token'];
+                        $sender_id      = get_whats_setting($event)['sender_id'];
+                        $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                        $param_1 = $message;
+                        $param_2 = $time;
+                        $param_3 = $date;
+
+                        $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
+ 
+                        if ($response != null && $response->getStatusCode() == 200) {
+
+                            $body = $response->getBody();
+                            $data = json_decode($body, true);
+
+                        } else {
+                            $user_event->update([
+                                'status' => 'failed-v2',
+                            ]);
+                        }
+
+                    } else {
+
+                        $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم ". $date ." في تمــام الساعة "  . $time . "  تشرفينــا لحضور " . $request->message2 . ' 🌺🌺 ';
+
+                        // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
+
+                        // $api=$client->sendChatMessage($to,$body);
+                        $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+                        $api2 = $client->sendLocationMessage($to,$event->address,$event->lat,$event->long,$priority=0,$referenceId="SDK");
+
+                        // $qr_code_row = Qr_Code::where('event_user_id',$arr['id'])->latest()->first();
+
+                        // if($qr_code_row) {
+                        //     $image_link = url('qr_code/' . $qr_code_row->qr);
+                        //     // $api3 = $client->sendImageMessage($to,$image_link,$caption2,$priority,$referenceId,$nocache);
+                        // }
+
+                        if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+                            // dd('ok');
+                            info('error sending');
+                        } else {
+                            // dd('not ok',$api);
+                            $errors = $errors + 1;
+                        }
+
+
+
+
+                    }
+
+                } else {
+                    $errors = $errors + 1;
+                }
+            }
+
+            return response()->json([
+                'success' => 'تم الأرسال بنجاح', 
+            ]); 
+            
+
+        } catch(\Exception $e) {
+            dd($e,$e->getMessage(), $e->getLine());
+        }
+
+        dd('error-v2'); 
+
+    }
 }

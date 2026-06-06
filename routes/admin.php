@@ -422,7 +422,8 @@ Route::post('send_reservation_info_to_user', 'ReservationController@send_reserva
 
 
  
-// Uses
+// Uses 
+Route::post('custom_events/remember_users_to_event', 'CustomEventController@remember_users_to_event');
 Route::get('custom_events/deleted_custom_events', 'CustomEventController@deleted_custom_events');
 Route::resource('custom_events', 'CustomEventController', [
     'names' => 'admin.custom_events',

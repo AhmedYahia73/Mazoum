@@ -14,6 +14,8 @@ use App\Models\EventUsers;
 use App\Models\Qr_Code;
 use App\Models\User;
 use App\Models\EventMessages;
+use App\Models\Memory;
+use App\Models\CustomMemory; 
 use App\Models\CongratulationMessages;
 
 use App\Traits\GeneralTrait;
@@ -325,7 +327,41 @@ class ApiEventsController extends Controller
         }
     }
 
+    public function best_memories(Request $request, $id) {
+        // , 
+        $memories = Memory::where('event_id', $id)
+        ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
+        ->through(function($item) {
+            return [
+                "id" => $item->id,
+                "image" => $item->image_url,
+                "time" => $item->created_at->format("h:i:s A"),
+            ];
+        });
 
+        return response()->json([
+            "memories" => $memories,
+        ]);
+    }
+
+    public function best_custom_memories(Request $request, $id) {
+        // CustomMemory, 
+        $memories = CustomMemory::where('custom_event_id', $id)
+        ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
+        ->through(function($item) {
+            return [
+                "id" => $item->id,
+                "image" => $item->image_url,
+                "time" => $item->created_at->format("h:i:s A"),
+            ];
+        });
+
+        return response()->json([
+            "memories" => $memories,
+        ]);
+    }
 
     public function index()
     {

@@ -195,6 +195,8 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
 
     // Events
     Route::get('user/events', 'ApiEventsController@index');
+    Route::get('user/best_memories/{id}', 'ApiEventsController@best_memories');
+    Route::get('user/best_custom_memories/{id}', 'ApiEventsController@best_custom_memories');
     Route::post('user/user_event/qr_link', 'ApiEventsController@qr_link');
     Route::post('user/events', 'ApiEventsController@store');
     Route::post('user/update-event', 'ApiEventsController@update');

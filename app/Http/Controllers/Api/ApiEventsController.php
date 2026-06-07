@@ -92,7 +92,9 @@ class ApiEventsController extends Controller
             $EventUsers = EventUsers::
             where('event_id', $Item->id)
             ->orWhere("user_id", $user->id)
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', 
+            "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -101,7 +103,9 @@ class ApiEventsController extends Controller
 
             $all_invited_users = EventUsers::where('event_id',$Item->id)
             ->orWhere("user_id", $user->id)
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', 
+            "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -113,7 +117,9 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user->id);
             })
             ->where('status','hold')->where('is_new_sent',0)->whereNull('is_sent')
-            ->get(['id','name','mobile','users_count', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count', 
+            "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -126,7 +132,9 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user->id);
             })
             ->where('is_accepted','yes')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at',
+            'confirmed_at', "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -134,7 +142,9 @@ class ApiEventsController extends Controller
             $send_Qr = EventUsers::
             where('event_id', $Item->id)
             ->where('qr_sent','yes')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count', "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at',
+            'confirmed_at','scan_count', "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -143,7 +153,8 @@ class ApiEventsController extends Controller
             where('event_id', $Item->id)
             ->where("send_type", "link")
             ->where('qr_sent','yes')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count', "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count', "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -153,7 +164,8 @@ class ApiEventsController extends Controller
                 $query->where('event_id',$Item->id)
                 ->orWhere("user_id", $user->id);
             })->where('scan','yes')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count', "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at','scan_count', "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -164,7 +176,8 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user->id);
             })
             ->where('status','not-attend')
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -182,7 +195,8 @@ class ApiEventsController extends Controller
                 ->where('status', "!=", 'hold')
                 ->WhereNotNull('is_sent'); 
             })
-            ->get(['id', 'name', 'mobile', 'users_count', 'scan_at', 'confirmed_at', "scan_count", "accept_count"])
+            ->get(['id', 'name', 'mobile', 'users_count', 'scan_at', 'confirmed_at', "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $item->scan_status = $item->users_count > $item->scan_count;
                 return $item;
@@ -200,7 +214,8 @@ class ApiEventsController extends Controller
                 $query->where('event_id',$Item->id)
                 ->orWhere("user_id", $user->id);
             }) 
-            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count"])
+            ->get(['id','name','mobile','users_count','scan_at','confirmed_at', "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
                 $attendance = $item->accept_count - $item->scan_count;
                 $item->attendance = $attendance > 0 ? $attendance : 0;

@@ -430,6 +430,7 @@ Route::resource('custom_events', 'CustomEventController', [
     'except' => ['update'],
 ]);
 
+Route::post('custom_events/save_host_event_users', 'CustomEventController@save_host_event_users');
 Route::delete('custom_events/force_destroy/{id}', 'CustomEventController@force_destroy');
 Route::post('custom_events/force_multi_delete', 'CustomEventController@force_multi_delete');
 Route::get('custom_events/confirm_count/{id}', 'CustomEventController@confirm_count');

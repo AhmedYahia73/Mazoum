@@ -119,6 +119,62 @@ class CustomEventController extends Controller
 
     }
 
+     // save_event_users
+    public function save_host_event_users(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'user_id' => 'required|exists:users,id',
+            'event_users' => 'required|array',
+            'event_users.*.name' => 'required',
+          	'event_users.*.users_count' => 'required|numeric|min:1',
+          	'event_users.*.mobile' => 'sometimes',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $custom_event_id = $request->custom_event_id;
+        $user_id = $request->user_id;
+        $event = Model::where('id', $custom_event_id)->firstOrFail();
+
+        if($request->event_users != null && ! empty($request->event_users)) {
+
+            foreach ($request->event_users as $arr) {
+
+                if($arr['name'] != null && $arr['users_count'] != null && is_numeric($arr['users_count'])) {
+
+                    $uu_id = uniqid();
+
+                    $row = CustomEventUsers::create([
+                        'custom_event_id' => $custom_event_id,
+                        'name' => $arr['name'],
+                        'users_count' => $arr['users_count'],
+                        'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
+                        'uu_id' => $uu_id,
+                        "user_id" => $user_id
+                    ]);
+
+                    $this->update_qr($row,$uu_id);
+
+                }
+            }
+
+        }
+        $users_count = collect($request->event_users)->sum('users_count');
+        $user = User::
+        where("id", $event->user_id)
+        ->first(); 
+
+        return response()->json([
+            'success' =>  'تم الحفظ بنجاح', 
+        ]);  
+
+    }
+
 
 
 

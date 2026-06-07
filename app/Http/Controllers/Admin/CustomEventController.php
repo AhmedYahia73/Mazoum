@@ -30,10 +30,7 @@ class CustomEventController extends Controller
 {
     private $view = 'admin.custom_events.';
     private $redirect = 'admin/custom_events';
-
-
-
-
+ 
     public function event_users_search(Request $request) {
 
         $validator = Validator::make($request->all(), [
@@ -61,10 +58,7 @@ class CustomEventController extends Controller
             'event_users' => $event_users,
         ]); 
     }
-
-
-
-
+ 
      // save_event_users
     public function save_event_users(Request $request)
     {
@@ -174,10 +168,7 @@ class CustomEventController extends Controller
         ]);  
 
     }
-
-
-
-
+ 
      // update_event_users
     public function update_event_users(Request $request)
     {
@@ -229,9 +220,7 @@ class CustomEventController extends Controller
         ]);  
 
     }
-
-
-
+ 
     public function delete_event_users($id)
     {
         $Item = CustomEventUsers::findOrFail($id);
@@ -240,10 +229,7 @@ class CustomEventController extends Controller
             'success' =>  'تم الحذف بنجاح', 
         ]); 
     }
-
-
-
-
+ 
     public function import(Request $request)
     {
         
@@ -312,9 +298,7 @@ class CustomEventController extends Controller
             'success' =>  'Imported successfully!', 
         ]);  
     }
-
-
-
+ 
     private function update_qr($row, $uu_id) {
         $event = $row->event;
         $bg = public_path('images/' . $event->getRawOriginal('image'));
@@ -460,8 +444,7 @@ class CustomEventController extends Controller
             return false;
         }
     }
-
-
+ 
   	private function hexToRgb(string $hex): array
     {
         $hex = str_replace('#', '', $hex);

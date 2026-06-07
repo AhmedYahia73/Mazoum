@@ -257,9 +257,11 @@ class EventHostController extends Controller
         findOrFail($id);
         $user_id = $event->user_id;
         $query = User::
-        where("user_id", $user_id)
-        ->orWhereHas("sub_users", function($query) use($user_id){
-            $query->where("users.id", $user_id);
+        where(function($query) use($user_id){
+            $query->where("user_id", $user_id)
+            ->orWhereHas("sub_users", function($query) use($user_id){
+                $query->where("users.id", $user_id);
+            });
         });
 
         // Search

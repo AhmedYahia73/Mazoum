@@ -207,6 +207,15 @@ class ApiEventsController extends Controller
             where('event_id',$Item->id) 
             ->get(['id','name','mobile','scan_qr']);
 
+            $scan_enterd_events = EventFamily:: 
+            where('event_id',$Item->id)
+            ->where('scan_qr','yes')
+            ->get(['id','name','mobile','scan_qr']);
+            $not_scan_enterd_events = EventFamily:: 
+            where('event_id',$Item->id)
+            ->where('scan_qr','no')
+            ->get(['id','name','mobile','scan_qr']);
+
             // $confirmed_without_attend = EventUsers::where('event_id',$Item->id)->where('is_accepted','yes')->where('scan','!=','yes')->get(['id','name','mobile','users_count','scan_at','confirmed_at']);
 
             $non_attendance_users   = EventUsers:: 
@@ -299,6 +308,18 @@ class ApiEventsController extends Controller
                 'count' => $confirm_web_users->sum('accept_count'),
                 'users' => $confirm_web_users
             ];
+             $arr12 = [
+                'title_en' => 'scan_enterd_events',
+                'title_ar' => '',
+                'count' => $scan_enterd_events->count(),
+                'users' => $scan_enterd_events
+            ];
+             $arr13 = [
+                'title_en' => 'not_scan_enterd_events',
+                'title_ar' => '',
+                'count' => $not_scan_enterd_events->count(),
+                'users' => $not_scan_enterd_events
+            ];
 
             $event_details[] = $arr1;
             $event_details[] = $arr2;
@@ -311,6 +332,8 @@ class ApiEventsController extends Controller
             $event_details[] = $arr9;
             $event_details[] = $arr10;
             $event_details[] = $arr11;
+            $event_details[] = $arr12;
+            $event_details[] = $arr13;
 
           	$mobiles = EventUsers::where('event_id',$Item->id)->pluck('mobile')->toArray();
 

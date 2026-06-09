@@ -398,7 +398,7 @@ class EventUersController extends Controller
             foreach($request->users as $arr) {
 
               	if(isset($arr['id'])) {
-                	Model::withTrashed()->where('id',$arr['id'])->delete();
+                	Model::withTrashed()->where('id',$arr['id'])->forceDelete();
                 }
 
             }
@@ -1601,14 +1601,17 @@ class EventUersController extends Controller
 
     public function destroy($id)
     {
+        // delete_selected_event_users
         $Item = Model::withTrashed()->findOrFail($id);
-        $Item->delete();
-        EventUserActions::
-        where("event_user_id", $id)
-        ->delete();
+
+        // الحذف النهائي من قاعدة البيانات
+        $Item->forceDelete(); 
+
+        // حذف البيانات المتعلقة به
+        EventUserActions::where("event_user_id", $id)->delete();
 
         return response()->json([
-            'success' => 'You delete data success', 
+            'success' => 'Data permanently deleted successfully', 
         ]);
     }
 

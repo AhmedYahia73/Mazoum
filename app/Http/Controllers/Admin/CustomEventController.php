@@ -59,6 +59,27 @@ class CustomEventController extends Controller
         ]); 
     }
  
+    public function excel_event_users(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+          'custom_event_id' => 'required|exists:custom_event,id'
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        $custom_event_id = $request->custom_event_id;
+
+        $event_users = CustomEventUsers::
+        where('custom_event_id', $custom_event_id)
+        ->get(); // عدد النتائج في الصفحة
+
+        return response()->json([
+            'event_users' => $event_users,
+        ]); 
+    }
+ 
      // save_event_users
     public function save_event_users(Request $request)
     {
@@ -648,6 +669,19 @@ class CustomEventController extends Controller
             'success' =>  'تم حذف البيانات بنجاح', 
         ]); 
     }
+    
+    public function restore_deleted($id)
+    {
+        // بنستخدم onlyTrashed علشان ندور في الحاجات اللي في الـ Trash بس
+        $Item = Model::onlyTrashed()->findOrFail($id);
+
+        // استرجاع البيانات كأنها مش ممسوحة
+        $Item->restore();
+
+        return response()->json([
+            'success' => 'تم استرجاع البيانات بنجاح', 
+        ]);
+    }
 
     public function multi_delete(Request $request)
     {
@@ -872,9 +906,31 @@ class CustomEventController extends Controller
         return response()->json([
             'event_users' => $event_users,
             'event_id' => $event_id,
-        ]);
+        ]); 
+    }
 
+  	///////////////////////////////////////////////////////////////////////////////////////
 
+  	public function excel_event_family(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id'
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $event_id = $request->custom_event_id;
+
+        $event_users = CustomEventFamily::
+        where('event_id', $event_id)
+        ->get(); // عدد النتائج في الصفحة
+
+        return response()->json([
+            'event_users' => $event_users,
+            'event_id' => $event_id,
+        ]); 
     }
 
   	///////////////////////////////////////////////////////////////////////////////////////
@@ -1265,6 +1321,38 @@ class CustomEventController extends Controller
             "messages" => $messages
         ]);
     } 
+
+    public function delete_messages(Request $request)
+    {
+        // 1. التحقق من أن المدخلات عبارة عن مصفوفة (Array)
+        $validator = Validator::make($request->all(), [
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        if (!empty($request->items)) {
+            // 2. استخراج الـ IDs من الـ Array
+            $ids = collect($request->items)->pluck('id')->toArray();
+
+            // 3. حذف كل الرسائل اللي نوعها تهنئة أو اعتذار وموجودة في الـ IDs بـ Query واحدة
+            CustomMessage::whereIn('id', $ids) 
+                ->delete(); // أو forceDelete() لو عاوز تحذف نهائي من الـ DB مباشرة
+
+            return response()->json([
+                "success" => "تم حذف الرسائل المختارة بنجاح",
+            ]);
+        }
+
+        return response()->json([
+            "error" => "من فضلك اختر عنصر واحد على الأقل",
+        ], 400);
+    }
     
     public function confirm_count(Request $request, $id){
     
@@ -1289,6 +1377,20 @@ class CustomEventController extends Controller
         ]); 
     } 
     
+    public function excel_confirm_count(Request $request, $id){
+    
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("confirm_count", ">", 0) 
+        ->get();
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,  
+        ]); 
+    } 
+    
     public function apologize_count(Request $request, $id){
         
         $Item = Model::findOrFail($id);
@@ -1305,6 +1407,20 @@ class CustomEventController extends Controller
             });
         })
         ->paginate(15);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,  
+        ]); 
+    } 
+    
+    public function excel_apologize_count(Request $request, $id){
+        
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("apologize_count", ">", 0) 
+        ->get();
 
         return response()->json([
             'Item' =>  $Item, 

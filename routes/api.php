@@ -201,6 +201,7 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     Route::post('user/events', 'ApiEventsController@store');
     Route::post('user/update-event', 'ApiEventsController@update');
     Route::get('user/event-details/{id}', 'ApiEventsController@event_details');
+    Route::get('user/event-users/{id}/{type}', 'ApiEventsController@event_users_list');
     Route::get('user/delete-event/{id}', 'ApiEventsController@destroy');
     Route::get('login-user/{id}', [EventUersController::class, 'login_user']);
 

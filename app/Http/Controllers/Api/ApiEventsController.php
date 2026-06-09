@@ -858,4 +858,177 @@ class ApiEventsController extends Controller
             "event_file" => $event_file,
         ]);
     }
+
+    /**
+     * GET /api/user/event-users/{id}/{type}
+     * type: all_invited_users | invitations_not_sent_users | confirmed_invitatios_users
+     *       scaned_qr_users | apologized_invitatios_users | failed_invitatios_users
+     *       enterd_events | non_attendance_users | send_Qr | confirm_web_users
+     *       scan_enterd_events | not_scan_enterd_events
+     */
+    public function event_users_list(Request $request, $id, $type)
+    {
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $Item = Model::where('id', $id)->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+        })->first();
+
+        if (!$Item) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        }
+
+        $search = $request->search;
+        $perPage = $request->per_page ?? 15;
+
+        $baseFields = ['id','name','mobile','users_count','scan_at','confirmed_at',
+            'scan_count','accept_count','is_sent','is_accepted','is_refused',
+            'is_delivered','is_read','qr_sent','status'];
+
+        switch ($type) {
+
+            case 'all_invited_users':
+                $query = EventUsers::where('event_id', $Item->id);
+                break;
+
+            case 'invitations_not_sent_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('status', 'hold')
+                    ->where('is_new_sent', 0)
+                    ->whereNull('is_sent');
+                break;
+
+            case 'confirmed_invitatios_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('is_accepted', 'yes');
+                break;
+
+            case 'scaned_qr_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('scan', 'yes');
+                break;
+
+            case 'apologized_invitatios_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('status', 'not-attend');
+                break;
+
+            case 'failed_invitatios_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('accept_count', 0)
+                    ->where(function ($q) {
+                        $q->where('is_new_sent', '!=', 0)
+                          ->where('status', '!=', 'hold')
+                          ->whereNotNull('is_sent');
+                    });
+                break;
+
+            case 'send_Qr':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('qr_sent', 'yes');
+                break;
+
+            case 'confirm_web_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('send_type', 'link')
+                    ->where('qr_sent', 'yes');
+                break;
+
+            case 'non_attendance_users':
+                $data = EventUsers::where('event_id', $Item->id)
+                    ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
+                    ->get($baseFields)
+                    ->map(function ($item) {
+                        $attendance = $item->accept_count - $item->scan_count;
+                        $item->available = $attendance > 0 ? $attendance : 0;
+                        $item->scan_status = $item->users_count > $item->scan_count;
+                        return $item;
+                    })
+                    ->where('available', '>', 0)
+                    ->values();
+
+                $page    = $request->page ?? 1;
+                $offset  = ($page - 1) * $perPage;
+                $total   = $data->count();
+                $paged   = $data->slice($offset, $perPage)->values();
+
+                return $this->returnData('data', [
+                    'title_en' => $type,
+                    'count'    => $data->sum('available'),
+                    'users'    => [
+                        'data'         => $paged,
+                        'current_page' => (int) $page,
+                        'per_page'     => (int) $perPage,
+                        'total'        => $total,
+                        'last_page'    => (int) ceil($total / $perPage),
+                    ],
+                ]);
+
+            case 'enterd_events':
+                $familyQuery = EventFamily::where('event_id', $Item->id)
+                    ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"));
+                $paged = $familyQuery->paginate($perPage);
+                return $this->returnData('data', [
+                    'title_en' => $type,
+                    'count'    => EventFamily::where('event_id', $Item->id)->count(),
+                    'users'    => $paged,
+                ]);
+
+            case 'scan_enterd_events':
+                $familyQuery = EventFamily::where('event_id', $Item->id)->where('scan_qr', 'yes')
+                    ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"));
+                $paged = $familyQuery->paginate($perPage);
+                return $this->returnData('data', [
+                    'title_en' => $type,
+                    'count'    => EventFamily::where('event_id', $Item->id)->where('scan_qr', 'yes')->count(),
+                    'users'    => $paged,
+                ]);
+
+            case 'not_scan_enterd_events':
+                $familyQuery = EventFamily::where('event_id', $Item->id)->where('scan_qr', 'no')
+                    ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"));
+                $paged = $familyQuery->paginate($perPage);
+                return $this->returnData('data', [
+                    'title_en' => $type,
+                    'count'    => EventFamily::where('event_id', $Item->id)->where('scan_qr', 'no')->count(),
+                    'users'    => $paged,
+                ]);
+
+            default:
+                return $this->returnError('E400', 'نوع غير صحيح');
+        }
+
+        // EventUsers based types
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('mobile', 'like', "%$search%");
+            });
+        }
+
+        // count حسب كل type
+        $countCol = match($type) {
+            'confirmed_invitatios_users' => 'accept_count',
+            'scaned_qr_users'            => 'scan_count',
+            'send_Qr'                    => 'accept_count',
+            'confirm_web_users'          => 'accept_count',
+            default                      => 'users_count',
+        };
+
+        $count = (clone $query)->sum($countCol);
+        $paged = $query->paginate($perPage, $baseFields);
+
+        return $this->returnData('data', [
+            'title_en' => $type,
+            'count'    => $count,
+            'users'    => $paged,
+        ]);
+    }
 }

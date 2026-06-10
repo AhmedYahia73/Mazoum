@@ -132,6 +132,7 @@ class ApiEventFamilyController extends Controller
         $validated_arr = [
             'old_event_users.*.name' => 'required',
             'old_event_users.*.mobile' => 'nullable|numeric',
+            'old_event_users.*.id' => 'required|exists:event_family,id',
         ];
 
         $validator = Validator::make($request->all(), $validated_arr);
@@ -144,9 +145,9 @@ class ApiEventFamilyController extends Controller
 
         if($request->old_event_users != null && ! empty($request->old_event_users)) {
 
-            foreach ($request->old_event_users as $id => $arr) {
+            foreach ($request->old_event_users as $arr) {
 
-                $row = EventFamily::find($id);
+                $row = EventFamily::find($arr['id']);
 
                 if($row != null && $arr['name'] != null) {
 

@@ -212,7 +212,7 @@ Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
 
-Route::post('custom_events/delete_congratulation_msg', 'CustomEventController@delete_messages');
+Route::delete('custom_events/delete_congratulation_msg', 'CustomEventController@delete_messages');
 Route::delete('custom_events/delete_apologize_msg', 'CustomEventController@delete_messages');
 // delete_events
 Route::post('delete_events', 'EventsController@delete_events');

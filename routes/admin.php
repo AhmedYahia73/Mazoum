@@ -211,6 +211,9 @@ Route::put('events/{id}/update_my_package', 'EventsController@update_my_package'
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
+
+Route::post('custom_events/delete_congratulation_msg', 'CustomEventController@delete_messages');
+Route::delete('custom_events/delete_apologize_msg', 'CustomEventController@delete_messages');
 // delete_events
 Route::post('delete_events', 'EventsController@delete_events');
 
@@ -427,9 +430,6 @@ Route::post('custom_events/excel_event_users', 'CustomEventController@excel_even
 Route::post('custom_events/excel_event_family', 'CustomEventController@excel_event_family');
 Route::get('custom_events/excel_confirm_count/{id}', 'CustomEventController@excel_confirm_count');
 Route::get('custom_events/excel_apologize_count/{id}', 'CustomEventController@excel_apologize_count');
-
-Route::post('custom_events/delete_congratulation_msg', 'CustomEventController@delete_messages');
-Route::delete('custom_events/delete_apologize_msg', 'CustomEventController@delete_messages');
 
 Route::post('custom_events/remember_users_to_event', 'CustomEventController@remember_users_to_event');
 Route::get('custom_events/restore_deleted/{id}', 'CustomEventController@restore_deleted');

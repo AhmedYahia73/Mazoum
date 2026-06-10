@@ -400,6 +400,20 @@ class PackageController extends Controller
         }  
         $attendance = CustomEventUsers::
         findOrFail($id);
+        if($request->scan_count + $attendance->scan_count > $attendance->users_count){
+            return response()->json([
+                "errors" => "Scan count exceeds the number of invitations"
+            ], 400); 
+        }
+        $user_data = auth()->user();
+        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
+        if($request->users_count >= $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        } 
+        $user_data->send_custom_invetaion += $request->users_count;
+        $user_data->save();
         $attendance->update([
             "scan_count" => $request->scan_count + $attendance->scan_count,
             'scan' => 'yes',
@@ -433,6 +447,15 @@ class PackageController extends Controller
                 "errors" => "Scan count exceeds the number of invitations"
             ], 400); 
         }
+        $user_data = auth()->user();
+        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
+        if($request->users_count >= $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        } 
+        $user_data->send_custom_invetaion += $request->users_count;
+        $user_data->save();
         $attendance->update([
             "scan_count" => $request->scan_count + $attendance->scan_count,
             'scan' => 'yes',

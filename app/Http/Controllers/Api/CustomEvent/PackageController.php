@@ -428,6 +428,11 @@ class PackageController extends Controller
         }  
         $attendance = EventUsers::
         findOrFail($id);
+        if($request->scan_count + $attendance->scan_count > $attendance->users_count){
+            return response()->json([
+                "errors" => "Scan count exceeds the number of invitations"
+            ], 400); 
+        }
         $attendance->update([
             "scan_count" => $request->scan_count + $attendance->scan_count,
             'scan' => 'yes',

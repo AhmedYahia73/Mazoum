@@ -63,8 +63,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         $day_name = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
 
         if($event->show_data_pdf){
-            
-
             $caption = $row->name . PHP_EOL . PHP_EOL .
                 $event->title . PHP_EOL . PHP_EOL .
                 "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق"  . $event->date . " 📆" 
@@ -73,8 +71,7 @@ class SendCustomEventPdfJob implements ShouldQueue
                 "📍مكان الحفـل " . $event->address  . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                 "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
-        }
-        else{ 
+        } else { 
             $caption = $row->name . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                 "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
@@ -98,7 +95,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             Log::warning('PDF Job - background image not found, using fallback no-image.png');
         }
 
-        // ضغط الصورة لتقليل حجم الـ PDF (لكي يفتحها WhatsApp مباشرة بدون تحميل)
+        // ضغط الصورة لتقليل حجم الـ PDF
         $compressedImagePath = null;
         if ($image && file_exists($image)) {
             Log::info('PDF Job - Starting image compression for image: ' . $image . ' (Size: ' . filesize($image) . ' bytes)');
@@ -114,7 +111,6 @@ class SendCustomEventPdfJob implements ShouldQueue
 
                 if ($srcImage) {
                     Log::info('PDF Job - GD srcImage resource created successfully');
-                    // نضغط إلى 794x1123 (A4 على 96 DPI) لتقليل الحجم
                     $targetW = 794;
                     $targetH = 1123;
                     $resized = imagecreatetruecolor($targetW, $targetH);
@@ -136,7 +132,6 @@ class SendCustomEventPdfJob implements ShouldQueue
                 }
             } catch (\Throwable $ex) {
                 Log::error('PDF Job - Exception in image compression: ' . $ex->getMessage() . PHP_EOL . $ex->getTraceAsString());
-                // نستمر بالصورة الأصلية إذا فشل الضغط
             }
         }
 
@@ -152,64 +147,72 @@ class SendCustomEventPdfJob implements ShouldQueue
             ];
             Log::info('PDF Job - Initializing mPDF with config: ' . json_encode($config));
 
-            // إنشاء mPDF مباشرة
             $mpdf = new \Mpdf\Mpdf($config);
             $mpdf->showImageErrors = true;
 
-            // 1. كتابة التنسيقات (CSS)
-            $stylesheet = '
-@page {
-    background-image: url("' . $image . '");
-    background-image-resize: 6;
-    background-repeat: no-repeat;
-    margin: 0;
-}
-body { background-color: transparent; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-table { 
-    margin: 0 auto; 
-    border-collapse: separate; 
-    border-spacing: 12mm 0; 
-}
-td { 
-    padding: 0; 
-    width: 65mm;
-}
-a { 
-    display: block; 
-    padding-top: 4.5mm; 
-    padding-bottom: 4.5mm; 
-    font-size: 15pt; 
-    font-weight: bold; 
-    text-decoration: none; 
-    color: #ffffff; 
-    border-radius: 8px; 
-    text-align: center; 
-}
-.a1 { 
-    background-color: #10b981; 
-    border: 1.5pt solid #059669;
-}
-.a2 { 
-    background-color: #ef4444; 
-    border: 1.5pt solid #dc2626;
-}';
-            $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
+            // دمج كود الـ HTML والـ CSS لضمان عمل التموضع المطلق (Absolute Positioning)
+            $html = '
+            <style>
+            @page {
+                background-image: url("' . $image . '");
+                background-image-resize: 6;
+                background-repeat: no-repeat;
+                margin: 0;
+            }
+            body { 
+                background-color: transparent; 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                padding: 0; 
+            }
+            /* الحاوية التي تجبر الأزرار على البقاء بالأسفل */
+            .buttons-container {
+                position: absolute;
+                bottom: 35mm; /* يمكنك تعديل هذا الرقم لرفع أو خفض الأزرار */
+                width: 100%;
+                text-align: center;
+            }
+            table.buttons-table { 
+                margin: 0 auto; 
+                border-collapse: separate; 
+                border-spacing: 15px 0; /* مسافة أنيقة بين الزرين */
+            }
+            table.buttons-table td { 
+                padding: 0; 
+                width: 70mm;
+            }
+            a.btn { 
+                display: block; 
+                padding: 14px 10px; 
+                font-size: 16pt; 
+                font-weight: bold; 
+                text-decoration: none; 
+                color: #ffffff; 
+                border-radius: 50px; /* حواف دائرية بالكامل لتصميم عصري */
+                text-align: center; 
+            }
+            .btn-confirm { 
+                background-color: #10B981; 
+                border: 2px solid #047857;
+            }
+            .btn-apologize { 
+                background-color: #EF4444; 
+                border: 2px solid #B91C1C;
+            }
+            </style>
+            
+            <div class="buttons-container">
+                <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
+                    <tr>
+                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور ✓</a></td>
+                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار ✕</a></td>
+                    </tr>
+                </table>
+            </div>';
 
-            // 2. تحديد الموضع الرأسي بدقة (SetY) قبل كتابة كود الأزرار
-            // A4 = 297mm height. We set it to 268mm so buttons reside at the bottom
-            $mpdf->SetY(268);
-
-            // 3. كتابة كود الـ HTML للأزرار فقط كـ HTML_BODY لتفادي إعادة تعيين الـ Margins أو موضع المؤشر
-            $buttonsHtml = '
-<table cellpadding="0" cellspacing="0" dir="rtl">
-<tr>
-<td><a href="' . $confirm_link . '" class="a1">تأكيد الحضور</a></td>
-<td><a href="' . $apologize_link . '" class="a2">الاعتذار عن الحضور</a></td>
-</tr>
-</table>';
-
-            Log::info('PDF Job - Writing HTML content: ' . $buttonsHtml);
-            $mpdf->WriteHTML($buttonsHtml, \Mpdf\HTMLParserMode::HTML_BODY);
+            Log::info('PDF Job - Writing unified HTML content');
+            // كتابة الكود دفعة واحدة ليفهمه mPDF بالشكل الصحيح
+            $mpdf->WriteHTML($html);
 
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
 
@@ -247,11 +250,9 @@ a {
         $api = $client->sendDocumentMessage($to, 'invitation.pdf', $pdf_url, $caption, $priority, $referenceId, $nocache);
         Log::info('PDF Job - WhatsApp API response: ' . json_encode($api));
         
-        // Wait a few seconds to ensure Ultramsg server downloaded the file
         Log::info('PDF Job - Sleeping 5 seconds before clean up...');
         sleep(5);
 
-        // Delete the PDF after sending to save server space
         if (file_exists($pdf_path)) {
             if (@unlink($pdf_path)) {
                 Log::info('PDF Job - Cleaned up PDF file: ' . $pdf_path);
@@ -259,7 +260,6 @@ a {
                 Log::error('PDF Job - Failed to delete PDF file: ' . $pdf_path);
             }
         }
-        // Delete compressed temp image if created
         if ($compressedImagePath && file_exists($compressedImagePath)) {
             if (@unlink($compressedImagePath)) {
                 Log::info('PDF Job - Cleaned up compressed image file: ' . $compressedImagePath);
@@ -270,10 +270,8 @@ a {
         
         if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true' && isset($api['message']) && $api['message'] == 'ok') {
             Log::info('PDF Job - Success message sent to ' . $to);
-            // $row->update(['is_new_sent' => 1]);
         } else {
             Log::error("Failed to send PDF to {$to} via Ultramsg.", ['response' => $api]);
-            // $row->update(['is_new_sent' => 0]);
         }
     }
 }

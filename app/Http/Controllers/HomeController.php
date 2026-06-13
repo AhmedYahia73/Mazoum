@@ -1664,7 +1664,7 @@ class HomeController extends Controller
     }
 
 
-    private function update_qr($event,$uu_id,$user_event,$image_name) {
+    private function update_qr($event,$uu_id,$user_event,$image_name, $status = false) {
 
         $color = $this->hexToRgb($event->color);
 
@@ -1678,7 +1678,7 @@ class HomeController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if ($event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
+        if (!$status && $event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
@@ -1716,7 +1716,6 @@ class HomeController extends Controller
             // }
 
             // $background->insert($qr, 'top-left', $x, $y);
-            
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
             }
@@ -1740,11 +1739,11 @@ class HomeController extends Controller
                 $font_path = public_path('font/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
-                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->accept_count);
+                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
             } else {
                 $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
                 $name      = $user_event->name;
-                $name2     = 'Entered Users ' . $user_event->accept_count;
+                $name2     = 'Entered Users ' . $user_event->users_count;
             }
 
             if ($name_qr) {
@@ -1758,7 +1757,7 @@ class HomeController extends Controller
                 $text_y += 25;
             }
 
-            if ($number_qr && $user_event->accept_count > 1) {
+            if ($number_qr && $user_event->users_count > 1) {
                 $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                     $font->file($font_path);
                     $font->size(20);
@@ -1776,11 +1775,13 @@ class HomeController extends Controller
 
         } else {
 
+
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
             QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            make_qr_transparent(public_path($qr_code_path));
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
             $destination = public_path($qr_code_path);
@@ -1796,7 +1797,7 @@ class HomeController extends Controller
 
             $new_img->save($destination);
         } 
-    }
+    } 
 
 
     private function hexToRgb(string $hex): array

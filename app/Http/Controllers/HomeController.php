@@ -1664,7 +1664,7 @@ class HomeController extends Controller
     }
 
 
-    private function update_qr($event,$uu_id,$user_event,$image_name, $status = false) {
+    private function update_qr($event,$uu_id,$user_event,$image_name) {
 
         $color = $this->hexToRgb($event->color);
 
@@ -1678,21 +1678,20 @@ class HomeController extends Controller
         $image_width  = $event->image_width;
         $text_color   = $event->text_color ?: '#000';
 
-        if (!$status && $event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
+        if ($event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            $qr_dir      = public_path('qr_code');
-            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
-            $final_path  = $qr_dir . '/' . $image_name;
-
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
-            generate_qr_png($link, $qr_tmp_path, $qr_size, $color);
+            QrCode::format('png')
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(0, 0, 0, 0)
+                ->generate($link, $qr_tmp_path);
 
             $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
 
@@ -1716,6 +1715,7 @@ class HomeController extends Controller
             // }
 
             // $background->insert($qr, 'top-left', $x, $y);
+            
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
             }
@@ -1775,7 +1775,6 @@ class HomeController extends Controller
 
         } else {
 
-
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
@@ -1796,8 +1795,9 @@ class HomeController extends Controller
             }
 
             $new_img->save($destination);
-        } 
-    } 
+            return $destination;
+        }
+    }
 
 
     private function hexToRgb(string $hex): array
@@ -1814,12 +1814,7 @@ class HomeController extends Controller
             $b = hexdec(substr($hex, 4, 2));
         }
 
-
-        return [
-          $r, 
-          $g, 
-          $b,
-        ];
+        return [$r, $g, $b];
     }
 
 

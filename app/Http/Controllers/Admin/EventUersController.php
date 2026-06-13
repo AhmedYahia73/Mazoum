@@ -3234,8 +3234,6 @@ class EventUersController extends Controller
 
 
 
-
-
     private function update_qr($event,$uu_id,$user_event,$image_name, $status = false) {
 
         $color = $this->hexToRgb($event->color);
@@ -3254,17 +3252,16 @@ class EventUersController extends Controller
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            $qr_dir      = public_path('qr_code');
-            $qr_tmp_path = $qr_dir . '/tmp_' . $image_name;
-            $final_path  = $qr_dir . '/' . $image_name;
-
-            if (!file_exists($qr_dir)) {
-                mkdir($qr_dir, 0777, true);
-            }
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
-            generate_qr_png($link, $qr_tmp_path, $qr_size, $color);
+            QrCode::format('png')
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(0, 0, 0, 0)
+                ->generate($link, $qr_tmp_path);
 
             $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
 
@@ -3288,6 +3285,7 @@ class EventUersController extends Controller
             // }
 
             // $background->insert($qr, 'top-left', $x, $y);
+            
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
             }
@@ -3347,7 +3345,6 @@ class EventUersController extends Controller
 
         } else {
 
-
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
@@ -3368,7 +3365,8 @@ class EventUersController extends Controller
             }
 
             $new_img->save($destination);
-        } 
+            return $destination;
+        }
     }
 
 
@@ -3386,13 +3384,8 @@ class EventUersController extends Controller
             $b = hexdec(substr($hex, 4, 2));
         }
 
-
-        return [
-          $r, 
-          $g, 
-          $b,
-        ];
-    }
+        return [$r, $g, $b];
+    } 
 
     public function scan_data(Request $request){ 
        $validator = Validator::make($request->all(), [

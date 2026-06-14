@@ -1059,6 +1059,357 @@ class CustomEventController extends Controller
         ]); 
     }
 
+    public function event_host_report(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){ 
+            $visitors_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->sum('users_count');
+            $qr_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->where('scan','yes')
+            ->sum('scan_count'); 
+            $congratulation_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "congratulation")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->count();
+            $apologize_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "apologize")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->count();
+            $apologize_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->sum("apologize_count");
+            $confirm_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->sum("confirm_count"); 
+        }
+        else{
+            $visitors_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->sum('users_count');
+            $qr_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->where('scan','yes')
+            ->sum('scan_count'); 
+            $congratulation_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "congratulation")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->count();
+            $apologize_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "apologize")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->count();
+            $apologize_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->sum("apologize_count");
+            $confirm_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->sum("confirm_count"); 
+        }
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'visitors_count' =>  $visitors_count, 
+            'qr_count' =>  $qr_count,  
+            'congratulation_msg' =>  $congratulation_msg, 
+            'apologize_msg' =>  $apologize_msg, 
+            'apologize_count' =>  $apologize_count, 
+            'confirm_count' =>  $confirm_count,  
+        ]); 
+    }
+
+    public function event_host_visitor(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){ 
+            $visitors_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->get(); 
+        }
+        else{
+            $visitors_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->get(); 
+        }
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'visitors_count' =>  $visitors_count, 
+        ]); 
+    }
+
+    public function event_host_qr(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){  
+            $qr_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->where('scan','yes')
+            ->get();
+        }
+        else{
+            $qr_count = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->where('scan','yes')
+            ->get(); 
+        }
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'qr_count' =>  $qr_count,
+        ]); 
+    }
+
+    public function event_host_congrate_msg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){ 
+            $congratulation_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "congratulation")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->get();
+        }
+        else{
+            $congratulation_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "congratulation")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->get();
+        }
+
+        return response()->json([
+            'Item' =>  $Item,
+            'congratulation_msg' =>  $congratulation_msg, 
+        ]); 
+    }
+
+    public function event_host_apologize_msg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){  
+            $apologize_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "apologize")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->get();
+        }
+        else{
+            $apologize_msg = CustomMessage::
+            where("custom_event_id", $Item->id)
+            ->where("type", "apologize")
+            ->whereHas("user", function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->get();
+        }
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'apologize_msg' =>  $apologize_msg,
+        ]); 
+    }
+
+    public function event_host_apologize(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){ 
+            $apologize_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->get();
+        }
+        else{
+            $apologize_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->get();
+        }
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'apologize_count' =>  $apologize_count, 
+        ]); 
+    }
+
+    public function event_host_confirm(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        if($user_status){
+            $confirm_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->get(); 
+        }
+        else{
+            $confirm_count = CustomEventUsers::
+            where("custom_event_id", $Item->id) 
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->get(); 
+        }
+
+        return response()->json([
+            'Item' =>  $Item,   
+            'confirm_count' =>  $confirm_count,  
+        ]); 
+    }
+
+    public function qr_count($id){
+        $custom_event_users = CustomEventUsers::
+        where('custom_event_id',$id)
+        ->where('scan','yes')
+        ->get();
+
+        return response()->json([
+            "custom_event_users" => $custom_event_users
+        ]);
+    }
 
     public function all_event_users(Request $request, $id)
     {
@@ -1119,9 +1470,34 @@ class CustomEventController extends Controller
             'invetations' =>  $invetations, 
             'attendance' =>  $attendance, 
         ]); 
-    }
+    } 
 
+    public function send_event_location($id) {
 
+        $user_event = CustomEventUsers::
+        withTrashed()
+        ->findOrFail($id);
+
+        $event = $user_event->event;
+
+        $mobile = ltrim($user_event->mobile,"+");
+
+        $setting = Setting::first();
+
+ 
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
+
+        // $api=$client->sendChatMessage($to,$body);
+        $api2 = $client->sendLocationMessage($mobile,$event->address,$event->lat,$event->lng,$priority=0,$referenceId="SDK");
+        $response = ["success"];
+
+        return response()->json([
+            'success' => 'تم الارسال بنجاح', 
+        ]); 
+
+  	}
 
     public function enter_event($id)
     {

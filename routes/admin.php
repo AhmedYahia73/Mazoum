@@ -211,7 +211,16 @@ Route::put('events/{id}/update_my_package', 'EventsController@update_my_package'
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
+// 2222222
+Route::post('custom_events/event_host_report', 'CustomEventController@event_host_report');
+Route::post('custom_events/event_host_visitor', 'CustomEventController@event_host_visitor');
+Route::post('custom_events/event_host_qr', 'CustomEventController@event_host_qr');
+Route::post('custom_events/event_host_congrate_msg', 'CustomEventController@event_host_congrate_msg');
+Route::post('custom_events/event_host_apologize_msg', 'CustomEventController@event_host_apologize_msg');
+Route::post('custom_events/event_host_apologize', 'CustomEventController@event_host_apologize');
+Route::post('custom_events/event_host_confirm', 'CustomEventController@event_host_confirm');
 
+Route::get('custom_events/send_event_location/{id}', 'CustomEventController@send_event_location');
 Route::delete('custom_events/delete_congratulation_msg', 'CustomEventController@delete_messages');
 Route::delete('custom_events/delete_apologize_msg', 'CustomEventController@delete_messages');
 // delete_events
@@ -431,6 +440,7 @@ Route::post('custom_events/excel_event_family', 'CustomEventController@excel_eve
 Route::get('custom_events/excel_confirm_count/{id}', 'CustomEventController@excel_confirm_count');
 Route::get('custom_events/excel_apologize_count/{id}', 'CustomEventController@excel_apologize_count');
 
+Route::get('custom_events/qr_count/{id}', 'CustomEventController@qr_count');
 Route::post('custom_events/remember_users_to_event', 'CustomEventController@remember_users_to_event');
 Route::get('custom_events/restore_deleted/{id}', 'CustomEventController@restore_deleted');
 Route::get('custom_events/deleted_custom_events', 'CustomEventController@deleted_custom_events');

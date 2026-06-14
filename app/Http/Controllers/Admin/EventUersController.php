@@ -1987,30 +1987,23 @@ class EventUersController extends Controller
     {
 
         $user_event = Model::withTrashed()->findOrFail($id);
+        Notifications::create([
+            'add_by'         => 'admin',
+            'user_id'        => 1,
+            'send_to_type'   => 'user',
+            'send_to_id'     => $user_event?->event?->user_id,
+            'en_title'       => 'refuse event : ' . $user_event?->event?->title,
+            'ar_title'       => 'رفض الدعوه  : ' . $user_event?->event?->title,
+            'en_description' => 'user : ' . $user_event->name . ' refuse event : ' . $user_event?->event?->title,
+            'ar_description' => 'المستخدم : ' . $user_event->name . ' رفض الدعوه  : ' . $user_event?->event?->title,
+            'type'           => 'event',
+            'item_id'        => $user_event?->event?->id,
+            'user_event_id'  => $user_event != null ? $user_event->id : 0,
+            'status'         => 'refuse_event',
+        ]);
 
-        if($user_event && $user_event->event) {
-
-          	Notifications::create([
-            	'add_by'         => 'admin',
-                'user_id'        => 1,
-                'send_to_type'   => 'user',
-                'send_to_id'     => $user_event?->event?->user_id,
-                'en_title'       => 'refuse event : ' . $user_event?->event?->title,
-                'ar_title'       => 'رفض الدعوه  : ' . $user_event?->event?->title,
-                'en_description' => 'user : ' . $user_event->name . ' refuse event : ' . $user_event?->event?->title,
-                'ar_description' => 'المستخدم : ' . $user_event->name . ' رفض الدعوه  : ' . $user_event?->event?->title,
-                'type'           => 'event',
-                'item_id'        => $user_event?->event?->id,
-                'user_event_id'  => $user_event != null ? $user_event->id : 0,
-                'status'         => 'refuse_event',
-            ]);
-
-            Qr_Code::where('event_user_id', $user_event->id)->delete();
-
-            $user_event->update([ 'scan' => null , 'scan_at' => null, 'is_refused' => 'yes','is_accepted' => 'no' ,'status' => 'not-attend'  ]);
-
-        }
-
+        Qr_Code::where('event_user_id', $user_event->id)->delete();
+        $user_event->update([ 'scan' => null , 'scan_at' => null, 'is_refused' => 'yes','is_accepted' => 'no' ,'status' => 'not-attend'  ]);
 
         return response()->json([
             'success' => 'تم رفض الدعوه', 

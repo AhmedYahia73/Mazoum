@@ -1177,6 +1177,275 @@ class CustomEventController extends Controller
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
             "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomEventUsers::where('custom_event_id', $Item->id);
+
+        if($user_status){ 
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            }); 
+        } else {
+            $query->where("user_id", $request->user_id);
+        }
+
+        // Search Filter
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('mobile', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $visitors_count = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'visitors_count' =>  $visitors_count, 
+        ]); 
+    }
+
+    public function event_host_qr(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomEventUsers::where('custom_event_id', $Item->id)->where('scan', 'yes');
+
+        if($user_status){  
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            });
+        } else {
+            $query->where("user_id", $request->user_id);
+        }
+
+        // Search Filter
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('mobile', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $qr_count = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'qr_count' =>  $qr_count,
+        ]); 
+    }
+
+    public function event_host_congrate_msg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomMessage::where("custom_event_id", $Item->id)->where("type", "congratulation");
+
+        if($user_status){ 
+            $query->whereHas("user", function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            });
+        } else {
+            $query->whereHas("user", function($q) use($request){ 
+                $q->where("user_id", $request->user_id);
+            });
+        }
+
+        // Search Filter (البحث بمحتوى الرسالة أو اسم المرسل)
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('msg', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('user', function($qu) use ($request) {
+                      $qu->where('name', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $congratulation_msg = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item,
+            'congratulation_msg' =>  $congratulation_msg, 
+        ]); 
+    }
+
+    public function event_host_apologize_msg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomMessage::where("custom_event_id", $Item->id)->where("type", "apologize");
+
+        if($user_status){  
+            $query->whereHas("user", function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            });
+        } else {
+            $query->whereHas("user", function($q) use($request){ 
+                $q->where("user_id", $request->user_id);
+            });
+        }
+
+        // Search Filter
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('msg', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('user', function($qu) use ($request) {
+                      $qu->where('name', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $apologize_msg = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'apologize_msg' =>  $apologize_msg,
+        ]); 
+    }
+
+    public function event_host_apologize(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomEventUsers::where("custom_event_id", $Item->id);
+
+        if($user_status){ 
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            });
+        } else {
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id);
+            });
+        }
+
+        // Search Filter
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('mobile', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $apologize_count = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'apologize_count' =>  $apologize_count, 
+        ]); 
+    }
+
+    public function event_host_confirm(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
+            'search' => 'sometimes|nullable|string',
+            'per_page' => 'sometimes|nullable|integer|min:1'
+        ]); 
+        if ($validator->fails()) { 
+            return response()->json(['errors' => $validator->errors()], 400);
+        }   
+        $Item = Model::findOrFail($request->custom_event_id);
+        $user_status = $Item->user_id == $request->user_id;
+        $perPage = $request->get('per_page', 10);
+
+        $query = CustomEventUsers::where("custom_event_id", $Item->id);
+
+        if($user_status){
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id)->orWhereNull("user_id");
+            }); 
+        } else {
+            $query->where(function($q) use($request){ 
+                $q->where("user_id", $request->user_id);
+            }); 
+        }
+
+        // Search Filter
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('mobile', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $confirm_count = $query->paginate($perPage);
+
+        return response()->json([
+            'Item' =>  $Item,   
+            'confirm_count' =>  $confirm_count,  
+        ]); 
+    }
+
+    public function qr_count($id){
+        $custom_event_users = CustomEventUsers::
+        where('custom_event_id',$id)
+        ->where('scan','yes')
+        ->get();
+
+        return response()->json([
+            "custom_event_users" => $custom_event_users
+        ]);
+    }
+
+    public function excel_event_host_visitor(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+            "user_id" => 'required|exists:users,id',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1209,7 +1478,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function event_host_qr(Request $request)
+    public function excel_event_host_qr(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
@@ -1248,7 +1517,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function event_host_congrate_msg(Request $request)
+    public function excel_event_host_congrate_msg(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
@@ -1287,7 +1556,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function event_host_apologize_msg(Request $request)
+    public function excel_event_host_apologize_msg(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
@@ -1326,7 +1595,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function event_host_apologize(Request $request)
+    public function excel_event_host_apologize(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
@@ -1363,7 +1632,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function event_host_confirm(Request $request)
+    public function excel_event_host_confirm(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'custom_event_id' => 'required|exists:custom_event,id',
@@ -1400,7 +1669,7 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function qr_count($id){
+    public function excel_qr_count($id){
         $custom_event_users = CustomEventUsers::
         where('custom_event_id',$id)
         ->where('scan','yes')

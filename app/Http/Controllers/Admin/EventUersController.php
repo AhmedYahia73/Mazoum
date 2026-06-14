@@ -276,7 +276,12 @@ class EventUersController extends Controller
                     // $api=$client->sendChatMessage($to,$body);
                     $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
 
-                  } else {
+                  } 
+                  elseif($request->file_type == 'pdf'){
+                    $document = $row->event->pdf;
+		            $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
+                  }
+                  else {
 
                     $video = $row->event->video;
 

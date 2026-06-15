@@ -168,7 +168,6 @@ class SendCustomEventPdfJob implements ShouldQueue
             $mpdf->showImageErrors = true;
             $mpdf->SetDirectionality('rtl'); 
 
-            // الاعتماد الكامل على الـ Inline Styles لحل مشاكل التموضع والألوان المفقودة
             $html = '
             <style>
             @page {
@@ -185,14 +184,14 @@ class SendCustomEventPdfJob implements ShouldQueue
             </style>
             
             <div style="position: absolute; bottom: 35mm; width: 100%; text-align: center;">
-                <table cellpadding="0" cellspacing="0" dir="rtl" style="margin: 0 auto; border-collapse: separate; border-spacing: 20px 0;">
+                <table cellpadding="0" cellspacing="0" dir="rtl" style="margin: 0 auto; border-collapse: separate; border-spacing: 15px 0;">
                     <tr>
-                        <td style="background-color: #22C55E; width: 65mm; padding: 14px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
-                            <a href="' . $confirm_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 14pt; font-weight: bold; display: inline-block; line-height: 1;">تأكيد الحضور</a>
+                        <td style="background-color: #22C55E; width: 54mm; padding: 10px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $confirm_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; line-height: 1.2;">تأكيد الحضور</a>
                         </td>
                         
-                        <td style="background-color: #EF4444; width: 65mm; padding: 14px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
-                            <a href="' . $apologize_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 14pt; font-weight: bold; display: inline-block; line-height: 1;">الاعتذار عن الحضور</a>
+                        <td style="background-color: #EF4444; width: 54mm; padding: 10px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $apologize_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; line-height: 1.2;">الاعتذار عن الحضور</a>
                         </td>
                     </tr>
                 </table>

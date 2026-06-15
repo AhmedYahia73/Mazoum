@@ -14,7 +14,7 @@ class AddColumn55ToCustomEvent extends Migration
     public function up()
     {
         Schema::table('custom_event', function (Blueprint $table) {
-            $table->float("pdf_bottom")->default(35);
+            $table->integer("pdf_bottom")->default(35);
         });
     }
 

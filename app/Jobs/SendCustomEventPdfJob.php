@@ -182,29 +182,31 @@ class SendCustomEventPdfJob implements ShouldQueue
             .buttons-container {
                 position: absolute;
                 bottom: 35mm;
-                width: 100%;
+                width: 190mm;
+                left: 10mm;
                 text-align: center;
             }
             table.buttons-table {
                 margin: 0 auto;
                 border-collapse: separate;
-                border-spacing: 16px 0;
+                border-spacing: 10px 0;
+                width: 190mm;
             }
             table.buttons-table td {
                 padding: 0;
-                width: 70mm;
+                width: 88mm;
             }
             a.btn {
                 display: block;
-                padding: 16px 20px;
-                font-size: 15pt;
+                width: 88mm;
+                padding: 14px 0;
+                font-size: 16pt;
                 font-weight: bold;
                 font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
                 text-decoration: none;
                 color: #ffffff;
                 border-radius: 50px;
                 text-align: center;
-                letter-spacing: 0.3px;
             }
             .btn-confirm {
                 background-color: #16a34a;

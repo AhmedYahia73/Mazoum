@@ -1430,16 +1430,28 @@ class CustomEventController extends Controller
         ]); 
     }
 
-    public function qr_count($id){
-        $custom_event_users = CustomEventUsers::
-        where('custom_event_id',$id)
-        ->where('scan','yes')
-        ->get();
+    public function qr_count(Request $request, $id){// استقبال كلمة البحث من الـ Request (مثال: ?search=أحمد)
+        $search = $request->input('search'); 
+        
+        // تحديد عدد العناصر في كل صفحة (افتراضي 10)
+        $perPage = $request->input('per_page', 10); 
+
+        $custom_event_users = CustomEventUsers::where('custom_event_id', $id)
+            ->where('scan', 'yes')
+            ->when($search, function ($query, $search) {
+                // البحث في حقول الاسم، الهاتف، أو الـ uuid
+                return $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%");
+                });
+            })
+            ->paginate($perPage); // استخدام التقسيم بدلاً من get()
 
         return response()->json([
+            "status" => true,
             "custom_event_users" => $custom_event_users
         ]);
-    }
+    } 
 
     public function excel_event_host_visitor(Request $request)
     {

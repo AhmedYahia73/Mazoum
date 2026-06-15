@@ -448,6 +448,7 @@ Route::get('custom_events/excel_confirm_count/{id}', 'CustomEventController@exce
 Route::get('custom_events/excel_apologize_count/{id}', 'CustomEventController@excel_apologize_count');
 
 Route::get('custom_events/qr_count/{id}', 'CustomEventController@qr_count');
+Route::get('custom_events/excel_qr_count/{id}', 'CustomEventController@excel_qr_count');
 Route::post('custom_events/remember_users_to_event', 'CustomEventController@remember_users_to_event');
 Route::get('custom_events/restore_deleted/{id}', 'CustomEventController@restore_deleted');
 Route::get('custom_events/deleted_custom_events', 'CustomEventController@deleted_custom_events');

@@ -60,14 +60,18 @@ class EventHostController extends Controller
             ],400);
         }
 
+        $event = Events::
+        where("id", $request->event_id)
+        ->first();
+        $user_status = $event->user_id == $request->user_id;
         $event_id = $request->event_id;
         $event_host = User::
         where("id", $request->user_id) 
         ->first();
-        $user_id = $event_host->user_id ? $event_host->id : null;
+        $user_id = $request->user_id;
         $event_user = EventUsers::
         where('event_id',$event_id);
-        $user_id ? $event_user->where("user_id", $user_id): 
+        !$user_status ? $event_user->where("user_id", $user_id): 
         $event_user->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);

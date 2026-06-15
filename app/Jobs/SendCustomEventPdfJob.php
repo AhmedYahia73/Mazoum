@@ -168,6 +168,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             $mpdf->showImageErrors = true;
             $mpdf->SetDirectionality('rtl'); 
 
+            // الاعتماد الكامل على الـ Inline Styles لحل مشاكل التموضع والألوان المفقودة
             $html = '
             <style>
             @page {
@@ -178,57 +179,20 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             body { 
                 background-color: transparent; 
-                font-family: "dejavusans", "Segoe UI", Tahoma, sans-serif; 
                 margin: 0; 
                 padding: 0; 
             }
-            .buttons-container {
-                position: absolute;
-                bottom: 35mm; 
-                width: 100%;
-                text-align: center;
-            }
-            table.buttons-table { 
-                margin: 0 auto; 
-                border-collapse: separate; 
-                border-spacing: 25px 0; /* المسافة بين الزرين */
-            }
-            
-            /* التنسيق الجديد: طبقنا كل خواص الزرار على الـ TD مباشرة */
-            .btn-cell { 
-                width: 65mm; /* توحيد العرض بالمليمتر ليصبحوا نفس الحجم تماماً */
-                border-radius: 50px; /* حواف دائرية ناعمة وعصرية */
-                text-align: center;
-                vertical-align: middle;
-            }
-            
-            /* درجات ألوان فلات حديثة واحترافية وبدون حواف غامقة */
-            .btn-confirm-bg { 
-                background-color: #10B981; /* أخضر زمردي مريح */
-            }
-            .btn-apologize-bg { 
-                background-color: #EF4444; /* أحمر ناعم وجذاب */
-            }
-            
-            /* تنسيق نص الرابط داخل الزر */
-            .btn-cell a { 
-                display: block; 
-                padding: 16px 0; /* بادينج رأسي ممتاز لتكبير حجم الزرار ومنحه مساحة بيضاء */
-                font-size: 13pt; /* تصغير الخط قليلاً بالنسبة لحجم الزرار لإعطاء مظهر برو */
-                font-weight: bold; 
-                text-decoration: none; 
-                color: #ffffff; /* لون النص أبيض ثابت */
-            }
             </style>
             
-            <div class="buttons-container">
-                <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
+            <div style="position: absolute; bottom: 35mm; width: 100%; text-align: center;">
+                <table cellpadding="0" cellspacing="0" dir="rtl" style="margin: 0 auto; border-collapse: separate; border-spacing: 20px 0;">
                     <tr>
-                        <td class="btn-cell btn-confirm-bg">
-                            <a href="' . $confirm_link . '">تأكيد الحضور</a>
+                        <td style="background-color: #22C55E; width: 65mm; padding: 14px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $confirm_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 14pt; font-weight: bold; display: inline-block; line-height: 1;">تأكيد الحضور</a>
                         </td>
-                        <td class="btn-cell btn-apologize-bg">
-                            <a href="' . $apologize_link . '">الاعتذار عن الحضور</a>
+                        
+                        <td style="background-color: #EF4444; width: 65mm; padding: 14px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $apologize_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 14pt; font-weight: bold; display: inline-block; line-height: 1;">الاعتذار عن الحضور</a>
                         </td>
                     </tr>
                 </table>

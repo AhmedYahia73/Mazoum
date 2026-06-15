@@ -191,7 +191,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             </style>
             
-            <div style="position: absolute; bottom: 35mm; width: 100%; text-align: center;">
+            <div style="position: absolute; bottom: 35px; width: 100%; text-align: center;">
                 <a href="' . $confirm_link . '" style="text-decoration: none; display: inline-block;">
                     <img src="' . $buttonsImage . '" style="width: 130mm; height: auto; border: none; padding: 0; margin: 0;" />
                 </a>

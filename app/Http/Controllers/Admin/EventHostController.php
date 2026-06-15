@@ -152,14 +152,18 @@ class EventHostController extends Controller
         }
 
         $event_id = $request->event_id;
+        $event = Events::
+        where("id", $request->event_id)
+        ->first();
+        $user_status = $event->user_id == $request->user_id;
         $event_host = User::
         where("id", $request->user_id) 
-        ->first();
+        ->first(); 
         $user_id = $event_host->user_id ? $event_host->id : null;
         $qr = EventUsers::
         where('event_id',$event_id) 
         ->where('scan','yes');
-        $user_id ? $qr->where("user_id", $user_id): 
+        !$user_status ? $qr->where("user_id", $user_id): 
         $qr->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -167,7 +171,7 @@ class EventHostController extends Controller
         $qr = $qr->sum('scan_count');
         $confirm_attend = EventUsers::
         where('event_id', $event_id) ;
-        $user_id ? $confirm_attend->where("user_id", $user_id):
+        !$user_status ? $confirm_attend->where("user_id", $user_id):
         $confirm_attend->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -176,7 +180,7 @@ class EventHostController extends Controller
         $apologize = EventUsers::
         where('event_id',$event_id)
         ->where('status','not-attend');
-        $user_id ? $apologize->where("user_id", $user_id):
+        !$user_status ? $apologize->where("user_id", $user_id):
         $apologize->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -185,7 +189,7 @@ class EventHostController extends Controller
         $send_Qr = EventUsers::
         where('event_id', $event_id)
         ->where('qr_sent','yes') ;
-        $user_id ? $send_Qr->where("user_id", $user_id):
+        !$user_status ? $send_Qr->where("user_id", $user_id):
         $send_Qr->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -197,7 +201,7 @@ class EventHostController extends Controller
         where('event_id', $event_id)
         ->where("send_type", "link")
         ->where('qr_sent','yes') ;
-        $user_id ? $confirm_web_users->where("user_id", $user_id):
+        !$user_status ? $confirm_web_users->where("user_id", $user_id):
         $confirm_web_users->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -208,7 +212,7 @@ class EventHostController extends Controller
         ->where('status','hold')
         ->where('is_new_sent',0)
         ->whereNull('is_sent');
-        $user_id ? $waiting->where("user_id", $user_id):
+        !$user_status ? $waiting->where("user_id", $user_id):
         $waiting->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -216,7 +220,7 @@ class EventHostController extends Controller
         $waiting = $waiting->sum('users_count');
         $invitees = EventUsers::
         where('event_id',$event_id);
-        $user_id ? $invitees->where("user_id", $user_id):
+        !$user_status ? $invitees->where("user_id", $user_id):
         $invitees->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
@@ -231,7 +235,7 @@ class EventHostController extends Controller
             ->orWhere('status', "!=", 'hold')
             ->orWhereNotNull('is_sent'); 
         });
-        $user_id ? $not_confirm->where("user_id", $user_id):
+        !$user_status ? $not_confirm->where("user_id", $user_id):
         $not_confirm->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);

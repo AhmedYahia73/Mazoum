@@ -2367,4 +2367,88 @@ class CustomEventController extends Controller
         dd('error-v2'); 
 
     }
+
+    public function scan_data(Request $request){ 
+       $validator = Validator::make($request->all(), [
+            'qr_id' => 'required|exists:custom_event_users,uu_id',
+        ]); 
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+        // qr_id  
+        $Item = CustomEventUsers::
+        where("uu_id",$request->qr_id)
+        ->with("event")
+        ->firstOrFail(); 
+ 
+        return response()->json([
+            "id" => $Item?->id,
+            "custom_event_id" => $Item?->custom_event_id,
+            "user_name" => $Item?->name,
+            "user_mobile" => $Item?->mobile, 
+            "custom_event_name" => $Item?->event?->title,
+            "scan_count" => $Item?->scan_count,
+            "users_count" => $Item?->users_count,
+            "available" => $Item?->users_count - $Item?->scan_count,
+            "apologize_count" => $Item?->apologize_count,
+            "confirm_count" => $Item?->confirm_count,
+        ]);
+    }
+
+    public function scan_qr(Request $request){
+       $validator = Validator::make($request->all(), [
+            'qr_id' => 'required|exists:custom_event_users,uu_id',
+            "users_count" => 'required|numeric',
+        ]); 
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        // qr_id
+        
+        $Item = CustomEventUsers::
+        where("uu_id",$request->qr_id)
+        ->firstOrFail(); 
+        $user_data = User::
+        where("id", $Item->user_id)
+        ->first();
+        if(!$user_data){
+            $user_data = User::
+            where("id", $Item?->event?->user_id)
+            ->first();
+        }
+        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
+        if($request->users_count >= $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        }
+        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+            return response()->json([
+                'errors' => 'عفوا هذا QR غير متاح', 
+            ],400);
+
+        }
+        $user_data->send_custom_invetaion += $request->users_count;
+        $user_data->save();
+        EnterUserCustomEvent::create([
+            "custom_user_id" => $Item->id,
+            "count" => $request->users_count
+        ]);
+         
+
+      	$now = Carbon::now(); 
+
+        $Item->update(['scan' => 'yes',
+        'scan_at' => $now,
+        'scan_count' => $request->users_count + $Item->scan_count]);
+
+ 
+        return response()->json([
+            'success' => 'تم عمل QR Scan  بنجاح', 
+        ]);
+    }
 }

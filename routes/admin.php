@@ -212,6 +212,8 @@ Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
 // 2222222
+Route::post('custom_events/scan_data', 'CustomEventController@scan_data');
+Route::post('custom_events/scan_qr', 'CustomEventController@scan_qr');
 Route::post('custom_events/excel_event_host_visitor', 'CustomEventController@excel_event_host_visitor');
 Route::post('custom_events/excel_event_host_qr', 'CustomEventController@excel_event_host_qr');
 Route::post('custom_events/excel_event_host_congrate_msg', 'CustomEventController@excel_event_host_congrate_msg');

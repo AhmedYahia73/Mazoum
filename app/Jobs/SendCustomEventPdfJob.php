@@ -21,18 +21,20 @@ class SendCustomEventPdfJob implements ShouldQueue
     public $eventId;
     public $ultramsg_token;
     public $instance_id;
+    public $pdf_bottom;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($userId, $eventId, $ultramsg_token, $instance_id)
+    public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom)
     {
         $this->userId = $userId;
         $this->eventId = $eventId;
         $this->ultramsg_token = $ultramsg_token;
         $this->instance_id = $instance_id;
+        $this->pdf_bottom = $pdf_bottom;
     }
 
     /**
@@ -191,7 +193,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             </style>
             
-            <div style="position: absolute; bottom: 35px; width: 100%; text-align: center;">
+            <div style="position: absolute; bottom: "' . $this->pdf_bottom . '"px; width: 100%; text-align: center;">
                 <a href="' . $confirm_link . '" style="text-decoration: none; display: inline-block;">
                     <img src="' . $buttonsImage . '" style="width: 130mm; height: auto; border: none; padding: 0; margin: 0;" />
                 </a>

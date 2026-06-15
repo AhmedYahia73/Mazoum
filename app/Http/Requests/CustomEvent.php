@@ -32,6 +32,7 @@ class CustomEvent extends FormRequest
                     'date'    => 'required|date|date_format:Y-m-d',
                     'time'    => 'required',
 
+                    "pdf_bottom" => ["required", "numeric"],
                     'image'   => 'required',
                     'color' => ["sometimes"], 
                     "name_qr" => ["required", "boolean"],
@@ -56,6 +57,7 @@ class CustomEvent extends FormRequest
                     'title'   => 'required',
                     'user_id' => 'required',
 
+                    "pdf_bottom" => ["required", "numeric"],
                     'scan_assistant_id' => 'sometimes|exists:users,id',
                     'assistant_id' => 'sometimes|exists:users,id',
                     'address' => 'required',

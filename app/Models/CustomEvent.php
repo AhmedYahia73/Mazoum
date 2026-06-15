@@ -23,7 +23,7 @@ class CustomEvent extends Model
         "qr_width", "qr_x", "qr_y", "lat", "lng",
         'scan_assistant_id', "resend_qr", 
         'image_height', 'image_width', 'text_color',
-        "video", "pdf", "show_data_pdf",
+        "video", "pdf", "show_data_pdf", "pdf_bottom"
     ];
     protected $appends = ["map", "video_url"];
    

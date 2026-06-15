@@ -168,64 +168,41 @@ class SendCustomEventPdfJob implements ShouldQueue
             $mpdf->showImageErrors = true;
             $mpdf->SetDirectionality('rtl'); 
 
-            $html = '
-            <style>
-            @page {
-                background-image: url("' . $base64Image . '");
-                background-image-resize: 6;
-                background-repeat: no-repeat;
-                margin: 0;
-            }
-            body { 
-                background-color: transparent; 
-                font-family: "dejavusans", "Segoe UI", Tahoma, sans-serif; 
-                margin: 0; 
-                padding: 0; 
-            }
-            /* حاوية الأزرار أسفل كارت الدعوة */
-            .buttons-container {
-                position: absolute;
-                bottom: 35mm; 
-                width: 100%;
-                text-align: center;
-            }
-            table.buttons-table { 
-                margin: 0 auto; 
-                border-collapse: separate; 
-                border-spacing: 25px 0; /* مسافة أفقية متناسقة بين الزرين */
-            }
-            table.buttons-table td { 
-                padding: 0; 
-                text-align: center;
-            }
-            a.btn { 
-                display: block; 
-                width: 62mm; /* تحديد عرض ثابت وموحد للزرارين لضمان تطابق الحجم */
-                padding: 15px 0; /* زيادة الـ Padding الداخلي لمنح الزر مظهر ممتلئ واحترافي */
-                font-size: 13pt; /* تصغير الخط بالنسبة لحجم الزرار لخلق مساحة بيضاء أنيقة */
-                font-weight: bold; 
-                text-decoration: none; 
-                color: #ffffff; 
-                border-radius: 30px; /* حواف دائرية انسيابية وعصرية */
-                text-align: center; 
-                line-height: 1.3;
-            }
-            .btn-confirm { 
-                background-color: #10B981; /* أخضر مريح وعصري (Emerald) وبدون حواف حادة */
-            }
-            .btn-apologize { 
-                background-color: #EF4444; /* أحمر ناعم وعصري وبدون حواف حادة */
-            }
-            </style>
-            
-            <div class="buttons-container">
-                <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
-                    <tr>
-                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور</a></td>
-                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار عن الحضور</a></td>
-                    </tr>
-                </table>
-            </div>';
+            $html = '.buttons-container {
+    position: absolute;
+    bottom: 35mm;
+    width: 100%;
+    text-align: center;
+}
+table.buttons-table {
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 16px 0;
+}
+table.buttons-table td {
+    padding: 0;
+    width: 70mm;
+}
+a.btn {
+    display: block;
+    padding: 16px 20px;
+    font-size: 15pt;
+    font-weight: bold;
+    font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
+    text-decoration: none;
+    color: #ffffff;
+    border-radius: 50px;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+.btn-confirm {
+    background-color: #16a34a;
+    border: 2px solid #14532d;
+}
+.btn-apologize {
+    background-color: #dc2626;
+    border: 2px solid #7f1d1d;
+}';
 
             Log::info('PDF Job - Writing HTML content');
             $mpdf->WriteHTML($html);

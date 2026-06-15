@@ -86,54 +86,70 @@ class SendCustomEventPdfJob implements ShouldQueue
 
         Log::info('PDF Job - pdfFile: ' . $pdfFile);
         Log::info('PDF Job - pdfPath: ' . $pdfPath);
-        Log::info('PDF Job - exists: ' . (file_exists($pdfPath) ? 'YES' : 'NO'));
   
         if ($pdfFile && file_exists($pdfPath)) {
-            $image = str_replace('\\', '/', $pdfPath);
+            $imagePathForRender = $pdfPath;
         } else {
-            $image = str_replace('\\', '/', public_path('img/no-image.png'));
+            $imagePathForRender = public_path('img/no-image.png');
             Log::warning('PDF Job - background image not found, using fallback no-image.png');
         }
 
         // ضغط الصورة لتقليل حجم الـ PDF
         $compressedImagePath = null;
-        if ($image && file_exists($image)) {
-            Log::info('PDF Job - Starting image compression for image: ' . $image . ' (Size: ' . filesize($image) . ' bytes)');
+        if (file_exists($imagePathForRender)) {
+            Log::info('PDF Job - Starting image compression for image: ' . $imagePathForRender . ' (Size: ' . filesize($imagePathForRender) . ' bytes)');
             try {
-                $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
-                Log::info('PDF Job - image extension: ' . $ext);
+                $ext = strtolower(pathinfo($imagePathForRender, PATHINFO_EXTENSION));
                 $srcImage = null;
                 if ($ext === 'png') {
-                    $srcImage = @imagecreatefrompng($image);
+                    $srcImage = @imagecreatefrompng($imagePathForRender);
                 } elseif (in_array($ext, ['jpg', 'jpeg'])) {
-                    $srcImage = @imagecreatefromjpeg($image);
+                    $srcImage = @imagecreatefromjpeg($imagePathForRender);
                 }
 
                 if ($srcImage) {
-                    Log::info('PDF Job - GD srcImage resource created successfully');
-                    $targetW = 794;
-                    $targetH = 1123;
+                    $targetW = 794; // A4 Width at 96 DPI
+                    $targetH = 1123; // A4 Height at 96 DPI
                     $resized = imagecreatetruecolor($targetW, $targetH);
+                    
+                    // التعامل مع شفافية PNG إذا وجدت
+                    if ($ext === 'png') {
+                        imagealphablending($resized, false);
+                        imagesavealpha($resized, true);
+                        $transparent = imagecolorallocatealpha($resized, 255, 255, 255, 127);
+                        imagefilledrectangle($resized, 0, 0, $targetW, $targetH, $transparent);
+                    }
+
                     imagecopyresampled($resized, $srcImage, 0, 0, 0, 0,
                         $targetW, $targetH, imagesx($srcImage), imagesy($srcImage));
                     imagedestroy($srcImage);
 
                     $compressedImagePath = sys_get_temp_dir() . '/pdf_bg_' . uniqid() . '.jpg';
-                    $quality = 80;
+                    $quality = 80; // جودة عالية مع ضغط جيد
                     if (imagejpeg($resized, $compressedImagePath, $quality)) {
-                        Log::info('PDF Job - Image compressed successfully. Temp path: ' . $compressedImagePath . ' (Size: ' . filesize($compressedImagePath) . ' bytes)');
-                        $image = $compressedImagePath;
-                    } else {
-                        Log::error('PDF Job - Failed to save imagejpeg to: ' . $compressedImagePath);
+                        Log::info('PDF Job - Image compressed successfully.');
+                        $imagePathForRender = $compressedImagePath;
                     }
                     imagedestroy($resized);
-                } else {
-                    Log::warning('PDF Job - GD srcImage resource could not be created for extension: ' . $ext);
                 }
             } catch (\Throwable $ex) {
-                Log::error('PDF Job - Exception in image compression: ' . $ex->getMessage() . PHP_EOL . $ex->getTraceAsString());
+                Log::error('PDF Job - Exception in image compression: ' . $ex->getMessage());
             }
         }
+
+        // --- الحل الجذري لمشكلة اختفاء الصورة: تحويلها لـ Base64 ---
+        $base64Image = '';
+        try {
+            if (file_exists($imagePathForRender)) {
+                $imageData = file_get_contents($imagePathForRender);
+                $mimeType = mime_content_type($imagePathForRender);
+                $base64Image = 'data:' . $mimeType . ';base64,' . base6464_encode($imageData);
+                Log::info('PDF Job - Image converted to Base64 successfully.');
+            }
+        } catch (\Exception $e) {
+            Log::error('PDF Job - Failed to convert image to Base64: ' . $e->getMessage());
+        }
+        // --------------------------------------------------------
 
         try {
             $config = [
@@ -144,26 +160,32 @@ class SendCustomEventPdfJob implements ShouldQueue
                 'margin_header' => 0,
                 'margin_footer' => 0,
                 'format'        => 'A4',
+                // إعدادات افتراضية أفضل للغة العربية
+                'mode'          => 'utf-8',
+                'autoScriptToLang' => true,
+                'autoLangToFont' => true,
             ];
-            Log::info('PDF Job - Initializing mPDF with config: ' . json_encode($config));
+            Log::info('PDF Job - Initializing mPDF');
 
             $mpdf = new \Mpdf\Mpdf($config);
             $mpdf->showImageErrors = true;
+            $mpdf->SetDirectionality('rtl'); // تحديد الاتجاه الافتراضي للمستند
 
-            // دمج كود الـ HTML والـ CSS لضمان عمل التموضع المطلق (Absolute Positioning)
+            // دمج كود الـ HTML والـ CSS
+            // ملاحظة: تم إزالة @import الخاص بـ Google Fonts لضمان سرعة التحميل وعدم تعليق الخلفية
+            // واستخدام خطوط نظام عربية احترافية وجميلة متوفرة دائماً
             $html = '
             <style>
-            @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap");
-
             @page {
-                background-image: url("' . $image . '");
+                background-image: url("' . $base64Image . '");
                 background-image-resize: 6;
                 background-repeat: no-repeat;
                 margin: 0;
             }
             body { 
                 background-color: transparent; 
-                font-family: "Cairo", "Segoe UI", Tahoma, sans-serif; 
+                /* استخدام خطوط نظام احترافية وبديلة (تاهوما، سيجو، أريال) */
+                font-family: "Segoe UI", Tahoma, "Arial", sans-serif; 
                 margin: 0; 
                 padding: 0; 
             }
@@ -177,16 +199,16 @@ class SendCustomEventPdfJob implements ShouldQueue
             table.buttons-table { 
                 margin: 0 auto; 
                 border-collapse: separate; 
-                border-spacing: 20px 0; /* زيادة المسافة الأفقية بين الزرين */
+                border-spacing: 20px 0; /* مسافة أفقية أنيقة بين الزرين */
             }
             table.buttons-table td { 
                 padding: 0; 
-                width: 75mm; /* تكبير عرض العمود الخاص بالزرار */
+                width: 75mm; /* عرض مناسب للزر الواحد */
             }
             a.btn { 
                 display: block; 
-                padding: 18px 10px; /* زيادة الـ padding الرأسي لتكبير حجم الزرار */
-                font-size: 13pt; /* تصغير حجم الخط لخلق مساحة Padding احترافية */
+                padding: 18px 10px; /* Padding رأسي كبير لإعطاء حجم ضخم للزر */
+                font-size: 14pt; /* خط أصغر متناسق مع حجم الزر الضخم */
                 font-weight: bold; 
                 text-decoration: none; 
                 color: #ffffff; 
@@ -213,36 +235,31 @@ class SendCustomEventPdfJob implements ShouldQueue
                 </table>
             </div>';
 
-            Log::info('PDF Job - Writing unified HTML content');
-            // كتابة الكود دفعة واحدة ليفهمه mPDF بالشكل الصحيح
+            Log::info('PDF Job - Writing HTML content');
             $mpdf->WriteHTML($html);
 
             $filename = 'invitation_' . uniqid() . '_' . $row->id . '.pdf';
-
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);
-                Log::info('PDF Job - Created temp_pdfs directory');
             }
 
             $pdf_path = $directory . '/' . $filename;
-            Log::info('PDF Job - Outputting PDF file to: ' . $pdf_path);
+            Log::info('PDF Job - Outputting PDF file');
             $mpdf->Output($pdf_path, 'F');
             
-            if (file_exists($pdf_path)) {
-                Log::info('PDF Job - PDF file created successfully (Size: ' . filesize($pdf_path) . ' bytes)');
-            } else {
-                Log::error('PDF Job - PDF file was NOT created at: ' . $pdf_path);
-            }
         } catch (\Exception $e) {
-            Log::error("PDF Job - Exception in PDF Generation: " . $e->getMessage() . PHP_EOL . $e->getTraceAsString());
+            Log::error("PDF Job - Exception in PDF Generation: " . $e->getMessage());
+            // تنظيف الصورة المضغوطة المؤقتة حتى لو فشل الـ PDF
+            if ($compressedImagePath && file_exists($compressedImagePath)) {
+                @unlink($compressedImagePath);
+            }
             return;
         }
         
         $pdf_url = asset('temp_pdfs/' . $filename);
-        Log::info('PDF Job - Generated PDF URL: ' . $pdf_url);
 
-        Log::info('PDF Job - Initializing UltraMsg API with Token: ' . $this->ultramsg_token . ', Instance ID: ' . $this->instance_id);
+        Log::info('PDF Job - Initializing UltraMsg API');
         $client = new \UltraMsg\WhatsAppApi($this->ultramsg_token, $this->instance_id);
         
         $priority = 0;
@@ -256,25 +273,20 @@ class SendCustomEventPdfJob implements ShouldQueue
         Log::info('PDF Job - Sleeping 5 seconds before clean up...');
         sleep(5);
 
+        // تنظيف الملفات
         if (file_exists($pdf_path)) {
-            if (@unlink($pdf_path)) {
-                Log::info('PDF Job - Cleaned up PDF file: ' . $pdf_path);
-            } else {
-                Log::error('PDF Job - Failed to delete PDF file: ' . $pdf_path);
-            }
+            @unlink($pdf_path);
+            Log::info('PDF Job - Cleaned up PDF file');
         }
         if ($compressedImagePath && file_exists($compressedImagePath)) {
-            if (@unlink($compressedImagePath)) {
-                Log::info('PDF Job - Cleaned up compressed image file: ' . $compressedImagePath);
-            } else {
-                Log::error('PDF Job - Failed to delete compressed image file: ' . $compressedImagePath);
-            }
+            @unlink($compressedImagePath);
+            Log::info('PDF Job - Cleaned up compressed image file');
         }
         
-        if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true' && isset($api['message']) && $api['message'] == 'ok') {
+        if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true') {
             Log::info('PDF Job - Success message sent to ' . $to);
         } else {
-            Log::error("Failed to send PDF to {$to} via Ultramsg.", ['response' => $api]);
+            Log::error("Failed to send PDF via Ultramsg.", ['response' => $api]);
         }
     }
 }

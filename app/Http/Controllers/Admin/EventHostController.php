@@ -413,4 +413,20 @@ class EventHostController extends Controller
             "success" => "You update data success"
         ]);
     }
+
+    public function destroy($id){
+        
+        CustomEventUsers::
+        where("user_id", $id)
+        ->delete();
+        EventUsers::
+        where("user_id", $id)
+        ->delete();
+        $user = User::where("id", $id)
+        ->delete();
+
+        return response()->json([
+            "success" => "You delete data success"
+        ]);
+    }
 }

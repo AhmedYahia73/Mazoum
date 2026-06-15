@@ -108,11 +108,10 @@ class SendCustomEventPdfJob implements ShouldQueue
                 }
 
                 if ($srcImage) {
-                    $targetW = 794; // A4 Width at 96 DPI
-                    $targetH = 1123; // A4 Height at 96 DPI
+                    $targetW = 794; 
+                    $targetH = 1123; 
                     $resized = imagecreatetruecolor($targetW, $targetH);
                     
-                    // التعامل مع شفافية PNG إذا وجدت
                     if ($ext === 'png') {
                         imagealphablending($resized, false);
                         imagesavealpha($resized, true);
@@ -125,7 +124,7 @@ class SendCustomEventPdfJob implements ShouldQueue
                     imagedestroy($srcImage);
 
                     $compressedImagePath = sys_get_temp_dir() . '/pdf_bg_' . uniqid() . '.jpg';
-                    $quality = 80; // جودة عالية مع ضغط جيد
+                    $quality = 80; 
                     if (imagejpeg($resized, $compressedImagePath, $quality)) {
                         Log::info('PDF Job - Image compressed successfully.');
                         $imagePathForRender = $compressedImagePath;
@@ -137,13 +136,13 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         }
 
-        // --- الحل الجذري لمشكلة اختفاء الصورة: تحويلها لـ Base64 ---
+        // --- تم تصحيح الدالة هنا لتصبح base64_encode ---
         $base64Image = '';
         try {
             if (file_exists($imagePathForRender)) {
                 $imageData = file_get_contents($imagePathForRender);
                 $mimeType = mime_content_type($imagePathForRender);
-                $base64Image = 'data:' . $mimeType . ';base64,' . base6464_encode($imageData);
+                $base64Image = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
                 Log::info('PDF Job - Image converted to Base64 successfully.');
             }
         } catch (\Exception $e) {
@@ -160,7 +159,6 @@ class SendCustomEventPdfJob implements ShouldQueue
                 'margin_header' => 0,
                 'margin_footer' => 0,
                 'format'        => 'A4',
-                // إعدادات افتراضية أفضل للغة العربية
                 'mode'          => 'utf-8',
                 'autoScriptToLang' => true,
                 'autoLangToFont' => true,
@@ -169,11 +167,8 @@ class SendCustomEventPdfJob implements ShouldQueue
 
             $mpdf = new \Mpdf\Mpdf($config);
             $mpdf->showImageErrors = true;
-            $mpdf->SetDirectionality('rtl'); // تحديد الاتجاه الافتراضي للمستند
+            $mpdf->SetDirectionality('rtl'); 
 
-            // دمج كود الـ HTML والـ CSS
-            // ملاحظة: تم إزالة @import الخاص بـ Google Fonts لضمان سرعة التحميل وعدم تعليق الخلفية
-            // واستخدام خطوط نظام عربية احترافية وجميلة متوفرة دائماً
             $html = '
             <style>
             @page {
@@ -184,35 +179,33 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             body { 
                 background-color: transparent; 
-                /* استخدام خطوط نظام احترافية وبديلة (تاهوما، سيجو، أريال) */
                 font-family: "Segoe UI", Tahoma, "Arial", sans-serif; 
                 margin: 0; 
                 padding: 0; 
             }
-            /* الحاوية التي تجبر الأزرار على البقاء بالأسفل */
             .buttons-container {
                 position: absolute;
-                bottom: 35mm; /* يمكنك تعديل هذا الرقم لرفع أو خفض الأزرار */
+                bottom: 35mm; 
                 width: 100%;
                 text-align: center;
             }
             table.buttons-table { 
                 margin: 0 auto; 
                 border-collapse: separate; 
-                border-spacing: 20px 0; /* مسافة أفقية أنيقة بين الزرين */
+                border-spacing: 20px 0; 
             }
             table.buttons-table td { 
                 padding: 0; 
-                width: 75mm; /* عرض مناسب للزر الواحد */
+                width: 75mm; 
             }
             a.btn { 
                 display: block; 
-                padding: 18px 10px; /* Padding رأسي كبير لإعطاء حجم ضخم للزر */
-                font-size: 14pt; /* خط أصغر متناسق مع حجم الزر الضخم */
+                padding: 18px 10px; 
+                font-size: 14pt; 
                 font-weight: bold; 
                 text-decoration: none; 
                 color: #ffffff; 
-                border-radius: 50px; /* حواف دائرية بالكامل لتصميم عصري */
+                border-radius: 50px; 
                 text-align: center; 
                 line-height: 1.2;
             }
@@ -250,7 +243,6 @@ class SendCustomEventPdfJob implements ShouldQueue
             
         } catch (\Exception $e) {
             Log::error("PDF Job - Exception in PDF Generation: " . $e->getMessage());
-            // تنظيف الصورة المضغوطة المؤقتة حتى لو فشل الـ PDF
             if ($compressedImagePath && file_exists($compressedImagePath)) {
                 @unlink($compressedImagePath);
             }
@@ -273,7 +265,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         Log::info('PDF Job - Sleeping 5 seconds before clean up...');
         sleep(5);
 
-        // تنظيف الملفات
         if (file_exists($pdf_path)) {
             @unlink($pdf_path);
             Log::info('PDF Job - Cleaned up PDF file');

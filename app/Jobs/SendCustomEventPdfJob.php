@@ -153,6 +153,8 @@ class SendCustomEventPdfJob implements ShouldQueue
             // دمج كود الـ HTML والـ CSS لضمان عمل التموضع المطلق (Absolute Positioning)
             $html = '
             <style>
+            @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap");
+
             @page {
                 background-image: url("' . $image . '");
                 background-image-resize: 6;
@@ -161,7 +163,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             body { 
                 background-color: transparent; 
-                font-family: Arial, sans-serif; 
+                font-family: "Cairo", "Segoe UI", Tahoma, sans-serif; 
                 margin: 0; 
                 padding: 0; 
             }
@@ -175,21 +177,22 @@ class SendCustomEventPdfJob implements ShouldQueue
             table.buttons-table { 
                 margin: 0 auto; 
                 border-collapse: separate; 
-                border-spacing: 15px 0; /* مسافة أنيقة بين الزرين */
+                border-spacing: 20px 0; /* زيادة المسافة الأفقية بين الزرين */
             }
             table.buttons-table td { 
                 padding: 0; 
-                width: 70mm;
+                width: 75mm; /* تكبير عرض العمود الخاص بالزرار */
             }
             a.btn { 
                 display: block; 
-                padding: 14px 10px; 
-                font-size: 16pt; 
+                padding: 18px 10px; /* زيادة الـ padding الرأسي لتكبير حجم الزرار */
+                font-size: 13pt; /* تصغير حجم الخط لخلق مساحة Padding احترافية */
                 font-weight: bold; 
                 text-decoration: none; 
                 color: #ffffff; 
                 border-radius: 50px; /* حواف دائرية بالكامل لتصميم عصري */
                 text-align: center; 
+                line-height: 1.2;
             }
             .btn-confirm { 
                 background-color: #10B981; 

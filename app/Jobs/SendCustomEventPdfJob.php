@@ -80,7 +80,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // استخدام المسار الداخلي المطلق للسيرفر
         $pdfFile = $event->getRawOriginal('pdf');
         $pdfPath = public_path('images/' . $pdfFile);
 
@@ -94,7 +93,6 @@ class SendCustomEventPdfJob implements ShouldQueue
             Log::warning('PDF Job - background image not found, using fallback no-image.png');
         }
 
-        // ضغط الصورة لتقليل حجم الـ PDF
         $compressedImagePath = null;
         if (file_exists($imagePathForRender)) {
             Log::info('PDF Job - Starting image compression for image: ' . $imagePathForRender . ' (Size: ' . filesize($imagePathForRender) . ' bytes)');
@@ -136,7 +134,6 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         }
 
-        // تحويل الصورة لـ Base64 لضمان ظهور الخلفية دائماً وثباتها
         $base64Image = '';
         try {
             if (file_exists($imagePathForRender)) {
@@ -168,41 +165,65 @@ class SendCustomEventPdfJob implements ShouldQueue
             $mpdf->showImageErrors = true;
             $mpdf->SetDirectionality('rtl'); 
 
-            $html = '.buttons-container {
-    position: absolute;
-    bottom: 35mm;
-    width: 100%;
-    text-align: center;
-}
-table.buttons-table {
-    margin: 0 auto;
-    border-collapse: separate;
-    border-spacing: 16px 0;
-}
-table.buttons-table td {
-    padding: 0;
-    width: 70mm;
-}
-a.btn {
-    display: block;
-    padding: 16px 20px;
-    font-size: 15pt;
-    font-weight: bold;
-    font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
-    text-decoration: none;
-    color: #ffffff;
-    border-radius: 50px;
-    text-align: center;
-    letter-spacing: 0.3px;
-}
-.btn-confirm {
-    background-color: #16a34a;
-    border: 2px solid #14532d;
-}
-.btn-apologize {
-    background-color: #dc2626;
-    border: 2px solid #7f1d1d;
-}';
+            $html = '
+            <style>
+            @page {
+                background-image: url("' . $base64Image . '");
+                background-image-resize: 6;
+                background-repeat: no-repeat;
+                margin: 0;
+            }
+            body {
+                background-color: transparent;
+                font-family: "Tajawal", "Segoe UI", Tahoma, "Arial", sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            .buttons-container {
+                position: absolute;
+                bottom: 35mm;
+                width: 100%;
+                text-align: center;
+            }
+            table.buttons-table {
+                margin: 0 auto;
+                border-collapse: separate;
+                border-spacing: 16px 0;
+            }
+            table.buttons-table td {
+                padding: 0;
+                width: 70mm;
+            }
+            a.btn {
+                display: block;
+                padding: 16px 20px;
+                font-size: 15pt;
+                font-weight: bold;
+                font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
+                text-decoration: none;
+                color: #ffffff;
+                border-radius: 50px;
+                text-align: center;
+                letter-spacing: 0.3px;
+            }
+            .btn-confirm {
+                background-color: #16a34a;
+                border: 2px solid #14532d;
+            }
+            .btn-apologize {
+                background-color: #dc2626;
+                border: 2px solid #7f1d1d;
+            }
+            </style>
+            
+            <div class="buttons-container">
+                <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
+                    <tr>
+                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور ✓</a></td>
+                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار ✕</a></td>
+                    </tr>
+                </table>
+            </div>';
 
             Log::info('PDF Job - Writing HTML content');
             $mpdf->WriteHTML($html);

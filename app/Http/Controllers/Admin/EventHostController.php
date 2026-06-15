@@ -159,7 +159,7 @@ class EventHostController extends Controller
         $event_host = User::
         where("id", $request->user_id) 
         ->first(); 
-        $user_id = $event_host->user_id ? $event_host->id : null;
+        $user_id = $request->user_id;
         $qr = EventUsers::
         where('event_id',$event_id) 
         ->where('scan','yes');

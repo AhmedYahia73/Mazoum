@@ -80,7 +80,7 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
-        // استخدام المسار الداخلي المطلق للسيرفر
+        // استخدام المسار الداخلي المطلق للسيرفر للخلفية
         $pdfFile = $event->getRawOriginal('pdf');
         $pdfPath = public_path('images/' . $pdfFile);
 
@@ -136,7 +136,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         }
 
-        // تحويل الصورة لـ Base64 لضمان ظهور الخلفية
+        // تحويل الخلفية لـ Base64 لضمان ظهورها
         $base64Image = '';
         try {
             if (file_exists($imagePathForRender)) {
@@ -147,6 +147,14 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         } catch (\Exception $e) {
             Log::error('PDF Job - Failed to convert image to Base64: ' . $e->getMessage());
+        }
+
+        // تجهيز مسار صورة الأزرار الجديدة وتأمينها
+        $buttonsLocalPath = public_path('11.png');
+        if (file_exists($buttonsLocalPath)) {
+            $buttonsImage = 'data:image/png;base64,' . base64_encode(file_get_contents($buttonsLocalPath));
+        } else {
+            $buttonsImage = 'https://mazoom.online/11.png';
         }
 
         try {
@@ -184,21 +192,9 @@ class SendCustomEventPdfJob implements ShouldQueue
             </style>
             
             <div style="position: absolute; bottom: 35mm; width: 100%; text-align: center;">
-                <table cellpadding="0" cellspacing="0" dir="rtl" style="margin: 0 auto; border-collapse: separate; border-spacing: 15px 0;">
-                    <tr>
-                        <td style="width: 54mm; height: 12mm; text-align: center; vertical-align: middle;">
-                            <a href="' . $confirm_link . '" style="display: inline-block; width: 54mm; height: 12mm; text-decoration: none;">
-                                <div style="width: 54mm; height: 12mm; background-color: transparent; line-height: 12mm;">&nbsp;</div>
-                            </a>
-                        </td>
-                        
-                        <td style="width: 54mm; height: 12mm; text-align: center; vertical-align: middle;">
-                            <a href="' . $apologize_link . '" style="display: inline-block; width: 54mm; height: 12mm; text-decoration: none;">
-                                <div style="width: 54mm; height: 12mm; background-color: transparent; line-height: 12mm;">&nbsp;</div>
-                            </a>
-                        </td>
-                    </tr>
-                </table>
+                <a href="' . $confirm_link . '" style="text-decoration: none; display: inline-block;">
+                    <img src="' . $buttonsImage . '" style="width: 130mm; height: auto; border: none; padding: 0; margin: 0;" />
+                </a>
             </div>';
 
             Log::info('PDF Job - Writing HTML content');

@@ -136,7 +136,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         }
 
-        // --- تم تصحيح الدالة هنا لتصبح base64_encode ---
+        // تحويل الصورة لـ Base64 لضمان ظهور الخلفية دائماً وثباتها
         $base64Image = '';
         try {
             if (file_exists($imagePathForRender)) {
@@ -148,7 +148,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::error('PDF Job - Failed to convert image to Base64: ' . $e->getMessage());
         }
-        // --------------------------------------------------------
 
         try {
             $config = [
@@ -179,10 +178,11 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
             body { 
                 background-color: transparent; 
-                font-family: "Segoe UI", Tahoma, "Arial", sans-serif; 
+                font-family: "dejavusans", "Segoe UI", Tahoma, sans-serif; 
                 margin: 0; 
                 padding: 0; 
             }
+            /* حاوية الأزرار أسفل كارت الدعوة */
             .buttons-container {
                 position: absolute;
                 bottom: 35mm; 
@@ -192,38 +192,37 @@ class SendCustomEventPdfJob implements ShouldQueue
             table.buttons-table { 
                 margin: 0 auto; 
                 border-collapse: separate; 
-                border-spacing: 20px 0; 
+                border-spacing: 25px 0; /* مسافة أفقية متناسقة بين الزرين */
             }
             table.buttons-table td { 
                 padding: 0; 
-                width: 75mm; 
+                text-align: center;
             }
             a.btn { 
                 display: block; 
-                padding: 18px 10px; 
-                font-size: 14pt; 
+                width: 62mm; /* تحديد عرض ثابت وموحد للزرارين لضمان تطابق الحجم */
+                padding: 15px 0; /* زيادة الـ Padding الداخلي لمنح الزر مظهر ممتلئ واحترافي */
+                font-size: 13pt; /* تصغير الخط بالنسبة لحجم الزرار لخلق مساحة بيضاء أنيقة */
                 font-weight: bold; 
                 text-decoration: none; 
                 color: #ffffff; 
-                border-radius: 50px; 
+                border-radius: 30px; /* حواف دائرية انسيابية وعصرية */
                 text-align: center; 
-                line-height: 1.2;
+                line-height: 1.3;
             }
             .btn-confirm { 
-                background-color: #10B981; 
-                border: 2px solid #047857;
+                background-color: #10B981; /* أخضر مريح وعصري (Emerald) وبدون حواف حادة */
             }
             .btn-apologize { 
-                background-color: #EF4444; 
-                border: 2px solid #B91C1C;
+                background-color: #EF4444; /* أحمر ناعم وعصري وبدون حواف حادة */
             }
             </style>
             
             <div class="buttons-container">
                 <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
                     <tr>
-                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور ✓</a></td>
-                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار ✕</a></td>
+                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور</a></td>
+                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار عن الحضور</a></td>
                     </tr>
                 </table>
             </div>';

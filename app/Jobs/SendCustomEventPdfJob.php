@@ -80,6 +80,7 @@ class SendCustomEventPdfJob implements ShouldQueue
         $confirm_link = url("confirm_custom_event/" . $row->id);
         $apologize_link = url("apologize_custom_event/" . $row->id);
         
+        // استخدام المسار الداخلي المطلق للسيرفر
         $pdfFile = $event->getRawOriginal('pdf');
         $pdfPath = public_path('images/' . $pdfFile);
 
@@ -93,6 +94,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             Log::warning('PDF Job - background image not found, using fallback no-image.png');
         }
 
+        // ضغط الصورة لتقليل حجم الـ PDF
         $compressedImagePath = null;
         if (file_exists($imagePathForRender)) {
             Log::info('PDF Job - Starting image compression for image: ' . $imagePathForRender . ' (Size: ' . filesize($imagePathForRender) . ' bytes)');
@@ -134,6 +136,7 @@ class SendCustomEventPdfJob implements ShouldQueue
             }
         }
 
+        // تحويل الصورة لـ Base64 لضمان ظهور الخلفية
         $base64Image = '';
         try {
             if (file_exists($imagePathForRender)) {
@@ -173,56 +176,60 @@ class SendCustomEventPdfJob implements ShouldQueue
                 background-repeat: no-repeat;
                 margin: 0;
             }
-            body {
-                background-color: transparent;
-                font-family: "Tajawal", "Segoe UI", Tahoma, "Arial", sans-serif;
-                margin: 0;
-                padding: 0;
+            body { 
+                background-color: transparent; 
+                font-family: "dejavusans", "Segoe UI", Tahoma, sans-serif; 
+                margin: 0; 
+                padding: 0; 
             }
             .buttons-container {
                 position: absolute;
-                bottom: 35mm;
-                width: 190mm;
-                left: 10mm;
+                bottom: 35mm; 
+                width: 100%;
                 text-align: center;
             }
-            table.buttons-table {
-                margin: 0 auto;
-                border-collapse: separate;
-                border-spacing: 10px 0;
-                width: 190mm;
+            table.buttons-table { 
+                margin: 0 auto; 
+                border-collapse: separate; 
+                border-spacing: 25px 0; /* المسافة بين الزرين */
             }
-            table.buttons-table td {
-                padding: 0;
-                width: 88mm;
-            }
-            a.btn {
-                display: block;
-                width: 88mm;
-                padding: 14px 0;
-                font-size: 16pt;
-                font-weight: bold;
-                font-family: "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
-                text-decoration: none;
-                color: #ffffff;
-                border-radius: 50px;
+            
+            /* التنسيق الجديد: طبقنا كل خواص الزرار على الـ TD مباشرة */
+            .btn-cell { 
+                width: 65mm; /* توحيد العرض بالمليمتر ليصبحوا نفس الحجم تماماً */
+                border-radius: 50px; /* حواف دائرية ناعمة وعصرية */
                 text-align: center;
+                vertical-align: middle;
             }
-            .btn-confirm {
-                background-color: #16a34a;
-                border: 2px solid #14532d;
+            
+            /* درجات ألوان فلات حديثة واحترافية وبدون حواف غامقة */
+            .btn-confirm-bg { 
+                background-color: #10B981; /* أخضر زمردي مريح */
             }
-            .btn-apologize {
-                background-color: #dc2626;
-                border: 2px solid #7f1d1d;
+            .btn-apologize-bg { 
+                background-color: #EF4444; /* أحمر ناعم وجذاب */
+            }
+            
+            /* تنسيق نص الرابط داخل الزر */
+            .btn-cell a { 
+                display: block; 
+                padding: 16px 0; /* بادينج رأسي ممتاز لتكبير حجم الزرار ومنحه مساحة بيضاء */
+                font-size: 13pt; /* تصغير الخط قليلاً بالنسبة لحجم الزرار لإعطاء مظهر برو */
+                font-weight: bold; 
+                text-decoration: none; 
+                color: #ffffff; /* لون النص أبيض ثابت */
             }
             </style>
             
             <div class="buttons-container">
                 <table class="buttons-table" cellpadding="0" cellspacing="0" dir="rtl">
                     <tr>
-                        <td><a href="' . $confirm_link . '" class="btn btn-confirm">تأكيد الحضور ✓</a></td>
-                        <td><a href="' . $apologize_link . '" class="btn btn-apologize">الاعتذار ✕</a></td>
+                        <td class="btn-cell btn-confirm-bg">
+                            <a href="' . $confirm_link . '">تأكيد الحضور</a>
+                        </td>
+                        <td class="btn-cell btn-apologize-bg">
+                            <a href="' . $apologize_link . '">الاعتذار عن الحضور</a>
+                        </td>
                     </tr>
                 </table>
             </div>';

@@ -186,12 +186,12 @@ class SendCustomEventPdfJob implements ShouldQueue
             <div style="position: absolute; bottom: 35mm; width: 100%; text-align: center;">
                 <table cellpadding="0" cellspacing="0" dir="rtl" style="margin: 0 auto; border-collapse: separate; border-spacing: 15px 0;">
                     <tr>
-                        <td style="background-color: #22C55E; width: 54mm; height: 12mm; text-align: center; vertical-align: middle; border-radius: 6mm;">
-                            <a href="' . $confirm_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; display: block; line-height: 12mm;">تأكيد الحضور</a>
+                        <td style="background-color: #22C55E; width: 54mm; padding: 6px 0 12px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $confirm_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; line-height: 1;">تأكيد الحضور</a>
                         </td>
                         
-                        <td style="background-color: #EF4444; width: 54mm; height: 12mm; text-align: center; vertical-align: middle; border-radius: 6mm;">
-                            <a href="' . $apologize_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; display: block; line-height: 12mm;">الاعتذار عن الحضور</a>
+                        <td style="background-color: #EF4444; width: 54mm; padding: 6px 0 12px 0; text-align: center; vertical-align: middle; border-radius: 50px;">
+                            <a href="' . $apologize_link . '" style="color: #ffffff; text-decoration: none; font-family: \'dejavusans\', sans-serif; font-size: 12pt; font-weight: bold; line-height: 1;">الاعتذار عن الحضور</a>
                         </td>
                     </tr>
                 </table>

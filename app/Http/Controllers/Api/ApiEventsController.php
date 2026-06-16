@@ -866,6 +866,7 @@ class ApiEventsController extends Controller
      *       enterd_events | non_attendance_users | send_Qr | confirm_web_users
      *       scan_enterd_events | not_scan_enterd_events
      */
+
     public function event_users_list(Request $request, $id, $type)
     {
         if ($this->token == null) {
@@ -1031,4 +1032,87 @@ class ApiEventsController extends Controller
             'users'    => $paged,
         ]);
     }
+    
+    public function event_users_count(Request $request, $id)
+    {
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+ 
+        $Item = Model::where('id', $id)->where(function ($query) use ($user) {
+              $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
+        })->select([
+            'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
+            'resend_qr'
+        ])->first();
+
+        if (!$Item) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        } 
+ 
+        $all_invited_users = EventUsers::where('event_id', $Item->id)
+            ->count();   
+        $invitations_not_sent_users = EventUsers::where('event_id', $Item->id)
+            ->where('status', 'hold')
+            ->where('is_new_sent', 0)
+            ->whereNull('is_sent')
+            ->count(); 
+        $confirmed_invitatios_users = EventUsers::where('event_id', $Item->id)
+            ->where('is_accepted', 'yes')
+            ->count(); 
+
+        $scaned_qr_users = EventUsers::where('event_id', $Item->id)
+            ->where('scan', 'yes')
+            ->count();  
+        $apologized_invitatios_users = EventUsers::where('event_id', $Item->id)
+            ->where('status', 'not-attend')
+            ->count();  
+        $failed_invitatios_users = EventUsers::where('event_id', $Item->id)
+            ->where('accept_count', 0)
+            ->where(function ($q) {
+                $q->where('is_new_sent', '!=', 0)
+                    ->where('status', '!=', 'hold')
+                    ->whereNotNull('is_sent');
+            })
+            ->count();  
+        $send_Qr = EventUsers::where('event_id', $Item->id)
+            ->where('qr_sent', 'yes')
+            ->count();  
+        $confirm_web_users = EventUsers::where('event_id', $Item->id)
+            ->where('send_type', 'link')
+            ->where('qr_sent', 'yes')
+            ->count();  
+        $non_attendance_users = EventUsers::where('event_id', $Item->id)
+            ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
+            ->count();   
+        $enterd_events = EventFamily::where('event_id', $Item->id)
+        ->count(); 
+        $scan_enterd_events = EventFamily::where('event_id', $Item->id)
+        ->where('scan_qr', 'yes')
+        ->count(); 
+        $not_scan_enterd_events = EventFamily::where('event_id', $Item->id)
+        ->where('scan_qr', 'no')
+        ->count(); 
+
+        return $this->returnData('data', [ 
+            'Item' => $Item,
+            "all_invited_users" => $all_invited_users, 
+            "invitations_not_sent_users" => $invitations_not_sent_users, 
+            "confirmed_invitatios_users" => $confirmed_invitatios_users,
+            "scaned_qr_users" => $scaned_qr_users, 
+            "apologized_invitatios_users" => $apologized_invitatios_users, 
+            "failed_invitatios_users" => $failed_invitatios_users, 
+            "send_Qr" => $send_Qr, 
+            "confirm_web_users" => $confirm_web_users, 
+            "non_attendance_users" => $non_attendance_users, 
+            "enterd_events" => $enterd_events,
+            "scan_enterd_events" => $scan_enterd_events, 
+            "not_scan_enterd_events" => $not_scan_enterd_events,
+        ]);
+    } 
 }

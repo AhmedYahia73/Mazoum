@@ -1087,8 +1087,7 @@ class ApiEventsController extends Controller
             ->where('send_type', 'link')
             ->where('qr_sent', 'yes')
             ->count();  
-        $non_attendance_users = EventUsers::where('event_id', $Item->id)
-            ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
+        $non_attendance_users = EventUsers::where('event_id', $Item->id) 
             ->count();   
         $enterd_events = EventFamily::where('event_id', $Item->id)
         ->count(); 

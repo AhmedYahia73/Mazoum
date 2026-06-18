@@ -318,7 +318,7 @@ class EventHostController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-          'mobile_code' => 'required|exists:mobile_codes,id',
+          'mobile_code' => 'required',
           'mobile' => 'required',
           'name' => 'required',
           'custom_invetaion' => 'required|numeric',

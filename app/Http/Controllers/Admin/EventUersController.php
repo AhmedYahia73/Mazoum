@@ -3632,7 +3632,7 @@ class EventUersController extends Controller
                 $to = $mobile;
                 $to = str_replace("+","",$to);
                 
-                $template_name = 'wedding__masj';
+                $template_name = 'wedding__failed';
                 $image_url = $event->file;
                 $header_type = 'image'; 
                 $language = 'ar'; 

@@ -571,7 +571,9 @@ class CustomEventController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Model::query();
+        $query = Model::
+        with("user:id,name")
+        ->query();
 
         // Search
         if ($request->search) {
@@ -593,7 +595,9 @@ class CustomEventController extends Controller
     
     public function deleted_custom_events(Request $request)
     {
-        $query = Model::onlyTrashed();
+        $query = Model::
+        with("user:id,name")
+        ->onlyTrashed();
 
         // Search
         if ($request->search) {

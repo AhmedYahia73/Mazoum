@@ -267,9 +267,7 @@ class EventHostController extends Controller
         $query = User::
         where(function($query) use($user_id){
             $query->where("id", $user_id)
-            ->orWhereHas("sub_users", function($query) use($user_id){
-                $query->where("users.id", $user_id);
-            });
+            ->orWhere("user_id", $user_id);
         });
 
         // Search

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
+use App\Models\CustomEvent;
 use App\Models\CustomEventFamily; 
 use App\Models\CustomEventUsers;
 use App\Models\CustomMessage;
@@ -319,8 +320,11 @@ class CustomEventController extends Controller
             'success' =>  'Imported successfully!', 
         ]);  
     }
- private function update_qr($event, $uu_id, $user_event, $image_name, $status = false) {
-    
+ private function update_qr($user_event, $uu_id, $status = false) {
+    $event = CustomEvent::
+    where("id", $user_event->custom_event_id)
+    ->first();
+    $image_name = $event->image;
     $color = $this->hexToRgb($event->color);
 
     $name_qr      = $event->name_qr;

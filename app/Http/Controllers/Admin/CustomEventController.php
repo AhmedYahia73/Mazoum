@@ -572,8 +572,7 @@ class CustomEventController extends Controller
     public function index(Request $request)
     {
         $query = Model::
-        with("user:id,name")
-        ->query();
+        with("user:id,name");
 
         // Search
         if ($request->search) {

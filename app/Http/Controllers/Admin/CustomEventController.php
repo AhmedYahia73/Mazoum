@@ -351,7 +351,7 @@ class CustomEventController extends Controller
         $qr_size = ($qr_width > 0) ? $qr_width : 140;
 
         // توليد الـ QR Code باستخدام مكتبة SimpleSoftwareIO\QrCode
-        \QrCode::format('png')
+        QrCode::format('png')
             ->size($qr_size)
             ->color($color[0], $color[1], $color[2])
             ->backgroundColor(255, 255, 255) // خلفية بيضاء لضمان القراءة الفوقية، أو (0,0,0,0) للشفافية

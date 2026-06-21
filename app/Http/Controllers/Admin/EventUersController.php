@@ -3631,8 +3631,12 @@ class EventUersController extends Controller
                 $mobile = $user->mobile; 
                 $to = $mobile;
                 $to = str_replace("+","",$to);
-                
-                $template_name = 'wedding__failed';
+                if($event->country_code == "sa"){
+                    $template_name = 'wedding__masj';
+                }
+                else{ 
+                    $template_name = 'wedding__failed';
+                }
                 $image_url = $event->file;
                 $header_type = 'image'; 
                 $language = 'ar'; 

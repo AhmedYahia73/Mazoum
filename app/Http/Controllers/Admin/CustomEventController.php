@@ -342,8 +342,8 @@ class CustomEventController extends Controller
 
             $image_name  = $uu_id . '-test-qr.png';
             $link        = asset('scan-qr/' . $uu_id);
-            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
-            $final_path  = public_path('qr_code/' . $image_name);
+            $qr_tmp_path = public_path('custom_event_qr_code/tmp_' . $image_name);
+            $final_path  = public_path('custom_event_qr_code/' . $image_name);
 
             $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 

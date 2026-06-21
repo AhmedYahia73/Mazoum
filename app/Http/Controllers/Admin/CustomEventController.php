@@ -341,7 +341,7 @@ class CustomEventController extends Controller
         $image_width  = $row->event?->image_width;
         $text_color   = $row->event?->text_color ?: '#000';
         $user_name = $row->name;
-        $users_count = $row->users_count;
+        $users_count = $row->confirm_count;
         $image_name = $uu_id . '-custom-event-qr.png';
         $link = asset('scan-custom-event-qr/' . $uu_id);
         $qr_temp_path = public_path('custom_event_qr_code/temp_qr_' . $image_name);
@@ -360,24 +360,7 @@ class CustomEventController extends Controller
         
         // افتح QR
         $qr = Image::make($qr_temp_path);
-
-        // // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
-        // if ($qr_width > 0 && $qr_height > 0) {
-        //     $qr->resize($qr_width, $qr_height);
-        // }
-
-        // // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
-        // if ($qr_x > 0 || $qr_y > 0) {
-        //     $x = $background->width()  - $qr->width()  - $qr_x;
-        //     $y = $background->height() - $qr->height() - $qr_y;
-        // } else {
-        //     $x = intval(($background->width()  - $qr->width())  / 2);
-        //     $y = intval(($background->height() - $qr->height()) / 2);
-        // }
-
-        // // أدرج QR مرة واحدة بس!
-        // $background->insert($qr, 'top-left', $x, $y);
-        
+ 
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
             }
@@ -451,7 +434,7 @@ class CustomEventController extends Controller
             
             // تحديث قاعدة البيانات
             $row->update([
-                'qr' => $final_path
+                'qr' => 'temp_qr_' . $image_name
             ]);
             
             // حذف QR المؤقت

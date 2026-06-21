@@ -443,6 +443,7 @@ class CustomEventController extends Controller
             $new_img->save($destination);
             return $destination;
         }
+        $row->update(["qr" => $image_name]);
     }
 
 

@@ -321,7 +321,148 @@ class CustomEventController extends Controller
         ]);  
     }
  
+
     private function update_qr($row, $uu_id) {
+        $event = $row->event;
+        $user_event = $row;
+        $image_name = $event->image;
+        $color = $this->hexToRgb($event->color);
+
+        $name_qr      = $event->name_qr;
+        $number_qr    = $event->number_qr;
+        $qr_height    = $event->qr_height;
+        $qr_width     = $event->qr_width;
+        $qr_x         = $event->qr_x;
+        $qr_y         = $event->qr_y;
+        $image_height = $event->image_height;
+        $image_width  = $event->image_width;
+        $text_color   = $event->text_color ?: '#000';
+
+        if ($event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
+
+            $image_name  = $uu_id . '-test-qr.png';
+            $link        = asset('scan-qr/' . $uu_id);
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
+
+            $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
+
+            QrCode::format('png')
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(0, 0, 0, 0)
+                ->generate($link, $qr_tmp_path);
+
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
+
+            if ($image_width > 0 && $image_height > 0) {
+                $background->resize($image_width, $image_height);
+            }
+
+            $qr = Image::make($qr_tmp_path);
+
+            
+            if ($qr_width > 0 && $qr_height > 0) {
+                $qr->resize($qr_width, $qr_height);
+            }
+
+            // تعديل نقطة البداية (Origin) لتكون Top-Left مباشرة
+            if ($qr_x > 0 || $qr_y > 0) {
+                $x = $qr_x; 
+                $y = $qr_y;
+            } else {
+                $x = intval(($background->width()  - $qr->width())  / 2);
+                $y = intval(($background->height() - $qr->height()) / 2);
+            }
+
+            $background->insert($qr, 'top-left', $x, $y);
+
+            $center_x = intval($background->width() / 2);
+            $text_y   = $y + $qr->height() + 15;
+
+            if ($event->language == 'ar') {
+                $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
+                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $name      = $Arabic->utf8Glyphs($user_event->name);
+                $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
+                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->confirm_count);
+            } else {
+                $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+                $name      = $user_event->name;
+                $name2     = 'Entered Users ' . $user_event->confirm_count;
+            }
+
+            if ($name_qr) {
+                $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += 25;
+            }
+
+            if ($number_qr && $user_event->confirm_count > 1) {
+                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+            }
+
+            $background->save($final_path, 100);
+
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
+
+        } else {
+
+            $bg           = 'qr-image-v9.jpg';
+            $link         = asset('scan-qr/' . $uu_id);
+            $qr_code_path = 'custom_event_qr_code/' . $image_name;
+
+            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            make_qr_transparent(public_path($qr_code_path));
+            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+
+            $destination = public_path($qr_code_path);
+            $new_img     = Image::make($destination);
+
+            if ($user_event->custom_event_qr_code > 1) {
+                $new_img->text($user_event->custom_event_qr_code, 115, 412, function ($font) {
+                    $font->file(public_path('font/OpenSans-Italic.ttf'));
+                    $font->size(25);
+                    $font->color('#000');
+                });
+            }
+
+            $new_img->save($destination);
+            return $destination;
+        }
+    }
+
+
+    private function hexToRgb(string $hex): array
+    {
+        $hex = str_replace('#', '', $hex);
+
+        if (strlen($hex) === 3) {
+            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
+            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
+            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
+        } else {
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+        }
+
+        return [$r, $g, $b];
+    } 
+    private function update_qr() {
         $event = $row->event;
         $bg = public_path('images/' . $event->getRawOriginal('image'));
 
@@ -434,7 +575,7 @@ class CustomEventController extends Controller
             
             // تحديث قاعدة البيانات
             $row->update([
-                'qr' => 'temp_qr_' . $image_name
+                'qr' => $image_name
             ]);
             
             // حذف QR المؤقت
@@ -448,24 +589,7 @@ class CustomEventController extends Controller
             Log::error("فشل حفظ QR: " . $e->getMessage());
             return false;
         }
-    }
- 
-  	private function hexToRgb(string $hex): array
-    {
-        $hex = str_replace('#', '', $hex);
-
-        if (strlen($hex) === 3) {
-            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
-            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
-            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-
-        return [$r, $g, $b];
-    }
+    } 
 
 	/*
   	private function update_qr($row,$uu_id) {

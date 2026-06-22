@@ -83,23 +83,31 @@ class HomeController extends Controller
         ]);
 
         $language = 'ar';
-        $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? 23421243;
+        $token = null;
 
-        $token = 32423;
-        $sender_id      = $sentPhoneId;
-        $phone_numer_id = $sentPhoneId;
-        if($phone_numer_id == $setting->phone_numer_id){
-            $token = $setting->access_token;
+        // جلب الـ value بشكل آمن لتقليل التكرار
+        $value = $data['entry'][0]['changes'][0]['value'] ?? null;
+
+        if ($value && isset($value['metadata']['phone_number_id'])) {
+
+            $sentPhoneId = $value['metadata']['phone_number_id'];
+
+            $sender_id      = $sentPhoneId;
+            $phone_numer_id = $sentPhoneId;
+            
+            if($phone_numer_id == $setting->phone_numer_id){
+                $token = $setting->access_token;
+            }
+            elseif($phone_numer_id == $setting->sa_phone_numer_id){
+                $token = $setting->sa_access_token;
+            }
+            elseif($phone_numer_id == $setting->sa_phone_numer_id2){
+                $token = $setting->sa_access_token2;
+            }
+            elseif($phone_numer_id == $setting->kw_phone_numer_id2){
+                $token = $setting->kw_access_token2;
+            } 
         }
-        elseif($phone_numer_id == $setting->sa_phone_numer_id){
-            $token = $setting->sa_access_token;
-        }
-        elseif($phone_numer_id == $setting->sa_phone_numer_id2){
-            $token = $setting->sa_access_token2;
-        }
-        elseif($phone_numer_id == $setting->kw_phone_numer_id2){
-            $token = $setting->kw_access_token2;
-        } 
 
         if($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&

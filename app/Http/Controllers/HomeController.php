@@ -73,13 +73,10 @@ class HomeController extends Controller
         info('WEBHOOK POST RECEIVED');
         info($request->all());
 
-        $setting = Setting::first();
-        $data = $request->all();
-        $message_id = $data['entry'][0]['changes'][0]['value']['statuses'][0]['id'];
-        $event = EventUsers::where('message_id', $message_id)->first()?->event;
-        $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? get_whats_setting($event)['sender_id'];
+        $setting = Setting::first(); 
+        $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? 23421243;
 
-        $token = get_whats_setting($event)['token'];
+        $token = 32423;
         $sender_id      = $sentPhoneId;
         $phone_numer_id = $sentPhoneId;
         if($phone_numer_id == $setting->phone_numer_id){

@@ -203,6 +203,32 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     Route::get('user/event-details/{id}', 'ApiEventsController@event_details');
     Route::get('user/event-users/{id}/{type}', 'ApiEventsController@event_users_list');
     Route::get('user/event_users_count/{id}', 'ApiEventsController@event_users_count');
+
+    // Excel Export APIs
+    Route::controller('ApiExcelController')->prefix('user/excel')->group(function () {
+        // Custom Event
+        Route::get('/event_users',               'excel_event_users');
+        Route::get('/event_family',              'excel_event_family');
+        Route::get('/event_host_visitor',        'excel_event_host_visitor');
+        Route::get('/event_host_qr',             'excel_event_host_qr');
+        Route::get('/event_host_congrate_msg',   'excel_event_host_congrate_msg');
+        Route::get('/event_host_apologize_msg',  'excel_event_host_apologize_msg');
+        Route::get('/event_host_apologize',      'excel_event_host_apologize');
+        Route::get('/event_host_confirm',        'excel_event_host_confirm');
+        Route::get('/qr_count/{id}',             'excel_qr_count');
+        Route::get('/confirm_count/{id}',        'excel_confirm_count');
+        Route::get('/apologize_count/{id}',      'excel_apologize_count');
+        // Regular Event
+        Route::get('/all_invited_users/{id}',          'excel_all_invited_users');
+        Route::get('/event_qr_details/{id}',           'excel_event_qr_details');
+        Route::get('/confirmed_event_details/{id}',    'excel_confirmed_event_details');
+        Route::get('/confirmed_users_web_chat/{id}',   'excel_confirmed_users_web_chat');
+        Route::get('/not_attend_event_details/{id}',   'excel_not_attend_event_details');
+        Route::get('/hold_event_details/{id}',         'excel_hold_event_details');
+        Route::get('/failed_event_details/{id}',       'excel_failed_event_details');
+        Route::get('/non_attendance_event_details/{id}','excel_non_attendance_event_details');
+        Route::get('/qr_sent_event_details/{id}',      'excel_qr_sent_event_details');
+    });
     Route::get('user/delete-event/{id}', 'ApiEventsController@destroy');
     Route::get('login-user/{id}', [EventUersController::class, 'login_user']);
 

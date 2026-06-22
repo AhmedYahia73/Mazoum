@@ -1508,7 +1508,7 @@ class EventUersController extends Controller
                             // }
 
                           	//dd($response,$response->getStatusCode());
-dd($response->getBody()->getContents());
+//dd($response->getBody());
                             if ($response != null && $response->getStatusCode() == 200) {
                                 $user->update([
                                     'balance' => $user->balance - $users_count

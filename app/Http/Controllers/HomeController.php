@@ -74,6 +74,7 @@ class HomeController extends Controller
         info($request->all());
 
         $setting = Setting::first(); 
+        $data = $request->all();
         $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? 23421243;
 
         $token = 32423;

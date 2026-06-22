@@ -73,8 +73,16 @@ class HomeController extends Controller
         info('WEBHOOK POST RECEIVED');
         info($request->all());
 
-        $setting = Setting::first(); 
+        $setting = Setting::first();  
+
         $data = $request->all();
+
+        $log = Logs::create([
+            'log' => json_encode($data),
+            'type' => gettype($data)
+        ]);
+
+        $language = 'ar';
         $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? 23421243;
 
         $token = 32423;
@@ -91,13 +99,7 @@ class HomeController extends Controller
         }
         elseif($phone_numer_id == $setting->kw_phone_numer_id2){
             $token = $setting->kw_access_token2;
-        }
-        $log = Logs::create([
-            'log' => json_encode($data),
-            'type' => gettype($data)
-        ]);
-
-        $language = 'ar';
+        } 
 
         if($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&

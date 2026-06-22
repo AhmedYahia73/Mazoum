@@ -74,9 +74,26 @@ class HomeController extends Controller
         info($request->all());
 
         $setting = Setting::first();
-
         $data = $request->all();
+        $message_id = $data['entry'][0]['changes'][0]['value']['statuses'][0]['id'];
+        $event = EventUsers::where('message_id', $message_id)->first()?->event;
+        $sentPhoneId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? get_whats_setting($event)['sender_id'];
 
+        $token = get_whats_setting($event)['token'];
+        $sender_id      = $sentPhoneId;
+        $phone_numer_id = $sentPhoneId;
+        if($phone_numer_id == $setting->phone_numer_id){
+            $token = $setting->access_token;
+        }
+        elseif($phone_numer_id == $setting->sa_phone_numer_id){
+            $token = $setting->sa_access_token;
+        }
+        elseif($phone_numer_id == $setting->sa_phone_numer_id2){
+            $token = $setting->sa_access_token2;
+        }
+        elseif($phone_numer_id == $setting->kw_phone_numer_id2){
+            $token = $setting->kw_access_token2;
+        }
         $log = Logs::create([
             'log' => json_encode($data),
             'type' => gettype($data)
@@ -230,9 +247,9 @@ class HomeController extends Controller
 
                     $template_name6 = 'flow_'.$available;
 
-                    $token          = get_whats_setting($event)['token'];
-                    $sender_id      = get_whats_setting($event)['sender_id'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                     $to = $phone;
                     $language = 'ar';
@@ -259,9 +276,9 @@ class HomeController extends Controller
                     $language = 'ar';
                     $user_name = $user_event->name;
 
-                    $token          = get_whats_setting($event)['token'];
-                    $sender_id      = get_whats_setting($event)['sender_id'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                   	$template_name2 = 'send_congratulation_ar_new';
 
@@ -306,9 +323,9 @@ class HomeController extends Controller
                 $user_event->save();
                   $event = Events::find($user_event->event_id);
 
-                  $token          = get_whats_setting($event)['token'];
-                  $sender_id      = get_whats_setting($event)['sender_id'];
-                  $phone_numer_id = get_whats_setting($event)['sender_id'];
+                //   $token          = get_whats_setting($event)['token'];
+                //   $sender_id      = get_whats_setting($event)['sender_id'];
+                //   $phone_numer_id = get_whats_setting($event)['sender_id'];
 
 
                   $mobile = $user_event->mobile;
@@ -358,9 +375,9 @@ class HomeController extends Controller
                     $user_name = $user_event->name;
                     $location = '?q=' . $event->lat . ',' . $event->long;
 
-                    $token          = get_whats_setting($event)['token'];
-                    $sender_id      = get_whats_setting($event)['sender_id'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                     // $response = SendTemplateV3($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
                     $response = SendWeddingDataV7ATemplate($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
@@ -382,9 +399,9 @@ class HomeController extends Controller
 
                     $date = $event->date;
 
-                    $token          = get_whats_setting($event)['token'];
-                    $sender_id      = get_whats_setting($event)['sender_id'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                     // $response = SendTemplateV7($to, $template_name, $language, $date, $phone_numer_id, $token);
                     $response = SendWeddingDataV9ArTemplate($to, $template_name, $language, $date, $phone_numer_id, $token);
@@ -424,9 +441,9 @@ class HomeController extends Controller
 
                 $event = $user_event->event;
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                // $token          = get_whats_setting($event)['token'];
+                // $sender_id      = get_whats_setting($event)['sender_id'];
+                // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                 $whatsapp = '201008478014';
 
@@ -465,9 +482,9 @@ class HomeController extends Controller
 
                 $event = $user_event->event;
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                // $token          = get_whats_setting($event)['token'];
+                // $sender_id      = get_whats_setting($event)['sender_id'];
+                // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                 $whatsapp = '201008478014';
 
@@ -494,9 +511,9 @@ class HomeController extends Controller
 
                 $event = $user_event->event;
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                // $token          = get_whats_setting($event)['token'];
+                // $sender_id      = get_whats_setting($event)['sender_id'];
+                // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                 $whatsapp = '201008478014';
 
@@ -520,9 +537,9 @@ class HomeController extends Controller
 
                 $event = $user_event->event;
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                // $token          = get_whats_setting($event)['token'];
+                // $sender_id      = get_whats_setting($event)['sender_id'];
+                // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                 $whatsapp = '201008478014';
 
@@ -618,9 +635,9 @@ class HomeController extends Controller
                         // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name.'&param_1='.$user_event->users_count.'&image='.$url_image;
                         // $response = SendNewTemplateCodeV1($url);
 
-                        $token          = get_whats_setting($event)['token'];
-                        $sender_id      = get_whats_setting($event)['sender_id'];
-                        $phone_numer_id = get_whats_setting($event)['sender_id'];
+                        // $token          = get_whats_setting($event)['token'];
+                        // $sender_id      = get_whats_setting($event)['sender_id'];
+                        // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                         $to = $phone;
                         $language = 'ar';
@@ -677,9 +694,9 @@ class HomeController extends Controller
 
                     sleep(4);
 
-                    $token          = get_whats_setting($event)['token'];
-                    $sender_id      = get_whats_setting($event)['sender_id'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
 
                     $template_name2 = 'send_congratulation_ar_new';
@@ -790,8 +807,8 @@ class HomeController extends Controller
                         'status'         => 'accept_event',
                     ]);
 
-                    $token          = get_whats_setting($event)['token'];
-                    $phone_numer_id = get_whats_setting($event)['sender_id'];
+                    // $token          = get_whats_setting($event)['token'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
                     $to             = $mobile;
                     $language       = 'ar';
 
@@ -867,9 +884,9 @@ class HomeController extends Controller
 
                 $event = $user_event->event;
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                // $token          = get_whats_setting($event)['token'];
+                // $sender_id      = get_whats_setting($event)['sender_id'];
+                // $phone_numer_id = get_whats_setting($event)['sender_id'];
 
                 $whatsapp = '201008478014';
 

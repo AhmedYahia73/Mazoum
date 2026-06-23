@@ -10,11 +10,40 @@ use App\Models\CustomMessage;
 use App\Models\Events;
 use App\Models\EventUserActions;
 use App\Models\EventUsers;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ApiExcelController extends Controller
 {
+
+
+    public $token;
+    public $lang;
+    public function __construct()
+    {
+        if (getallheaders() != null && ! empty(getallheaders())) {
+            if (array_key_exists('language', getallheaders())) {
+                $this->lang = getallheaders()['language'];
+            } elseif (array_key_exists('Language', getallheaders())) {
+                $this->lang = getallheaders()['Language'];
+            } else {
+                $this->lang = 'ar';
+            }
+
+            if (array_key_exists('token', getallheaders())) {
+                $this->token = getallheaders()['token'];
+            } elseif (array_key_exists('Token', getallheaders())) {
+                $this->token = getallheaders()['Token'];
+            } else {
+                $this->token = null;
+            }
+
+        } else {
+            $this->lang = null;
+            $this->token = null;
+        }
+    }
 
     public function excel_event_users(Request $request) {
 
@@ -26,11 +55,31 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }  
+        
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $custom_event_id = $request->custom_event_id;
 
         $event_users = CustomEventUsers::
         where('custom_event_id', $custom_event_id)
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get(); // عدد النتائج في الصفحة
 
         return response()->json([
@@ -48,6 +97,25 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $event_id = $request->custom_event_id;
 
         $event_users = CustomEventFamily::
@@ -70,13 +138,32 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){ 
             $visitors_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->get(); 
@@ -85,7 +172,7 @@ class ApiExcelController extends Controller
             $visitors_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->get(); 
         }
@@ -106,13 +193,32 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){  
             $qr_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->where('scan','yes')
@@ -122,7 +228,7 @@ class ApiExcelController extends Controller
             $qr_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->where('scan','yes')
             ->get(); 
@@ -144,14 +250,33 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){ 
             $congratulation_msg = CustomMessage::
             where("custom_event_id", $Item->id)
             ->where("type", "congratulation")
             ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->get();
@@ -161,7 +286,7 @@ class ApiExcelController extends Controller
             where("custom_event_id", $Item->id)
             ->where("type", "congratulation")
             ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->get();
         }
@@ -182,14 +307,33 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){  
             $apologize_msg = CustomMessage::
             where("custom_event_id", $Item->id)
             ->where("type", "apologize")
             ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->get();
@@ -199,7 +343,7 @@ class ApiExcelController extends Controller
             where("custom_event_id", $Item->id)
             ->where("type", "apologize")
             ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->get();
         }
@@ -220,13 +364,32 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){ 
             $apologize_count = CustomEventUsers::
             where("custom_event_id", $Item->id) 
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->get();
@@ -235,7 +398,7 @@ class ApiExcelController extends Controller
             $apologize_count = CustomEventUsers::
             where("custom_event_id", $Item->id) 
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->get();
         }
@@ -256,13 +419,32 @@ class ApiExcelController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }   
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == auth()->user()->id;
+        $user_status = $Item->user_id == $user->id;
         if($user_status){
             $confirm_count = CustomEventUsers::
             where("custom_event_id", $Item->id) 
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id)
+                $query->where("user_id", $user->id)
                 ->orWhereNull("user_id");
             })
             ->get(); 
@@ -271,7 +453,7 @@ class ApiExcelController extends Controller
             $confirm_count = CustomEventUsers::
             where("custom_event_id", $Item->id) 
             ->where(function($query) use($request){ 
-                $query->where("user_id", auth()->user()->id);
+                $query->where("user_id", $user->id);
             })
             ->get(); 
         }
@@ -283,9 +465,28 @@ class ApiExcelController extends Controller
     }
 
     public function excel_qr_count($id){
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $custom_event_users = CustomEventUsers::
         where('custom_event_id',$id)
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->where('scan','yes')
         ->get();
 
@@ -296,11 +497,30 @@ class ApiExcelController extends Controller
     
     public function excel_confirm_count(Request $request, $id){
     
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($id);
         $user_events = CustomEventUsers::
         where('custom_event_id', $Item->id)
         ->where("confirm_count", ">", 0) 
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         return response()->json([
@@ -311,11 +531,30 @@ class ApiExcelController extends Controller
     
     public function excel_apologize_count(Request $request, $id){
         
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = CustomEvent::findOrFail($id);
         $user_events = CustomEventUsers::
         where('custom_event_id', $Item->id)
         ->where("apologize_count", ">", 0) 
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         return response()->json([
@@ -328,10 +567,29 @@ class ApiExcelController extends Controller
      
     public function excel_all_invited_users(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::
         where('event_id', $Item->id)
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل المدعوين';
@@ -349,10 +607,29 @@ class ApiExcelController extends Controller
 
     public function excel_event_qr_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
         ->where('scan', 'yes') 
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل المدعوين الذين اكدو الحضور (QR)';
@@ -373,10 +650,29 @@ class ApiExcelController extends Controller
 
     public function excel_confirmed_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'attend')
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل المدعوين الذين ينوون الحضور';
@@ -394,12 +690,31 @@ class ApiExcelController extends Controller
 
     public function excel_confirmed_users_web_chat(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUserActions::where('event_id', $Item->id)
         ->where('action', 'accept_event')
         ->with("event_user:id,name,users_count,is_read,scan,scan_count", "event.user") 
         ->whereHas("event_user", function($query){
-            $query->where("user_id", auth()->user()->id);
+            $query->where("user_id", $user->id);
         })
         ->get()
         ->map(function($item){
@@ -433,10 +748,29 @@ class ApiExcelController extends Controller
 
     public function excel_not_attend_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'not-attend')
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل المدعوين الذين اعتذرو';
@@ -451,12 +785,31 @@ class ApiExcelController extends Controller
 
     public function excel_hold_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'hold')
         ->where('is_new_sent', 0)
         ->whereNull('is_sent')
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل المدعوين المنتظرين';
@@ -474,6 +827,25 @@ class ApiExcelController extends Controller
 
   	public function excel_failed_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
@@ -481,7 +853,7 @@ class ApiExcelController extends Controller
         //->whereIn('status', ['sent'])
         ->whereNull('is_accepted')
         ->whereNull('is_refused')
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->where(function ($query) {
             $query->where('is_new_sent', 1)
                 ->orWhereNotNull('is_sent');
@@ -502,6 +874,25 @@ class ApiExcelController extends Controller
 
   	public function excel_non_attendance_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
 
         //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
@@ -509,7 +900,7 @@ class ApiExcelController extends Controller
         ->where('status', 'attend')
         ->whereNull('scan')
         ->whereNull('is_refused')
-        ->where("user_id", auth()->user()->id) 
+        ->where("user_id", $user->id) 
         ->get();
 
         $title = 'عدم الحضور فعليا';
@@ -526,10 +917,29 @@ class ApiExcelController extends Controller
 
   	public function excel_qr_sent_event_details(Request $request, $id)
     {
+      	if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
         ->where('qr_sent', 'yes')
-        ->where("user_id", auth()->user()->id)
+        ->where("user_id", $user->id)
         ->get();
 
         $title = 'كل الدعوات (Sent QR)';

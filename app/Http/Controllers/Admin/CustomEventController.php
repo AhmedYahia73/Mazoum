@@ -2502,7 +2502,7 @@ class CustomEventController extends Controller
         $user = CustomEventUsers::
         where("uu_id", $uu_id)
         ->with("event", "congratulation_msg", "apologize_msg")
-        ->firstOrFaild();
+        ->firstOrFail();
 
         return response()->json([
             "uu_id" => $user->uu_id,
@@ -2523,7 +2523,7 @@ class CustomEventController extends Controller
     public function custom_event_applogize_count(Request $request, $id){
         $user = CustomEventUsers::
         where("id", $id) 
-        ->firstOrFaild();
+        ->firstOrFail();
         $max_count = $user->users_count -$user->confirm_count -$user->apologize_count;
        $validator = Validator::make($request->all(), [  
             'apologize' => 'required|numeric|max:' . $max_count,
@@ -2545,7 +2545,7 @@ class CustomEventController extends Controller
     public function custom_event_confirm_count(Request $request, $id){
         $user = CustomEventUsers::
         where("id", $id) 
-        ->firstOrFaild();
+        ->firstOrFail();
         $max_count = $user->users_count -$user->confirm_count -$user->apologize_count;
        $validator = Validator::make($request->all(), [  
             'confirm_count' => 'required|numeric|max:' . $max_count,
@@ -2576,7 +2576,7 @@ class CustomEventController extends Controller
         } 
         $user = CustomEventUsers::
         where("id", $id) 
-        ->firstOrFaild(); 
+        ->firstOrFail(); 
         $old_msg = CustomMessage::
         where("custom_user_id", $id)
         ->where("type", "congratulation")
@@ -2610,7 +2610,7 @@ class CustomEventController extends Controller
         } 
         $user = CustomEventUsers::
         where("id", $id) 
-        ->firstOrFaild(); 
+        ->firstOrFail(); 
         $old_msg = CustomMessage::
         where("custom_user_id", $id)
         ->where("type", "apologize")

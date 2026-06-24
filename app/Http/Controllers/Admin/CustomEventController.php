@@ -2480,7 +2480,7 @@ class CustomEventController extends Controller
                 $to = str_replace("+","",$to);
                 $url_image = $item->qr;
                 $caption = '' . $user_name . PHP_EOL . PHP_EOL .
-                ' عدد الدعوات ' . $item->confirm_count;
+                ' عدد الدعوات (' . $item->confirm_count . ")";
 
                 // $api=$client->sendChatMessage($to,$body);
                 $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);

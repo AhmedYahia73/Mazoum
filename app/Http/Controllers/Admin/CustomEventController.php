@@ -341,7 +341,7 @@ class CustomEventController extends Controller
         if ($event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
 
             $image_name  = $uu_id . '-test-qr.png';
-            $link        = asset('scan-qr/' . $uu_id);
+            $link        = asset('scan-custom-qr/' . $uu_id);
             $qr_tmp_path = public_path('custom_event_qr_code/tmp_' . $image_name);
             $final_path  = public_path('custom_event_qr_code/' . $image_name);
  

@@ -2471,7 +2471,6 @@ class CustomEventController extends Controller
             ->whereIn("id", $request->users)
             ->get();
             foreach($user_event as $item) {
--  
                 $user_name = $item->name;
 
                 $mobile = $item->mobile;

@@ -44,6 +44,16 @@ class CustomEventUsers extends Model
         return $this->hasMany(CustomChat::class, "custom_user_id");
     }
 
+    public function congratulation_msg(){
+        return $this->hasMany(CustomMessage::class, "custom_user_id")
+        ->where("type", "congratulation");
+    }
+
+    public function apologize_msg(){
+        return $this->hasMany(CustomMessage::class, "custom_user_id")
+        ->where("type", "apologize");
+    }
+
 
     public function un_read_user_msgs(){
         return $this->hasMany(CustomChat::class, "custom_user_id")

@@ -26,6 +26,12 @@ Route::get('confirm_custom_event/{id}', 'Admin\CustomEventController@confirm_cus
 Route::get('apologize_custom_event/{id}', 'Admin\CustomEventController@apologize_custom_event');
 Route::get('event-login/{id}', 'EventUserActionsController@event_login');
 
+Route::get('custom_event_login/{id}', 'Admin\CustomEventController@custom_event_login');
+Route::post('custom_event_applogize_count/{id}', 'Admin\CustomEventController@custom_event_applogize_count');
+Route::post('custom_event_confirm_count/{id}', 'Admin\CustomEventController@custom_event_confirm_count');
+Route::post('custom_event_congratulation_msg/{id}', 'Admin\CustomEventController@custom_event_congratulation_msg');
+Route::post('custom_event_apologize_msg/{id}', 'Admin\CustomEventController@custom_event_apologize_msg');
+
 Route::post('new-save-event-user-action', 'EventUserActionsController@new_save_event_action');
 
 

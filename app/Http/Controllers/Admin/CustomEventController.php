@@ -2497,4 +2497,138 @@ class CustomEventController extends Controller
 
         dd('error-v2'); 
     }
+
+    public function custom_event_login($uu_id){
+        $user = CustomEventUsers::
+        where("uu_id", $uu_id)
+        ->with("event", "congratulation_msg", "apologize_msg")
+        ->firstOrFaild();
+
+        return response()->json([
+            "uu_id" => $user->uu_id,
+            "name" => $user->name,
+            "mobile" => $user->mobile,
+            "qr" => $user->qr,
+            "scan" => $user->scan,
+            "users_count" => $user->users_count,
+            "confirm_count" => $user->confirm_count,
+            "apologize_count" => $user->apologize_count,
+            "congratulation_msg" => count($user->congratulation_msg) > 0 ? 
+            $user->congratulation_msg[0] : null,
+            "apologize_msg" => count($user->apologize_msg) > 0 ? 
+            $user->apologize_msg[0] : null,
+        ]);
+    }
+
+    public function custom_event_applogize_count(Request $request, $id){
+        $user = CustomEventUsers::
+        where("id", $id) 
+        ->firstOrFaild();
+        $max_count = $user->users_count -$user->confirm_count -$user->apologize_count;
+       $validator = Validator::make($request->all(), [  
+            'apologize' => 'required|numeric|max:' . $max_count,
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+
+        $user->update([
+            "apologize_count" => $user->apologize_count + $request->apologize
+        ]);
+        return response()->json([
+            "success" => "You update data success"
+        ]);
+    }
+
+    public function custom_event_confirm_count(Request $request, $id){
+        $user = CustomEventUsers::
+        where("id", $id) 
+        ->firstOrFaild();
+        $max_count = $user->users_count -$user->confirm_count -$user->apologize_count;
+       $validator = Validator::make($request->all(), [  
+            'confirm_count' => 'required|numeric|max:' . $max_count,
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+
+        $user->update([
+            "confirm_count" => $user->confirm_count + $request->confirm_count
+        ]);
+        return response()->json([
+            "success" => "You update data success"
+        ]);
+    }
+
+    public function custom_event_congratulation_msg(Request $request, $id){
+
+       $validator = Validator::make($request->all(), [  
+            'msg' => 'required',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+        $user = CustomEventUsers::
+        where("id", $id) 
+        ->firstOrFaild(); 
+        $old_msg = CustomMessage::
+        where("custom_user_id", $id)
+        ->where("type", "congratulation")
+        ->first();
+        if($old_msg){
+            return response()->json([
+                "errors" => "You add msg before you can not add new msg"
+            ], 400);
+        }
+        CustomMessage::create([
+            'custom_event_id' => $user->custom_event_id,
+            'custom_user_id' => $user->id,
+            'msg' => $request->msg,
+            'type' => "congratulation",
+        ]);
+        
+        return response()->json([
+            "success" => "You add data success"
+        ]);
+    }
+
+    public function custom_event_apologize_msg(Request $request, $id){
+
+       $validator = Validator::make($request->all(), [  
+            'msg' => 'required',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
+        $user = CustomEventUsers::
+        where("id", $id) 
+        ->firstOrFaild(); 
+        $old_msg = CustomMessage::
+        where("custom_user_id", $id)
+        ->where("type", "apologize")
+        ->first();
+        if($old_msg){
+            return response()->json([
+                "errors" => "You add msg before you can not add new msg"
+            ], 400);
+        }
+        CustomMessage::create([
+            'custom_event_id' => $user->custom_event_id,
+            'custom_user_id' => $user->id,
+            'msg' => $request->msg,
+            'type' => "apologize",
+        ]);
+        
+        return response()->json([
+            "success" => "You add data success"
+        ]);
+    }
 }

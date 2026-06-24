@@ -2434,4 +2434,68 @@ class CustomEventController extends Controller
             'success' => 'تم عمل QR Scan  بنجاح', 
         ]);
     }
+    
+    public function re_send_custom_qr(Request $request)
+    {
+       $validator = Validator::make($request->all(), [  
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'users' => 'required|array',
+            'users.*' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }    
+  
+        $event_id = $request->custom_event_id;
+
+        $event = Model::where('id', $event_id)->firstOrFail();
+ 
+
+        /* ***************************************************************************** */
+
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
+ 
+        try {
+
+            $errors = 0; 
+            $user_event = CustomEventUsers::
+            withTrashed()
+            ->whereIn("id", $request->users)
+            ->get();
+            foreach($user_event as $item) {
+-  
+                $user_name = $item->name;
+
+                $mobile = $item->mobile;
+
+                //$to = $code.$mobile;
+                $to = $mobile;
+                $to = str_replace("+","",$to);
+                $url_image = $item->qr;
+                $caption = '' . $user_name . PHP_EOL . PHP_EOL .
+                ' ' . $item->confirm_count;
+
+                // $api=$client->sendChatMessage($to,$body);
+                $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+  
+            }
+
+            return response()->json([
+                'success' => 'تم الأرسال بنجاح', 
+            ]); 
+
+        } catch(\Exception $e) {
+            dd($e->getMessage(), $e->getLine());
+        }
+
+        dd('error-v2'); 
+    }
 }

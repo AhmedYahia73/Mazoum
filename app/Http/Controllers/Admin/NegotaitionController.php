@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 class NegotaitionController extends Controller
 {
     public function view(Request $request){
-        $negotation = Negotaition::where("status", "pending")
+        $negotation = Negotaition::whereIn("status", ["pending", "inprogress"])
         ->with("package", "user")
         ->paginate(10)
         ->through(function($item){
@@ -26,6 +26,7 @@ class NegotaitionController extends Controller
                 "user_mobile" => ($item?->user?->mobile_code ?? null) . ($item?->user?->mobile ?? null),
                 "package" => $item?->package?->ar_title ?? null,
                 "package_price" => $item?->package?->price,
+                "status" => $item?->status,
             ];
         });
 
@@ -35,7 +36,7 @@ class NegotaitionController extends Controller
     }
     
     public function history(Request $request){
-        $negotation = Negotaition::where("status", "!=", "pending")
+        $negotation = Negotaition::whereIn("status", ["approve", "reject"])
         ->with("package", "user")
         ->paginate(10)
         ->through(function($item){
@@ -46,6 +47,7 @@ class NegotaitionController extends Controller
                 "user_mobile" => ($item?->user?->mobile_code ?? null) . ($item?->user?->mobile ?? null),
                 "package" => $item?->package?->ar_title ?? null,
                 "package_price" => $item?->package?->price,
+                "status" => $item->status
             ];
         });
 
@@ -78,6 +80,7 @@ class NegotaitionController extends Controller
             "user_name" => $negotation?->user?->name ?? null,
             "user_email" => $negotation?->user?->email ?? null,
             "user_mobile" => ($negotation?->user?->mobile_code ?? null) . ($negotation?->user?->mobile ?? null),
+            "status" => $negotation->status
         ]);
 
         return response()->json([
@@ -87,7 +90,7 @@ class NegotaitionController extends Controller
 
     public function status(Request $request, $id){
         $validator = Validator::make($request->all(), [
-            'status'=> 'required|in:approve,reject',
+            'status'=> 'required|in:approve,reject,inprogress',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
@@ -248,5 +251,15 @@ class NegotaitionController extends Controller
             'success' => 'تم الأشتراك بنجاح', 
         ]);
 
+    }
+
+    public function delete(Request $request, $id){
+        Negotaition::
+        where("id", $id) 
+        ->delete();
+
+        return response()->json([
+            "success" => "You delete data success"
+        ]);
     }
 }

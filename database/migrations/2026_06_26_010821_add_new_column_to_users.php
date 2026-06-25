@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnToNegotaitions extends Migration
+class AddNewColumnToUsers extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddColumnToNegotaitions extends Migration
      */
     public function up()
     {
-        Schema::table('negotaitions', function (Blueprint $table) {
-            $table->enum("status", ["pending", "approve", "reject"])->default("pending");
+        Schema::table('users', function (Blueprint $table) {
+            $table->boolean("negotation_status")->default(0);
         });
     }
 
@@ -25,7 +25,7 @@ class AddColumnToNegotaitions extends Migration
      */
     public function down()
     {
-        Schema::table('negotaitions', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table) {
             //
         });
     }

@@ -28,6 +28,8 @@ class Admin
                     "admin/setting/*",
                     "admin/attendance",
                     "admin/attendance/*",
+                    Auth::user()->negotation_status ?? "admin/negotation",
+                    Auth::user()->negotation_status ?? "admin/negotation/*",
                 ];
                 if(!$request->is($not_allowed)){
                     return $next($request);

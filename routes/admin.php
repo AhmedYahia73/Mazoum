@@ -42,6 +42,7 @@ Route::get('event_host/{id}', 'EventHostController@index');
 Route::get('event_host/custom/{id}', 'EventHostController@custom_index');
 Route::get('event_host/item/{id}', 'EventHostController@show');
 Route::post('event_host/users', 'EventHostController@users');
+Route::post('event_host/excel_users', 'EventHostController@excel_users');
 Route::post('event_host/report', 'EventHostController@report');
 Route::resource(
     'event_host',
@@ -121,6 +122,7 @@ Route::get('negotation', 'NegotaitionController@view')->name('admin.negotation.v
 Route::get('negotation/history', 'NegotaitionController@history')->name('admin.negotation.history');
 Route::get('negotation/item/{id}', 'NegotaitionController@negotaition')->name('admin.negotation.item');
 Route::post('negotation/status/{id}', 'NegotaitionController@status')->name('admin.negotation.status');
+Route::delete('negotation/delete/{id}', 'NegotaitionController@delete')->name('admin.negotation.delete');
 
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);
@@ -211,7 +213,8 @@ Route::put('events/{id}/update_my_package', 'EventsController@update_my_package'
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
-// 2222222
+// 2222222 
+Route::get('custom_events/my_package/{id}', 'CustomEventController@my_package');
 Route::post('custom_events/re_send_custom_qr', 'CustomEventController@re_send_custom_qr');
 Route::post('custom_events/scan_data', 'CustomEventController@scan_data');
 Route::post('custom_events/scan_qr', 'CustomEventController@scan_qr');
@@ -533,9 +536,9 @@ Route::get('update_custom_event_family', function () {
 });
 Route::post('update_custom_event_family', 'CustomEventController@update_event_family');
 
-
+ 
 // event_family_search
-Route::get('', 'CustomEventController@event_family_search');
+Route::get('custom_event_family_search', 'CustomEventController@event_family_search');
 
 
 // destroy

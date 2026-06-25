@@ -11,12 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AssistantController extends Controller
-{ 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+{  
     public function index()
     {
         $Item = Model::
@@ -24,63 +19,50 @@ class AssistantController extends Controller
             'id', 'name', 'mobile', 'email', 'status',
             'employee_gender', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
-            "holiday"
+            "holiday", "negotation_status",
         ]);
         return response()->json([
             'assistants' => $Item
         ]);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function create()
     {
         return view('admin.assistant.create');
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function store(modelRequest $request)
     {
+        if($request->user_type == "employee"){   
+            $validator = Validator::make($request->all(), [
+                'negotation_status' => 'required|boolean',
+            ]); 
+            if ($validator->fails()) { // if Validate Make Error Return Message Error
+                return response()->json([
+                    'errors' => $validator->errors(),
+                ],400);
+            }   
+        }
         Model::create($this->gteInput($request,null));
         
         return response()->json([
             'success' => 'You add data success'
         ]);
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function show($id)
     {
         $Item = Model::
         select('id', 'name', 'mobile', 'email', 'status',
         'employee_gender', 'mobile_code', "user_type", "holiday",
-        'salary', 'appointment_from', 'appointment_to')
+        'salary', 'appointment_from', 'appointment_to', 'negotation_status')
         ->findOrFail($id);
         return response()->json([
             'Item' => $Item
         ]);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function edit($id)
     {
         $Item = Model::findOrFail($id);
@@ -88,29 +70,26 @@ class AssistantController extends Controller
             'Item' => $Item
         ]);
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function update(modelRequest $request, $id)
     {
+        if($request->user_type == "employee"){   
+            $validator = Validator::make($request->all(), [
+                'negotation_status' => 'required|boolean',
+            ]); 
+            if ($validator->fails()) { // if Validate Make Error Return Message Error
+                return response()->json([
+                    'errors' => $validator->errors(),
+                ],400);
+            }   
+        }
         $Item = Model::findOrFail($id);
         $Item->update($this->gteInput($request,$Item));
         return response()->json([
             'success' => 'You update data success'
         ]);
     }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function destroy($id)
     {
         $Item = Model::where('id',$id)->firstOrFail();
@@ -138,7 +117,7 @@ class AssistantController extends Controller
         $input = $request->only([
             'name', 'email', 'mobile', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
-            "holiday"
+            "holiday", "negotation_status",
         ]);
 
         if(isset($modelClass) ) {

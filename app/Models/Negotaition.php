@@ -12,7 +12,7 @@ class Negotaition extends Model
     protected $fillable = [
         'pricing_id', 
         'user_id',
-        'status',
+        'status', // "pending", "inprogress", "approve", "reject"
     ];
 
     public function package(){

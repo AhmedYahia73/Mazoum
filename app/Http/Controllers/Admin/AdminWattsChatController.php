@@ -20,7 +20,7 @@ class AdminWattsChatController extends Controller
             return response()->json([
                 'errors' => $validator->errors(),
             ],400);
-        }  
+        }
 
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $chatHistory = WattsChat::

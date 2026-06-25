@@ -143,6 +143,101 @@ class EventHostController extends Controller
             "event_user" => $event_user
         ]);
     }
+    
+    public function excel_users(Request $request){
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'event_id' => 'required|exists:events,id',
+            'type' => 'required|in:all,qr,confirm,apologize,send_Qr,not_attend,confirm_web_users,waiting,invitees,not_confirm',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        $event = Events::
+        where("id", $request->event_id)
+        ->first();
+        $user_status = $event->user_id == $request->user_id;
+        $event_id = $request->event_id;
+        $event_host = User::
+        where("id", $request->user_id) 
+        ->first();
+        $user_id = $request->user_id;
+        $event_user = EventUsers::
+        where('event_id',$event_id);
+        !$user_status ? $event_user->where("user_id", $user_id): 
+        $event_user->where(function($query) use($user_id){
+            $query->whereNull("user_id")
+            ->orWhere("user_id", $user_id);
+        });
+
+        if($request->type == "all"){
+            $event_user = $event_user 
+            ->get();
+        }
+        elseif($request->type == "qr"){
+            $event_user = $event_user
+            ->where('scan', 'yes')
+            ->get();
+        }
+        elseif($request->type == "confirm"){
+            $event_user = $event_user
+            ->where('accept_count', ">", 0) 
+            ->get();
+        } 
+        elseif($request->type == "apologize"){
+            $event_user = $event_user
+            ->where('status','not-attend')
+            ->get();
+        } 
+        elseif($request->type == "send_Qr"){
+            $event_user = $event_user
+            ->where('qr_sent','yes')
+            ->where("accept_count", ">", 0)
+            ->get();
+        } 
+        elseif($request->type == "confirm_web_users"){
+            $event_user = $event_user
+            ->where("send_type", "link")
+            ->where('qr_sent','yes') 
+            ->where("accept_count", ">", 0)
+            ->get();
+        }  
+        elseif($request->type == "waiting"){
+            $event_user = $event_user
+            ->where('status', 'hold')
+            ->where('is_new_sent', 0)
+            ->whereNull('is_sent')
+            ->get();
+        }
+        elseif($request->type == "invitees"){
+            $event_user = $event_user 
+            ->get();
+        }  
+        elseif($request->type == "not_confirm"){
+            $event_user = $event_user
+            ->where("accept_count", 0) 
+            ->where('status', "!=", 'not-attend')
+            ->get();
+        }  
+        elseif($request->type == "not_attend"){
+            $event_user = $event_user
+            ->where('accept_count', ">", 0)
+            ->whereColumn("scan_count", "<", "accept_count")
+            ->get()
+            ->map(function($item) {
+                $item->not_attend = $item->scan_count - $item->accept_count;
+                return $item;
+            });
+        }    
+        
+        // $ =  $confirm_attend - $qr;  
+        return response()->json([
+            "event_user" => $event_user
+        ]);
+    }
 
     public function report(Request $request){
         $validator = Validator::make($request->all(), [

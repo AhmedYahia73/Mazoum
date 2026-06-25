@@ -33,24 +33,23 @@ class CustomEvent extends FormRequest
                     'time'    => 'required',
 
                     "pdf_bottom" => ["required", "numeric"],
-                    'image'   => 'required',
+                    'image'   => 'sometimes',
                     'color' => ["sometimes"], 
                     "name_qr" => ["required", "boolean"],
                     "number_qr" => ["required", "boolean"],
-                    "qr_height" => ["required", "numeric"],
-                    "qr_width" => ["required", "numeric"],
-                    "qr_x" => ["required", "numeric"],
-                    "qr_y" => ["required", "numeric"],
+                    "qr_height" => ["sometimes", "numeric"],
+                    "qr_width" => ["sometimes", "numeric"],
+                    "qr_x" => ["sometimes", "numeric"],
+                    "qr_y" => ["sometimes", "numeric"],
                     "lat" => ["required", "numeric"],
                     "lng" => ["required", "numeric"],
                     "send_type" => ["required", "in:all,watts,msg"],
-                    'image_height' => ['required'],
-                    'image_width' => ['required'],
+                    'image_height' => ['numeric'],
+                    'image_width' => ['numeric'],
                     'text_color' => ['required'],
                     'show_data_pdf' => ['required', "boolean"],
                     'pdf' => ['required'],
                 ];
-
             case 'PUT':
             case 'PATCH':
                 return [

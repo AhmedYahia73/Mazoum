@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnToNegotaitions extends Migration
+class ChangeColumnInNegotaitions extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,7 @@ class AddColumnToNegotaitions extends Migration
     public function up()
     {
         Schema::table('negotaitions', function (Blueprint $table) {
-            $table->enum("status", ["pending", "approve", "reject"])->default("pending");
+            $table->enum("status", ["pending", "inprogress", "approve", "reject"])->default("pending")->change();
         });
     }
 

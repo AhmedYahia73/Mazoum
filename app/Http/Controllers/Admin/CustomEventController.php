@@ -2479,7 +2479,9 @@ class CustomEventController extends Controller
                 $to = $mobile;
                 $to = str_replace("+","",$to);
                 $url_image = $item->qr;
-                $caption = '' . $user_name . PHP_EOL . PHP_EOL .
+                $caption = 'باركود الدخـول الخـاص بـك, فضـلاً تأكد من حفـظ الصـورة في هاتفك لإبرازهــا عند دخـول المناسبة.'
+                // . $user_name 
+                . PHP_EOL . PHP_EOL .
                 ' عدد الدعوات (' . $item->confirm_count . ")";
 
                 // $api=$client->sendChatMessage($to,$body);
@@ -2629,6 +2631,42 @@ class CustomEventController extends Controller
         
         return response()->json([
             "success" => "You add data success"
+        ]);
+    }
+
+    public function my_package(Request $request, $id){
+          
+        $Item = Model::
+        with("user.order")
+        ->withTrashed()->findOrFail($id);
+        $arr = [ 
+            "id"=> $Item->id,
+            "title"=> $Item->title,
+            "image"=> $Item->image,  
+            "map"=> $Item->map,
+            "lat"=> $Item->lat,
+            "long"=> $Item->lng,
+            "address"=> $Item->address, 
+            "date"=> $Item->date,
+            "time"=> $Item->time, 
+            "user_id"=> $Item->user_id,
+            "user_name"=> $Item?->user?->name ?? null,
+            "assistant_id"=> $Item->assistant_id,
+            "phone"=> $Item?->user?->mobile_code . $Item?->user?->mobile,
+            "invitation_count"=> $Item?->user?->order?->users_count,
+            "reservation_date"=> $Item?->user?->order?->start_subscription_date,
+            "package_price"=> $Item?->user?->order?->total,
+            "payment_type"=> $Item?->user?->order?->payment_type,
+            "is_paid"=> $Item?->user?->order?->is_paid,
+            "employee_gender"=> $Item?->user?->employee_gender == 'male' ? 'رجل' : 'مرأة',
+            "color"=> $Item->color,
+            "video"=> $Item->video,
+            "created_at"=> $Item->created_at,
+            "updated_at"=> $Item->updated_at,
+        ];
+
+        return response()->json([
+            "Item" => $arr
         ]);
     }
 }

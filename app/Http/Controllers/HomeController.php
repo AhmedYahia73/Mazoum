@@ -128,11 +128,11 @@ class HomeController extends Controller
             ->orderByDesc("id")
             ->first(); 
             if($last_msg){
-                Log::info("9999999999999999999999999999999999999999");
                 $my_msg = str_starts_with($last_msg->message, ".. ");
             }
         }
         if($my_msg){
+                Log::info("9999999999999999999999999999999999999999");
             $user_event = EventUsers::
             where("mobile", $customerPhone)
             ->where('status','hold')

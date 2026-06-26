@@ -124,6 +124,7 @@ class HomeController extends Controller
             where("phone", $customerPhone)
             ->where("from", $from)
             ->whereNotNull("message")
+            ->where("is_sent_by_me", 1)
             ->orderByDesc("id")
             ->first(); 
             if($last_msg){

@@ -166,6 +166,7 @@ class HomeController extends Controller
             $language = 'ar';
             $image_url = $event->file;
             $header_type = 'image';
+            Log::info("----------------" . $event);
             $response = SendWeddingDataV1ArTemplate($customerPhone,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
         }
         elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&

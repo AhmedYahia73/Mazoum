@@ -33,10 +33,13 @@ if (! function_exists('Image_Path')) {
         $existImage = public_path('images/' . $img);
         $secondExistImage = public_path('public/images/' . $img);
         
-        if(File::exists($secondExistImage)) {
+        if ($img == null) {
+            return asset('img/no-image.png');
+        }
+        elseif(File::exists($secondExistImage)) {
             return asset('public/images') . '/' . $img;
         }
-        elseif (! File::exists($existImage) || $img == null) {
+        elseif (! File::exists($existImage)) {
             return asset('img/no-image.png');
         }
         else {

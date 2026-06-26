@@ -114,18 +114,20 @@ class HomeController extends Controller
             } 
         }
  
-        $value       = $data['entry'][0]['changes'][0]['value'];
-        $messageData = $value['messages'][0]; 
-  
-        $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
-        $last_msg = WattsChatModel::
-        where("phone", $customerPhone)
-        ->where("from", $from)
-        ->orderByDesc("id")
-        ->first();
         $my_msg = false;
-        if($last_msg){
-            $my_msg = str_starts_with($last_msg->message, ".. ");
+        if(isset($value['messages'])){
+
+            $messageData = $value['messages'][0]; 
+    
+            $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+            $last_msg = WattsChatModel::
+            where("phone", $customerPhone)
+            ->where("from", $from)
+            ->orderByDesc("id")
+            ->first(); 
+            if($last_msg){
+                $my_msg = str_starts_with($last_msg->message, ".. ");
+            }
         }
         if($my_msg){
             $user_event = EventUsers::

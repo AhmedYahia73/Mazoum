@@ -128,10 +128,11 @@ class HomeController extends Controller
             ->first(); 
             if($last_msg){
                 $my_msg = str_starts_with($last_msg->message, ".. ");
+                Log::info($my_msg ? "::::::::::::::::::::::::::::::" .$last_msg->message :
+                "_____________________________________" .$last_msg->message);
             }
         }
         if($my_msg){
-                Log::info("::::::::::::::::::::::::::::::" .$last_msg->message);
             $user_event = EventUsers::
             where("mobile", $customerPhone)
             ->where('status','hold')

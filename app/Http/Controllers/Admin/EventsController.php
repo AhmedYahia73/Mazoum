@@ -1234,7 +1234,7 @@ class EventsController extends Controller
 
         $messageText = "... " . $request->message;
         $event_users = EventUsers::
-        whereIn("id", $request->EventUsers)
+        whereIn("id", $request->user_event_id)
         ->get();
         $from = Model::
         where("id", $event_users[0]->event_id)

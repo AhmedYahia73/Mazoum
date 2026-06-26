@@ -115,9 +115,11 @@ class HomeController extends Controller
         }
  
         $my_msg = false;
+        $message_id = 0;
         if(isset($value['messages'])){
 
             $messageData = $value['messages'][0]; 
+            $message_id = $messageData["id"];
     
             $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
             $last_msg = WattsChatModel::
@@ -157,6 +159,25 @@ class HomeController extends Controller
             $image_url = $event->file;
             $header_type = 'image';
             $response = SendWeddingDataV1ArTemplate($customerPhone,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+            if ($response != null && $response->getStatusCode() == 200) {
+                $user = $event->user;
+                $user->update([
+                    'balance' => $user->balance - $user_event->users_count
+                ]);
+ 
+
+                $response_data = $response->getBody()->getContents();
+                $data = json_decode($response_data, true);
+  
+                $user_event->update([
+                    'is_sent' => 'yes',
+                    'sent_from' => 'dashboard',
+                    'status' => 'sent',
+                    'message_id' => $message_id,
+                    "send_type" => "meta"
+                ]);
+
+            }
         }
         elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&

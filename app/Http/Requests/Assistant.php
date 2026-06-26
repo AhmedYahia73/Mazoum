@@ -58,7 +58,7 @@ class Assistant extends FormRequest
                     'password'         => "nullable|min:6",
                     'salary'           => "nullable|numeric|min:0",
                     'appointment_from' => "required|date_format:H:i",
-                    'appointment_to'   => "required|date_format:H:i|after:appointment_from",
+                    'appointment_to'   => "required|date_format:H:i",
                     'holiday'          => "required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday",
                 ];
 

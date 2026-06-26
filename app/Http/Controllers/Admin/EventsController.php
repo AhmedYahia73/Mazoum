@@ -1278,6 +1278,8 @@ class EventsController extends Controller
                     'is_sent_by_me' => true,    // مهم جداً لتمييز إنك المُرسل
                     'message_id'    => $messageId,
                     "from"          => $from,
+                    "event_user_id" => $item->id,
+                    "event_id"     => $item->event_id,
                 ]);
 
                 // إطلاق الـ Event عشان الشات يتحدث في الـ Frontend (Real-time)

@@ -134,25 +134,7 @@ class HomeController extends Controller
         }
         if($my_msg){
             $user_event = EventUsers::
-            where("mobile", $customerPhone)
-            ->where('status','hold')
-            ->where('is_new_sent',0)
-            ->whereNull('is_sent')
-            ->whereHas("event", function($query){
-                $query->where("date", ">=", date("Y-m-d"));
-            })
-            ->with("event")
-            ->first() ??
-            EventUsers::
-            where("mobile", $customerPhone)
-            ->whereHas("event", function($query){
-                $query->where("date", ">=", date("Y-m-d"));
-            })
-            ->with("event")
-            ->first() ?? EventUsers::
-            where("mobile", $customerPhone)
-            ->whereHas("event")
-            ->orderByDesc("id")
+            where("id", $last_msg->event_user_id)
             ->with("event")
             ->first();
 

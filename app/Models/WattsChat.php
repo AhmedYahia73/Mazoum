@@ -17,5 +17,7 @@ class WattsChat extends Model
         'is_sent_by_me',
         "template_name",
         "from",
+        "event_user_id",
+        "event_id",
     ];
 }

@@ -20,6 +20,7 @@ use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\WattsChat as WattsChatModel;
 use App\Models\WebDesgins;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -84,7 +85,7 @@ class HomeController extends Controller
 
         $language = 'ar';
         $token = null;
-
+        $from = "sa";
         // جلب الـ value بشكل آمن لتقليل التكرار
         $value = $data['entry'][0]['changes'][0]['value'] ?? null;
 
@@ -97,19 +98,72 @@ class HomeController extends Controller
             
             if($phone_numer_id == $setting->phone_numer_id){
                 $token = $setting->access_token;
+                $from = "kw";
             }
             elseif($phone_numer_id == $setting->sa_phone_numer_id){
                 $token = $setting->sa_access_token;
+                $from = "sa";
             }
             elseif($phone_numer_id == $setting->sa_phone_numer_id2){
                 $token = $setting->sa_access_token2;
+                $from = "sa";
             }
             elseif($phone_numer_id == $setting->kw_phone_numer_id2){
                 $token = $setting->kw_access_token2;
+                $from = "kw";
             } 
         }
+ 
+        $value       = $data['entry'][0]['changes'][0]['value'];
+        $messageData = $value['messages'][0]; 
+  
+        $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+        $last_msg = WattsChatModel::
+        where("phone", $customerPhone)
+        ->where("from", $from)
+        ->orderByDesc("id")
+        ->first();
+        $my_msg = false;
+        if($last_msg){
+            $my_msg = str_starts_with($last_msg->message, ".. ");
+        }
+        if($my_msg){
+            $user_event = EventUsers::
+            where("mobile", $customerPhone)
+            ->where('status','hold')
+            ->where('is_new_sent',0)
+            ->whereNull('is_sent')
+            ->whereHas("event", function($query){
+                $query->where("date", ">=", date("Y-m-d"));
+            })
+            ->with("event")
+            ->first() ??
+            EventUsers::
+            where("mobile", $customerPhone)
+            ->whereHas("event", function($query){
+                $query->where("date", ">=", date("Y-m-d"));
+            })
+            ->with("event")
+            ->first() ?? EventUsers::
+            where("mobile", $customerPhone)
+            ->orderByDesc("id")
+            ->with("event")
+            ->first();
 
-        if($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
+            $event = $user_event?->event;
+            $param_1   = $user_event->name;
+            $param_2   = $event->title;
+            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+            $param_4   = $event->address;
+            $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
+            $param_6   = $user_event->users_count;
+            $template_name = 'wedding_data_v1_ar';
+            $language = 'ar';
+            $image_url = $event->file;
+            $header_type = 'image';
+            $response = SendWeddingDataV1ArTemplate($customerPhone,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+        }
+        elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
            array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&
            array_key_exists("value", $data['entry'][0]['changes'][0]) && array_key_exists("statuses", $data['entry'][0]['changes'][0]['value']) &&
            count($data['entry'][0]['changes'][0]['value']['statuses']) >= 0 && array_key_exists("id", $data['entry'][0]['changes'][0]['value']['statuses'][0]) &&

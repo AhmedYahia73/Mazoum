@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\WattsChat as WattsChatEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Events as modelRequest;
 use App\Models\Assistant;
+use App\Models\WattsChat as WattsChatModel;
 use App\Models\CongratulationMessages;
 use App\Models\EventFamily;
 use App\Models\EventMessages;
@@ -12,9 +14,11 @@ use App\Models\Events as Model;
 use App\Models\EventUserActions;
 use App\Models\EventUsers;
 use App\Models\MobileCodes;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Testing\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Response;
 
@@ -1212,5 +1216,76 @@ class EventsController extends Controller
         } catch (\Throwable $th) {
             //throw $th;
         }
+    }
+    
+
+    public function sendNewMessage(Request $request)
+    {
+        // 1. التحقق من البيانات القادمة من الموقع
+        
+        $validator = Validator::make($request->all(), [
+            'user_event_id'   => 'required|array',
+            'user_event_id.*'   => 'required|exists:event_users,id',
+            'message' => 'required|string', 
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+
+        $messageText = "... " . $request->message;
+        $event_users = EventUsers::
+        whereIn("id", $request->EventUsers)
+        ->get();
+        $from = Model::
+        where("id", $event_users[0]->event_id)
+        ->first()?->country_code;
+        $settings = Setting::first();
+        if($from == "kw"){
+            $phone_numer_id = $settings->kw_phone_numer_id2;
+            $watts_token = $settings->kw_access_token2;
+        }
+        else{
+            $phone_numer_id = $settings->sa_phone_numer_id2;
+            $watts_token = $settings->sa_access_token2;
+        }
+
+        foreach ($event_users as $item) {
+            $customerPhone = $item->mobile;
+             
+            // 2. إرسال الرسالة إلى Meta WhatsApp API
+            $response = Http::withToken($watts_token)
+                ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type'    => 'individual',
+                    'to'                => $customerPhone,
+                    'type'              => 'text',
+                    'text'              => [
+                        'preview_url' => false,
+                        'body'        => $messageText
+                    ]
+                ]);
+
+            // 3. التعامل مع الرد من Meta
+            if ($response->successful()) {
+                // استخراج ID الرسالة من رد ميتا (أو إنشاء واحد عشوائي احتياطياً)
+                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+
+                // حفظ الرسالة في قاعدة البيانات لظهورها في الشات
+                $message = WattsChatModel::create([
+                    'phone'         => $customerPhone,
+                    'name'          => 'Admin', // أو اسم الموظف الحالي
+                    'message'       => $messageText,
+                    'is_sent_by_me' => true,    // مهم جداً لتمييز إنك المُرسل
+                    'message_id'    => $messageId,
+                    "from"          => $from,
+                ]);
+
+                // إطلاق الـ Event عشان الشات يتحدث في الـ Frontend (Real-time)
+                WattsChatEvent::dispatch($message);
+            }
+
+        }
+
+        return response()->json(['status' => 'success', 'data' => $message], 200);
     }
 }

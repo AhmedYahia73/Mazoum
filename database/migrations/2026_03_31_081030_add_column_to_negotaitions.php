@@ -14,7 +14,7 @@ class AddColumnToNegotaitions extends Migration
     public function up()
     {
         Schema::table('negotaitions', function (Blueprint $table) {
-            $table->enum("status", ["pending", "approve", "reject"])->default("pending");
+            $table->enum("status", ["pending", "approve", "inprogress", "reject"])->default("pending");
         });
     }
 

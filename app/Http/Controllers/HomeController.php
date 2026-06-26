@@ -127,7 +127,7 @@ class HomeController extends Controller
             ->orderByDesc("id")
             ->first(); 
             if($last_msg){
-                $my_msg = str_starts_with($last_msg->message, ".. ");
+                $my_msg = str_starts_with($last_msg->message, "... ");
                 Log::info($my_msg ? "::::::::::::::::::::::::::::::" .$last_msg->message :
                 "_____________________________________" .$last_msg->message);
             }

@@ -2507,6 +2507,7 @@ class CustomEventController extends Controller
         ->firstOrFail();
 
         return response()->json([
+            "id" => $user->id,
             "uu_id" => $user->uu_id,
             "name" => $user->name,
             "mobile" => $user->mobile,

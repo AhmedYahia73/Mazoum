@@ -22,12 +22,7 @@ class SendCustomEventPdfJob implements ShouldQueue
     public $ultramsg_token;
     public $instance_id;
     public $pdf_bottom;
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
+ 
     public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom)
     {
         $this->userId = $userId;
@@ -79,8 +74,8 @@ class SendCustomEventPdfJob implements ShouldQueue
                 "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
         }
 
-        $confirm_link = url("confirm_custom_event/" . $row->id);
-        $apologize_link = url("apologize_custom_event/" . $row->id);
+        $confirm_link = "https://mazoominvitations.com/event-login-custom/" . $row->uu_id;
+        $apologize_link = "https://mazoominvitations.com/event-login-custom/" . $row->uu_id;
         
         // استخدام المسار الداخلي المطلق للسيرفر للخلفية
         $pdfFile = $event->getRawOriginal('pdf');

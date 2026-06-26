@@ -117,13 +117,13 @@ class HomeController extends Controller
         $my_msg = false;
         if(isset($value['messages'])){
 
-            Log::info('6666666666666666666666');
             $messageData = $value['messages'][0]; 
     
             $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
             $last_msg = WattsChatModel::
             where("phone", $customerPhone)
             ->where("from", $from)
+            ->whereNotNull("message")
             ->orderByDesc("id")
             ->first(); 
             if($last_msg){

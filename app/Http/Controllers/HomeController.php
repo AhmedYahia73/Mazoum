@@ -127,7 +127,14 @@ class HomeController extends Controller
             ->orderByDesc("id")
             ->first(); 
             if($last_msg){
+                $user_msgs = WattsChatModel::
+                where("phone", $customerPhone) 
+                ->whereNotNull("message")
+                ->where("is_sent_by_me", 0)
+                ->where("id", ">", $last_msg->id)
+                ->count(); 
                 $my_msg = str_starts_with($last_msg->message, "... ");
+                $my_msg = $my_msg && $user_msgs == 0;
                 Log::info($my_msg ? "::::::::::::::::::::::::::::::" .$last_msg->message :
                 "_____________________________________" .$last_msg->message);
             }

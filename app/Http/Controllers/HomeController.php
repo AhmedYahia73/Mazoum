@@ -121,8 +121,7 @@ class HomeController extends Controller
     
             $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
             $last_msg = WattsChatModel::
-            where("phone", $customerPhone)
-            ->where("from", $from)
+            where("phone", $customerPhone) 
             ->whereNotNull("message")
             ->where("is_sent_by_me", 1)
             ->orderByDesc("id")

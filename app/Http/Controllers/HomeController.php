@@ -174,9 +174,20 @@ class HomeController extends Controller
                     'sent_from' => 'dashboard',
                     'status' => 'sent',
                     'message_id' => $message_id,
-                    "send_type" => "meta"
+                    "send_type" => "meta",
                 ]);
 
+                $message = WattsChatModel::create([
+                    'phone'        => $customerPhone,
+                    'name'         => "Admin",
+                    'message'      => $template_name,
+                    'is_sent_by_me'=> true,
+                    'message_id'   => $message_id,
+                    'from'         => $from,
+                    "template_name" => $template_name,
+                    "event_user_id" => $user_event->id,
+                    "event_id" => $event->id,
+                ]);
             }
         }
         elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&

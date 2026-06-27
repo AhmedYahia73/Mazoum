@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\WattsChat as WattsChatModel;
 use App\Http\Controllers\Controller;
 use App\Imports\EventUserImport;
 use App\Models\CongratulationMessages;
@@ -594,6 +595,17 @@ class EventUersController extends Controller
 
                                     $body = $response->getBody();
                                     $data = json_decode($body, true);
+                                    $message = WattsChatModel::create([
+                                        'phone'        => $to,
+                                        'name'         => "Admin",
+                                        'message'      => $template_name,
+                                        'is_sent_by_me'=> true,
+                                        'message_id'   => 0,
+                                        'from'         => $event->country_code,
+                                        "template_name" => $template_name,
+                                        "event_user_id" => $user_event->id,
+                                        "event_id" => $event->id,
+                                    ]);
 
                                 } else {
                                     $user_event->update([
@@ -878,6 +890,17 @@ class EventUersController extends Controller
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
+                                    $message = WattsChatModel::create([
+                                        'phone'        => $to,
+                                        'name'         => "Admin",
+                                        'message'      => $template_name,
+                                        'is_sent_by_me'=> true,
+                                        'message_id'   => 0,
+                                        'from'         => $event->country_code,
+                                        "template_name" => $template_name,
+                                        "event_user_id" => $user_event->id,
+                                        "event_id" => $event->id,
+                                    ]);
                                     $body = $response->getBody();
                                     $data = json_decode($body, true);
 
@@ -1510,6 +1533,17 @@ class EventUersController extends Controller
                           	//dd($response,$response->getStatusCode());
 //dd($response->getBody());
                             if ($response != null && $response->getStatusCode() == 200) {
+                                $message = WattsChatModel::create([
+                                    'phone'        => $to,
+                                    'name'         => "Admin",
+                                    'message'      => $template_name,
+                                    'is_sent_by_me'=> true,
+                                    'message_id'   => 0,
+                                    'from'         => $event->country_code,
+                                    "template_name" => $template_name,
+                                    "event_user_id" => $user_event->id,
+                                    "event_id" => $event->id,
+                                ]);
                                 $user->update([
                                     'balance' => $user->balance - $users_count
                                 ]);
@@ -1719,6 +1753,19 @@ class EventUersController extends Controller
 
         if($user_event->send_type == "meta"){
             $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+            if ($response != null && (is_array($response) || $response->getStatusCode() == 200)) {
+                $message = WattsChatModel::create([
+                    'phone'        => $to,
+                    'name'         => "Admin",
+                    'message'      => $template_name,
+                    'is_sent_by_me'=> true,
+                    'message_id'   => 0,
+                    'from'         => $event->country_code,
+                    "template_name" => $template_name,
+                    "event_user_id" => $user_event->id,
+                    "event_id" => $event->id,
+                ]);
+            }
         }
         else{
 
@@ -1851,7 +1898,17 @@ class EventUersController extends Controller
       	//dd($response);
 
         if ($response != null && $response->getStatusCode() == 200) {
-
+            $message = WattsChatModel::create([
+                'phone'        => $to,
+                'name'         => "Admin",
+                'message'      => $template_name,
+                'is_sent_by_me'=> true,
+                'message_id'   => 0,
+                'from'         => $event->country_code,
+                "template_name" => $template_name,
+                "event_user_id" => $user_event->id,
+                "event_id" => $event->id,
+            ]);
           $user_event->update([ 'qr_sent' => 'yes'  ]);
 
           return response()->json([
@@ -2880,7 +2937,21 @@ class EventUersController extends Controller
 
             // $response = SendNewTemplateCodeV1($url);
             
-            $response = SendWeddingDataV15Template($mobile,$template_name,$language,$url_button,$phone_numer_id,$token);
+            $response = SendWeddingDataV15Template($mobile,$template_name,$language,$url_button,$phone_numer_id,$token);       
+
+            if ((is_array($response) && $response[0] == "success") || ($response && $response->getStatusCode() == 200)) { 
+                $message = WattsChatModel::create([
+                    'phone'        => $mobile,
+                    'name'         => "Admin",
+                    'message'      => $template_name,
+                    'is_sent_by_me'=> true,
+                    'message_id'   => 0,
+                    'from'         => $event->country_code,
+                    "template_name" => $template_name,
+                    "event_user_id" => $user_event->id,
+                    "event_id" => $event->id,
+                ]);
+            }
         }
         else{
             $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
@@ -3009,8 +3080,18 @@ class EventUersController extends Controller
 
           if (! ($response != null && $response->getStatusCode() == 200)) {
 
+            $message = WattsChatModel::create([
+                'phone'        => $to,
+                'name'         => "Admin",
+                'message'      => $template_name,
+                'is_sent_by_me'=> true,
+                'message_id'   => 0,
+                'from'         => $event->country_code,
+                "template_name" => $template_name,
+                "event_user_id" => $user_event->id,
+                "event_id" => $event->id,
+            ]);
             $arr[] = $user_event->name;
-
           }
         }
 
@@ -3116,6 +3197,17 @@ class EventUersController extends Controller
 
                                     $user_event->update([
                                         'is_send_congratulation' => 1,
+                                    ]);
+                                    $message = WattsChatModel::create([
+                                        'phone'        => $to,
+                                        'name'         => "Admin",
+                                        'message'      => $template_name,
+                                        'is_sent_by_me'=> true,
+                                        'message_id'   => 0,
+                                        'from'         => $event->country_code,
+                                        "template_name" => $template_name,
+                                        "event_user_id" => $user_event->id,
+                                        "event_id" => $event->id,
                                     ]);
 
                                 } else {
@@ -3659,6 +3751,17 @@ class EventUersController extends Controller
                     $response_data = $response->getBody()->getContents();
                     $data = json_decode($response_data, true);
 
+                    $message = WattsChatModel::create([
+                        'phone'        => $to,
+                        'name'         => "Admin",
+                        'message'      => $template_name,
+                        'is_sent_by_me'=> true,
+                        'message_id'   => 0,
+                        'from'         => $event->country_code,
+                        "template_name" => $template_name,
+                        "event_user_id" => $user->id,
+                        "event_id" => $event->id,
+                    ]);
                     //dd($data);
                     // dd(11,$response_data,json_decode($response_data,true));
 

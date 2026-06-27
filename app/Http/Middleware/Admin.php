@@ -48,6 +48,8 @@ class Admin
                     "admin/excel-qr-sent-event-details/*",
                     "admin/event-messages",
                     "admin/scan_data",
+                    "admin/employee_departure",
+                    "admin/employee_attend",
                     "admin/profile",
                     "admin/update_profile",
                     "admin/open_event_family/*",

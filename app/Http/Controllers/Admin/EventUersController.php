@@ -3678,8 +3678,7 @@ class EventUersController extends Controller
 
                 $param1 = $user_name . " " .
                 $event_title . " " .
-                "و ذلك بمشيئة الله تعالى يوم " . $event_day . 
-                " الموافق 📆 " . $event->date . " " .
+                "و ذلك بمشيئة الله تعالى يوم " . $event_day .  
                 "مكان الحفل " . $event_address . " " .
                 "الاستقبال⏱️ " . $event_time . " " .
                 "خدمة عملاء معزوم " . " " .

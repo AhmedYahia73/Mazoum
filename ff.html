@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="consent-card" class="card d-none" style="padding: 20px; border: 1px solid #ccc; margin-bottom: 20px;">
+    <p>هل تود تفعيل ميزة حفظ سجل البحث لتخصيص تجربتك ومعرفة اهتماماتك؟</p>
+    <button onclick="submitConsent(true)" style="background: green; color: white;">نعم، موافق</button>
+    <button onclick="submitConsent(false)" style="background: red; color: white;">لا، شكراً</button>
+</div>
+
+<div id="history-section" class="d-none">
+    <h3>إهتماماتك الأكثر بحثاً 🔥</h3>
+    <div id="interests-tags" style="margin-bottom: 20px;"></div>
+
+    <h3>آخر عمليات البحث السابقة 🕒</h3>
+    <ul id="recent-searches"></ul>
+</div>
+</body>
+
+<script>
+const allCookies = document.cookie;
+console.log(allCookies); 
+// مثال لحقن كود وقراءة الـ Local Storage من التبويب النشط حالياً
+chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        func: () => {
+            return JSON.stringify(localStorage);
+        }
+    }, (results) => {
+        if (results && results[0]) {
+            console.log("Local Storage الخاص بالموقع المفتوح حالياً:", results[0].result);
+        }
+    });
+});
+</script>
+</html>

@@ -759,7 +759,7 @@ class EventUserActionsController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(0, 0, 0, 0)
+                ->backgroundColor(222, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
             $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));

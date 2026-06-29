@@ -1056,24 +1056,22 @@ class ApiEventsController extends Controller
         } 
  
         $all_invited_users = EventUsers::where('event_id', $Item->id)
-            ->sum("users_count");   
+            ->count();   
         $invitations_not_sent_users = EventUsers::where('event_id', $Item->id)
             ->where('status', 'hold')
             ->where('is_new_sent', 0)
             ->whereNull('is_sent')
-            ->sum('users_count');
-        $confirmed_invitatios_users = EventUsers::
-            where('event_id', $Item->id) 
-            ->sum('accept_count'); 
+            ->count(); 
+        $confirmed_invitatios_users = EventUsers::where('event_id', $Item->id)
+            ->where('is_accepted', 'yes')
+            ->count(); 
 
-        $scaned_qr_users = EventUsers::
-            where('event_id',$Item->id)
-            ->where('scan','yes')
-            ->sum('scan_count');
-        $apologized_invitatios_users = EventUsers::
-        where('event_id',$Item->id)
-        ->where('status','not-attend')
-        ->sum('users_count'); 
+        $scaned_qr_users = EventUsers::where('event_id', $Item->id)
+            ->where('scan', 'yes')
+            ->count();  
+        $apologized_invitatios_users = EventUsers::where('event_id', $Item->id)
+            ->where('status', 'not-attend')
+            ->count();  
         $failed_invitatios_users = EventUsers::where('event_id', $Item->id)
             ->where('accept_count', 0)
             ->where(function ($q) {
@@ -1081,15 +1079,16 @@ class ApiEventsController extends Controller
                     ->where('status', '!=', 'hold')
                     ->whereNotNull('is_sent');
             })
-            ->sum('users_count');
+            ->count();  
         $send_Qr = EventUsers::where('event_id', $Item->id)
             ->where('qr_sent', 'yes')
             ->count();  
         $confirm_web_users = EventUsers::where('event_id', $Item->id)
             ->where('send_type', 'link')
             ->where('qr_sent', 'yes')
-            ->sum('accept_count'); 
-        $non_attendance_users = $confirmed_invitatios_users - $scaned_qr_users;
+            ->count();  
+        $non_attendance_users = EventUsers::where('event_id', $Item->id) 
+            ->count();   
         $enterd_events = EventFamily::where('event_id', $Item->id)
         ->count(); 
         $scan_enterd_events = EventFamily::where('event_id', $Item->id)

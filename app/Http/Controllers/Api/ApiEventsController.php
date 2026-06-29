@@ -1084,7 +1084,7 @@ class ApiEventsController extends Controller
             ->sum('users_count');
         $send_Qr = EventUsers::where('event_id', $Item->id)
             ->where('qr_sent', 'yes')
-            ->count();  
+            ->sum('accept_count'); 
         $confirm_web_users = EventUsers::where('event_id', $Item->id)
             ->where('send_type', 'link')
             ->where('qr_sent', 'yes')

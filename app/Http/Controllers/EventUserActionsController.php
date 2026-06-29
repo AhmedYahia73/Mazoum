@@ -843,7 +843,8 @@ class EventUserActionsController extends Controller
             }
 
         } else {
-$bg           = 'qr-image-v9.jpg';
+       
+            $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 

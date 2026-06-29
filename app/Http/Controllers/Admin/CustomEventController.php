@@ -423,17 +423,24 @@ class CustomEventController extends Controller
 
             $bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'custom_event_qr_code/' . $image_name;
+            $qr_code_path = 'qr_code/' . $image_name;
 
-            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
-            make_qr_transparent(public_path($qr_code_path));
+            QrCode::format('png')
+            ->size(450)
+            ->color($color[0], $color[1], $color[2])
+            ->backgroundColor(255, 255, 255) // تم التعديل هنا للون الأبيض ليطابق خلفية الكارت
+            ->generate($link, $qr_code_path);
+            
+            // يمكنك الاستغناء عن دالة الشفافية اليدوية إذا لم تعد بحاجة لها
+            // make_qr_transparent(public_path($qr_code_path)); 
+            
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
             $destination = public_path($qr_code_path);
             $new_img     = Image::make($destination);
 
-            if ($user_event->custom_event_qr_code > 1) {
-                $new_img->text($user_event->custom_event_qr_code, 115, 412, function ($font) {
+            if ($user_event->accept_count > 1) {
+                $new_img->text($user_event->accept_count, 115, 412, function ($font) {
                     $font->file(public_path('font/OpenSans-Italic.ttf'));
                     $font->size(25);
                     $font->color('#000');

@@ -759,7 +759,7 @@ class EventUserActionsController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(222, 0, 0, 0)
+                ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
             $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
@@ -851,7 +851,7 @@ class EventUserActionsController extends Controller
             QrCode::format('png')
             ->size(450)
             ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(255, 255, 255)
+            ->backgroundColor(255, 255, 255, 0)
             ->generate($link, $qr_code_path);
             make_qr_transparent(public_path($qr_code_path));
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);

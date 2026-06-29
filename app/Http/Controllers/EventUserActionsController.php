@@ -848,7 +848,11 @@ class EventUserActionsController extends Controller
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
-            QrCode::size(450)->format('png')->generate($link, $qr_code_path);
+            QrCode::format('png')
+            ->size(450)
+            ->color($color[0], $color[1], $color[2])
+            ->backgroundColor(0, 0, 0, 0)
+            ->generate($link, $qr_code_path);
             make_qr_transparent(public_path($qr_code_path));
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 

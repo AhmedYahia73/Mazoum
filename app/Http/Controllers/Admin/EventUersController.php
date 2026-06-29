@@ -1779,7 +1779,7 @@ class EventUersController extends Controller
             $text = "باركود الدخـول الخـاص بـك, فضـلاً تأكد من حفـظ الصـورة في هاتفك لإبرازهــا عند دخـول المناسبة.
                     عدد الضيـوف  : ( " . $user_event->accept_count . " ) 🌺";
             // $api=$client->sendChatMessage($to,$body);
-            $api2 = $client->sendImageMessage($mobile,$image_url,"",$priority=0,$referenceId="SDK", $text);
+            $api2 = $client->sendImageMessage($mobile, $image_url, $text, 0, "SDK");
             $response = ["success"];
         }
 

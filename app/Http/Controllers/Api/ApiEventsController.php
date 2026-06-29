@@ -1101,18 +1101,19 @@ class ApiEventsController extends Controller
 
         return $this->returnData('data', [ 
             'Item' => $Item,
-            "all_invited_users" => $all_invited_users, 
-            "invitations_not_sent_users" => $invitations_not_sent_users, 
-            "confirmed_invitatios_users" => $confirmed_invitatios_users,
-            "scaned_qr_users" => $scaned_qr_users, 
-            "apologized_invitatios_users" => $apologized_invitatios_users, 
-            "failed_invitatios_users" => $failed_invitatios_users, 
-            "send_Qr" => $send_Qr, 
-            "confirm_web_users" => $confirm_web_users, 
-            "non_attendance_users" => $non_attendance_users, 
-            "enterd_events" => $enterd_events,
-            "scan_enterd_events" => $scan_enterd_events, 
-            "not_scan_enterd_events" => $not_scan_enterd_events,
+            "all_invited_users" => intval($all_invited_users), 
+            "invitations_not_sent_users" => intval($invitations_not_sent_users), 
+            "confirmed_invitatios_users" => intval($confirmed_invitatios_users),
+            "scaned_qr_users" => intval($scaned_qr_users), 
+            "apologized_invitatios_users" => intval($apologized_invitatios_users), 
+            "failed_invitatios_users" => intval($failed_invitatios_users), 
+            "send_Qr" => intval($send_Qr), 
+            "confirm_web_users" => intval($confirm_web_users), 
+            "non_attendance_users" => intval($non_attendance_users), 
+            "enterd_events" => intval($enterd_events),
+            "scan_enterd_events" => intval($scan_enterd_events), 
+            "not_scan_enterd_events" => intval($not_scan_enterd_events),
         ]);
+
     } 
 }

@@ -1755,7 +1755,7 @@ class EventUersController extends Controller
         // $sender_id = $setting->sender_id;
 
         if($user_event->send_type == "meta"){
-            $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+            $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->accept_count,$image_url,$phone_numer_id,$token);
             if ($response != null && (is_array($response) || $response->getStatusCode() == 200)) {
                 $message = WattsChatModel::create([
                     'phone'        => $to,
@@ -1776,8 +1776,10 @@ class EventUersController extends Controller
             $instance_id="instance109805"; // Ultramsg.com instance id
             $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
   
+            $text = "باركود الدخـول الخـاص بـك, فضـلاً تأكد من حفـظ الصـورة في هاتفك لإبرازهــا عند دخـول المناسبة.
+                    عدد الضيـوف  : ( " . $user_event->accept_count . " ) 🌺";
             // $api=$client->sendChatMessage($to,$body);
-            $api2 = $client->sendImageMessage($mobile,$image_url,"",$priority=0,$referenceId="SDK");
+            $api2 = $client->sendImageMessage($mobile,$image_url,"",$priority=0,$referenceId="SDK", $text);
             $response = ["success"];
         }
 

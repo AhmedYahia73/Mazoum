@@ -792,6 +792,7 @@ class EventUersController extends Controller
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required',
+            "type" => "in:image,pdf,video"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -816,7 +817,16 @@ class EventUersController extends Controller
             $url_image = asset('images/'.$filename);
 
         } else {
-            $url_image = $event->file;
+            
+            if($request->type == "pdf"){
+                $url_image = $event->pdf;
+            }
+            elseif($request->type == "video"){
+                $url_image = $event->video;
+            }
+            else{
+                $url_image = $event->file;
+            }
         }
 
         /* ***************************************************************************** */
@@ -869,8 +879,16 @@ class EventUersController extends Controller
                                 // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$user_name.'&param_2='.$message.'&image='.$url_image;
 
                                 // $response = SendNewTemplateCodeV1($url);
-
-                                $template_name = 'custom_message';
+ 
+                                if($request->type == "pdf"){
+                                    $template_name = '1__pdf';
+                                }
+                                elseif($request->type == "video"){
+                                    $template_name = 'vide_1';
+                                }
+                                else{
+                                    $template_name = 'custom_message';
+                                }
                                 $language = 'ar';
 
                                 $message = $request->message;
@@ -919,8 +937,25 @@ class EventUersController extends Controller
                                 $caption = '' . $user_event->name . PHP_EOL . PHP_EOL .
                                 ' ' . $request->message;
 
+                                if($request->type == "pdf"){
+                                    $template_name = '1__pdf';
+                                }
+                                elseif($request->type == "video"){
+                                    $template_name = 'vide_1';
+                                }
+                                else{
+                                    $template_name = 'custom_message';
+                                }
                                 // $api=$client->sendChatMessage($to,$body);
-                                $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+                                if($request->type == "pdf"){ 
+                                    $api = $client->sendDocumentMessage($to, "msg_pdf", $url_image,$caption,$priority,$referenceId,$nocache);
+                                }
+                                elseif($request->type == "video"){ 
+                                    $api = $client->sendImageMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);
+                                }
+                                else{
+                                    $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+                                }
 
                                 // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
 

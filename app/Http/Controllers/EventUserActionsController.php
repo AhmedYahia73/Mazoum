@@ -843,17 +843,19 @@ class EventUserActionsController extends Controller
             }
 
         } else {
-
-            $bg           = 'qr-image-v9.jpg';
+$bg           = 'qr-image-v9.jpg';
             $link         = asset('scan-qr/' . $uu_id);
             $qr_code_path = 'qr_code/' . $image_name;
 
             QrCode::format('png')
             ->size(450)
             ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(255, 255, 255)
+            ->backgroundColor(255, 255, 255) // تم التعديل هنا للون الأبيض ليطابق خلفية الكارت
             ->generate($link, $qr_code_path);
-            make_qr_transparent(public_path($qr_code_path));
+            
+            // يمكنك الاستغناء عن دالة الشفافية اليدوية إذا لم تعد بحاجة لها
+            // make_qr_transparent(public_path($qr_code_path)); 
+            
             Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
 
             $destination = public_path($qr_code_path);

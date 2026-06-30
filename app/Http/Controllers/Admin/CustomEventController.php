@@ -2812,7 +2812,7 @@ class CustomEventController extends Controller
  
             foreach($request->users as $item) {
  
-                $user_event = Model::withTrashed()->find($item); 
+                $user_event = CustomEventUsers::withTrashed()->find($item); 
                 $user_name = $user_event->name;
 
                 $mobile = $user_event->mobile;

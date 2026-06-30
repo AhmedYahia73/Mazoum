@@ -214,7 +214,8 @@ Route::put('events/{id}/update_my_package', 'EventsController@update_my_package'
 Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
-// 2222222 
+// 2222222  
+Route::post('/send_congratulation_messages', 'CustomEventController@send_congratulation_messages');
 Route::get('custom_events/my_package/{id}', 'CustomEventController@my_package');
 Route::post('custom_events/send_custom_message', 'CustomEventController@send_custom_message');
 Route::post('custom_events/re_send_custom_qr', 'CustomEventController@re_send_custom_qr');

@@ -2775,4 +2775,70 @@ class CustomEventController extends Controller
         dd('error-v2');
 
     }
+
+    // send_congratulation_messages
+    public function send_congratulation_messages(Request $request)
+    {
+       $validator = Validator::make($request->all(), [ 
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'users' => 'required|array',
+            'users.*' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $event_id = $request->custom_event_id;
+
+        $event = CustomEvent::where('id', $event_id)->firstOrFail();
+
+        /* ***************************************************************************** */
+
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
+
+        /* ***************************************************************************** */
+
+        try {
+
+            $errors = 0;
+ 
+            foreach($request->users as $item) {
+ 
+                $user_event = Model::withTrashed()->find($item); 
+                $user_name = $user_event->name;
+
+                $mobile = $user_event->mobile;
+
+                //$to = $code.$mobile;
+                $to = $mobile;
+                $to = str_replace("+","",$to);
+  
+                $caption = 'حياكم الله ،،' .
+                'اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة🌹';
+
+                // $api=$client->sendChatMessage($to,$body);
+                $api = $client->sendChatMessage($to,$caption,$priority,$referenceId,$nocache);
+            }
+
+
+            return response()->json([
+                'success' => 'تم الأرسال بنجاح', 
+            ]); 
+        
+
+        } catch(\Exception $e) {
+            dd($e->getMessage(), $e->getLine());
+        }
+
+        dd('error-v2');
+
+    }
 }

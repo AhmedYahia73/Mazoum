@@ -2686,7 +2686,7 @@ class CustomEventController extends Controller
             'custom_event_id' => 'required|exists:custom_event,id',
             'users' => 'required|array',
             'users.*' => 'required|exists:custom_event_users,id',
-            "type" => "in:image,pdf,video"
+            "type" => "required|in:image,pdf,video"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

@@ -1097,7 +1097,13 @@ class ApiEventsController extends Controller
         ->count(); 
         $not_scan_enterd_events = EventFamily::where('event_id', $Item->id)
         ->where('scan_qr', 'no')
-        ->count(); 
+        ->count();
+        $congratulation_msgs = CongratulationMessages::
+        where("event_id", $Item->id)
+        ->count();
+        $apologize_msgs = EventMessages::
+        where("event_id", $Item->id)
+        ->count();
 
         return $this->returnData('data', [ 
             'Item' => $Item,
@@ -1113,7 +1119,49 @@ class ApiEventsController extends Controller
             "enterd_events" => intval($enterd_events),
             "scan_enterd_events" => intval($scan_enterd_events), 
             "not_scan_enterd_events" => intval($not_scan_enterd_events),
+            "congratulation_msgs" => intval($congratulation_msgs),
+            "apologize_msgs" => intval($apologize_msgs),
         ]);
 
     } 
+
+    public function apologize_msgs(Request $request, $id){
+         
+        $apologize_msgs = EventMessages::
+        where("event_id", $id)
+        ->whereNull("message_id")
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->with("reply:id,name,mobile,message,type,message_id")
+        ->paginate(15); 
+
+        return response()->json([
+            "apologize_msgs" => $apologize_msgs
+        ]);
+    }
+
+    public function congratulation_msgs(Request $request, $id){
+        
+        $congratulation_msgs = CongratulationMessages::
+        where("event_id", $id)
+        ->whereNull("message_id")
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->with("reply:id,name,mobile,message,type,message_id")
+        ->paginate(15); 
+
+        return response()->json([
+            "congratulation_msgs" => $congratulation_msgs
+        ]);
+    }
 }

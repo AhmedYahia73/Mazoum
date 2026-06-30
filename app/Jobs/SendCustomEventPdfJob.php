@@ -62,7 +62,7 @@ class SendCustomEventPdfJob implements ShouldQueue
         $day_name = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
 
         if($event->show_data_pdf){
-            $caption = empty($caption) ? $row->name . PHP_EOL . PHP_EOL .
+            $caption = empty($this->caption) ? $row->name . PHP_EOL . PHP_EOL .
                 $event->title . PHP_EOL . PHP_EOL .
                 "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق"  . $event->date . " 📆" 
                 . PHP_EOL . PHP_EOL .
@@ -70,12 +70,12 @@ class SendCustomEventPdfJob implements ShouldQueue
                 "📍مكان الحفـل " . $event->address  . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                 "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية" :
-                $caption;
+                $this->caption;
         } else { 
-            $caption = empty($caption) ? $row->name . PHP_EOL . PHP_EOL .
+            $caption = empty($this->caption) ? $row->name . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
                 "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية" :
-                $caption;
+                $this->caption;
         }
 
         $confirm_link = "https://mazoominvitations.com/event-login-custom/" . $row->uu_id;

@@ -22,14 +22,16 @@ class SendCustomEventPdfJob implements ShouldQueue
     public $ultramsg_token;
     public $instance_id;
     public $pdf_bottom;
+    public $caption;
  
-    public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom)
+    public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom, $caption = null)
     {
         $this->userId = $userId;
         $this->eventId = $eventId;
         $this->ultramsg_token = $ultramsg_token;
         $this->instance_id = $instance_id;
         $this->pdf_bottom = $pdf_bottom;
+        $this->caption = $caption;
     }
 
     /**
@@ -60,18 +62,20 @@ class SendCustomEventPdfJob implements ShouldQueue
         $day_name = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
 
         if($event->show_data_pdf){
-            $caption = $row->name . PHP_EOL . PHP_EOL .
+            $caption = empty($caption) ? $row->name . PHP_EOL . PHP_EOL .
                 $event->title . PHP_EOL . PHP_EOL .
                 "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق"  . $event->date . " 📆" 
                 . PHP_EOL . PHP_EOL .
                 "وقت الاستقبال ⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
                 "📍مكان الحفـل " . $event->address  . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
-                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
+                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية" :
+                $caption;
         } else { 
-            $caption = $row->name . PHP_EOL . PHP_EOL .
+            $caption = empty($caption) ? $row->name . PHP_EOL . PHP_EOL .
                 "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
-                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية";
+                "تم إرسـال هذه الرسالة من خـــلال تطبيق معزوم للدعوات الإلكترونية" :
+                $caption;
         }
 
         $confirm_link = "https://mazoominvitations.com/event-login-custom/" . $row->uu_id;

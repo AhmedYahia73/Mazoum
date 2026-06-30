@@ -216,6 +216,7 @@ Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 // 2222222 
 Route::get('custom_events/my_package/{id}', 'CustomEventController@my_package');
+Route::post('custom_events/send_custom_message', 'CustomEventController@send_custom_message');
 Route::post('custom_events/re_send_custom_qr', 'CustomEventController@re_send_custom_qr');
 Route::post('custom_events/scan_data', 'CustomEventController@scan_data');
 Route::post('custom_events/scan_qr', 'CustomEventController@scan_qr');

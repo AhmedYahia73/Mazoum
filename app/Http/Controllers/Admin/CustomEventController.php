@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomEvent as modelRequest;
+use App\Jobs\SendCustomEventPdfJob;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEvent;
 use App\Models\CustomEventFamily; 
@@ -24,9 +25,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Response;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
-
-
+ 
 class CustomEventController extends Controller
 {
     private $view = 'admin.custom_events.';
@@ -2676,5 +2675,104 @@ class CustomEventController extends Controller
         return response()->json([
             "Item" => $arr
         ]);
+    }
+                    
+    // // send_event_users
+    public function send_custom_message(Request $request)
+    {
+       $validator = Validator::make($request->all(), [ 
+            'message' => 'required',
+            'file'  => 'nullable',
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'users' => 'required|array',
+            'users.*' => 'required|exists:custom_event_users,id',
+            "type" => "in:image,pdf,video"
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }    
+  
+        $event_id = $request->custom_event_id;
+
+        $event = CustomEvent::where('id', $event_id)->firstOrFail();
+
+      	$path = 'images';
+      	$filename = '';
+
+        if($request->file('file') != null && $request->file != null) {
+
+            $extension = $request->file('file')->extension();
+            $filename = uniqid() . '.' . $extension;
+            $request->file('file')->move($path, $filename);
+
+            $url_image = asset('images/'.$filename);
+
+        } else {
+            
+            if($request->type == "video"){
+                $url_image = $event->video;
+            }
+            elseif($request->type != "pdf"){
+                $url_image = $event->image;
+            }
+        }
+
+        /* ***************************************************************************** */
+
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
+
+        /* ***************************************************************************** */
+
+        try {
+
+            $errors = 0;
+
+            if($request->users != null && ! empty($request->users)) {
+
+                foreach($request->users as $item) {
+  
+                    $user_event = CustomEventUsers::withTrashed()->find($item);
+  
+                    $user_name = $user_event->name;
+
+                    $mobile = $user_event->mobile;
+ 
+                    $to = $mobile;
+                    $to = str_replace("+","",$to);
+  
+                    $caption = '' . $user_name . PHP_EOL . PHP_EOL .
+                    ' ' . $request->message;
+
+                    // $api=$client->sendChatMessage($to,$body);
+                    if($request->type == "pdf"){ 
+                        SendCustomEventPdfJob::dispatch($item, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom, $caption);
+                    }
+                    elseif($request->type == "video"){ 
+                        $api = $client->sendVideoMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);
+                    }
+                    else{
+                        $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);
+                    }  
+                }
+
+                return response()->json([
+                    'success' => 'تم الأرسال بنجاح', 
+                ]);
+            }
+
+        } catch(\Exception $e) {
+            dd($e->getMessage(), $e->getLine());
+        }
+
+        dd('error-v2');
+
     }
 }

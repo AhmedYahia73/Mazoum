@@ -936,22 +936,13 @@ class EventUersController extends Controller
 
                                 $caption = '' . $user_event->name . PHP_EOL . PHP_EOL .
                                 ' ' . $request->message;
-
-                                if($request->type == "pdf"){
-                                    $template_name = '1__pdf';
-                                }
-                                elseif($request->type == "video"){
-                                    $template_name = 'vide_1';
-                                }
-                                else{
-                                    $template_name = 'custom_message';
-                                }
+ 
                                 // $api=$client->sendChatMessage($to,$body);
                                 if($request->type == "pdf"){ 
                                     $api = $client->sendDocumentMessage($to, "msg_pdf", $url_image,$caption,$priority,$referenceId,$nocache);
                                 }
                                 elseif($request->type == "video"){ 
-                                    $api = $client->sendImageMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);
+                                    $api = $client->sendVideoMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);
                                 }
                                 else{
                                     $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);

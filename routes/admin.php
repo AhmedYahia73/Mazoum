@@ -107,6 +107,7 @@ Route::post('currency/multi_delete', 'CurrencyController@multi_delete');
 Route::resource('country', 'CountryController', ['names' => 'admin.country']);
 Route::get('country/destroy/{id}', 'CountryController@destroy');
 Route::post('country/multi_delete', 'CountryController@multi_delete');
+Route::patch('country/change_status/{id}', 'CountryController@change_status');
 
 
 // Packages

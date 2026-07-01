@@ -3,21 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Country as Model;
 use Illuminate\Http\Request;
+use App\Models\NewSetting as Model;
 use Illuminate\Support\Facades\Validator;
 
-class CountryController extends Controller
+class PhoneSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Model::query();
-
-        if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        $items = $query->orderByDesc('id')->paginate(15);
+        $items = Model::get();
 
         return response()->json(['items' => $items]);
     }
@@ -25,7 +19,9 @@ class CountryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'   => 'required|string|max:255|unique:countries,name',
+            'phone_numer_id'   => 'required',
+            'sender_id'   => 'required',
+            'country_id' => 'required|exists:countries,id',
             'status' => 'required|boolean',
         ]);
         if ($validator->fails()) {
@@ -33,7 +29,9 @@ class CountryController extends Controller
         }
 
         $item = Model::create([
-            'name'   => $request->name,
+            'phone_numer_id' => $request->phone_numer_id,
+            'sender_id' => $request->sender_id,
+            'country_id' => $request->country_id,
             'status' => $request->status,
         ]);
 
@@ -49,7 +47,9 @@ class CountryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name'   => 'required|string|max:255|unique:countries,name,' . $id,
+            'phone_numer_id'   => 'required',
+            'sender_id'   => 'required',
+            'country_id' => 'required|exists:countries,id',
             'status' => 'required|boolean',
         ]);
         if ($validator->fails()) {
@@ -58,7 +58,9 @@ class CountryController extends Controller
 
         $item = Model::findOrFail($id);
         $item->update([
-            'name'   => $request->name,
+            'phone_numer_id' => $request->phone_numer_id,
+            'sender_id' => $request->sender_id,
+            'country_id' => $request->country_id,
             'status' => $request->status,
         ]);
 
@@ -68,11 +70,8 @@ class CountryController extends Controller
     public function destroy($id)
     {
         $item = Model::
-        whereDoesntHave('events')
-        ->where("id", $id)->first();
-        if (!$item) {
-            return response()->json(['error' => 'You can not delete this item because it has related events'], 400);
-        }
+        where("id", $id)
+        ->firstOrFail();
         $item->delete();
         return response()->json(['success' => 'You delete data success']);
     }
@@ -88,7 +87,6 @@ class CountryController extends Controller
         }
 
         Model::whereIn('id', $request->items)
-        ->whereDoesntHave('events')
         ->delete();
         return response()->json(['success' => 'You delete data success']);
     }

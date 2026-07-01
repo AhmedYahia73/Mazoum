@@ -406,7 +406,9 @@ class EventsApiController extends Controller
 
         $mobile = ltrim($request->phone,"+");
 
-        $user_event = EventUsers::whereHas('event',function($event) { $event->whereIn('is_open',['yes','current']); })->where('mobile',$mobile)->orderBy('id','desc')->first();
+        $user_event = EventUsers::
+        where('id', $request->user_id)
+        ->first();
 
         CongratulationMessages::create([
           'event_id' => $user_event != null ? $user_event->event_id : 0,
@@ -448,7 +450,9 @@ class EventsApiController extends Controller
 
         $mobile = ltrim($request->phone,"+");
 
-        $user_event = EventUsers::whereHas('event',function($event) { $event->whereIn('is_open',['yes','current']); })->where('mobile',$mobile)->orderBy('id','desc')->first();
+        $user_event = EventUsers::
+        where('id', $request->user_id)
+        ->first();
 
         EventMessages::create([
             'event_id' => $user_event != null ? $user_event->event_id : 0,

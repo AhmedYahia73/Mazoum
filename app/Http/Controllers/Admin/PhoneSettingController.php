@@ -14,7 +14,17 @@ class PhoneSettingController extends Controller
     {
         $items = Model::
         with("country:id,name")
-        ->get();
+        ->get()
+        ->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'phone_numer_id' => $item->phone_numer_id,
+                'sender_id' => $item->sender_id,
+                'country_id' => $item->country_id,
+                'country_name' => $item->country ? $item->country->name : null,
+                'status' => $item->status,
+            ];
+        });
 
         return response()->json(['items' => $items]);
     }

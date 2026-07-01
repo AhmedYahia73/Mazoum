@@ -12,7 +12,9 @@ class PhoneSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $items = Model::get();
+        $items = Model::
+        with("country:id,name")
+        ->get();
 
         return response()->json(['items' => $items]);
     }

@@ -103,6 +103,11 @@ Route::resource('currency','CurrencyController',['names' => 'admin.currency']);
 Route::get('currency/destroy/{id}', 'CurrencyController@destroy');
 Route::post('currency/multi_delete', 'CurrencyController@multi_delete');
 
+// Country
+Route::resource('country', 'CountryController', ['names' => 'admin.country']);
+Route::get('country/destroy/{id}', 'CountryController@destroy');
+Route::post('country/multi_delete', 'CountryController@multi_delete');
+
 
 // Packages
 Route::resource('packages','PackagesController',['names' => 'admin.packages',

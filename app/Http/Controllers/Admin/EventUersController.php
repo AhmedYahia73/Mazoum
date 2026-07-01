@@ -881,10 +881,10 @@ class EventUersController extends Controller
                                 // $response = SendNewTemplateCodeV1($url);
  
                                 if($request->type == "pdf"){
-                                    $template_name = '1__pdf';
+                                    $template_name = 'pdf_message';
                                 }
                                 elseif($request->type == "video"){
-                                    $template_name = 'vide_1';
+                                    $template_name = 'vide_message';
                                 }
                                 else{
                                     $template_name = 'custom_message';
@@ -2172,9 +2172,7 @@ class EventUersController extends Controller
             'type' => $type, 
         ]);
     }
-
-
-
+ 
     public function event_qr_details(Request $request, $id)
     {
         $Item = Events::findOrFail($id);

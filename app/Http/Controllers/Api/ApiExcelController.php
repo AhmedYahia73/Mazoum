@@ -8,948 +8,585 @@ use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
 use App\Models\CustomMessage;
 use App\Models\Events;
+use App\Models\EventFamily;
 use App\Models\EventUserActions;
 use App\Models\EventUsers;
 use App\Models\User;
+use App\Traits\GeneralTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ApiExcelController extends Controller
 {
-
+    use GeneralTrait;
 
     public $token;
     public $lang;
+
     public function __construct()
     {
-        if (getallheaders() != null && ! empty(getallheaders())) {
-            if (array_key_exists('language', getallheaders())) {
-                $this->lang = getallheaders()['language'];
-            } elseif (array_key_exists('Language', getallheaders())) {
-                $this->lang = getallheaders()['Language'];
-            } else {
-                $this->lang = 'ar';
-            }
+        $headers = getallheaders() ?: [];
 
-            if (array_key_exists('token', getallheaders())) {
-                $this->token = getallheaders()['token'];
-            } elseif (array_key_exists('Token', getallheaders())) {
-                $this->token = getallheaders()['Token'];
-            } else {
-                $this->token = null;
-            }
-
-        } else {
-            $this->lang = null;
-            $this->token = null;
-        }
+        $this->lang  = $headers['language'] ?? $headers['Language'] ?? 'ar';
+        $this->token = $headers['token']    ?? $headers['Token']    ?? null;
     }
 
-    public function excel_event_users(Request $request) {
+    // ─── helper ──────────────────────────────────────────────────────────────
 
-        $validator = Validator::make($request->all(), [
-          'custom_event_id' => 'required|exists:custom_event,id'
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }  
-        
-      	if ($this->lang == null) {
+    private function getAuthUser()
+    {
+        if ($this->lang == null) {
             return $this->returnError('E300', 'language is required');
         }
-
-        $lang = $this->lang;
-
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
+        if ($this->token == null) {
+            return $this->returnError('E100', $this->lang == 'en' ? 'user is required' : 'المستخدم مطلوب');
         }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', $this->lang == 'en' ? 'user is required' : 'المستخدم مطلوب');
         }
-        $custom_event_id = $request->custom_event_id;
-
-        $event_users = CustomEventUsers::
-        where('custom_event_id', $custom_event_id)
-        ->where("user_id", $user->id)
-        ->get(); // عدد النتائج في الصفحة
-
-        return response()->json([
-            'event_users' => $event_users,
-        ]); 
+        return $user;
     }
 
-  	public function excel_event_family(Request $request) {
+    // ─── Custom Event ────────────────────────────────────────────────────────
 
+    public function excel_event_users(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id'
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $user_id    = $user->user_id ? $user->id : null;
+        $event_id   = $request->custom_event_id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
+        $event_users = CustomEventUsers::where('custom_event_id', $event_id)
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->where('user_id', $user->id)->orWhereNull('user_id');
+            })
+            ->get();
+
+        return $this->returnData('data', ['event_users' => $event_users]);
+    }
+
+    public function excel_event_family(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $event_id = $request->custom_event_id;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $event_users = CustomEventFamily::
-        where('event_id', $event_id)
-        ->get(); // عدد النتائج في الصفحة
+        $event_id    = $request->custom_event_id;
+        $event_users = CustomEventFamily::where('event_id', $event_id)->get();
 
-        return response()->json([
+        return $this->returnData('data', [
             'event_users' => $event_users,
-            'event_id' => $event_id,
-        ]); 
+            'event_id'    => $event_id,
+        ]);
     }
 
     public function excel_event_host_visitor(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $Item        = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner    = $Item->user_id == $user->id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){ 
-            $visitors_count = CustomEventUsers::
-            where('custom_event_id',$Item->id)
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
+        $visitors = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where(function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
             })
-            ->get(); 
-        }
-        else{
-            $visitors_count = CustomEventUsers::
-            where('custom_event_id',$Item->id)
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->get(); 
-        }
+            ->get();
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'visitors_count' =>  $visitors_count, 
-        ]); 
+        return $this->returnData('data', ['Item' => $Item, 'visitors_count' => $visitors]);
     }
 
     public function excel_event_host_qr(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $Item     = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner = $Item->user_id == $user->id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){  
-            $qr_count = CustomEventUsers::
-            where('custom_event_id',$Item->id)
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
+        $qr_count = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where(function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
             })
-            ->where('scan','yes')
+            ->where('scan', 'yes')
             ->get();
-        }
-        else{
-            $qr_count = CustomEventUsers::
-            where('custom_event_id',$Item->id)
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->where('scan','yes')
-            ->get(); 
-        }
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'qr_count' =>  $qr_count,
-        ]); 
+        return $this->returnData('data', ['Item' => $Item, 'qr_count' => $qr_count]);
     }
 
     public function excel_event_host_congrate_msg(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $Item     = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner = $Item->user_id == $user->id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){ 
-            $congratulation_msg = CustomMessage::
-            where("custom_event_id", $Item->id)
-            ->where("type", "congratulation")
-            ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
+        $msgs = CustomMessage::where('custom_event_id', $Item->id)
+            ->where('type', 'congratulation')
+            ->whereHas('user', function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
             })
             ->get();
-        }
-        else{
-            $congratulation_msg = CustomMessage::
-            where("custom_event_id", $Item->id)
-            ->where("type", "congratulation")
-            ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->get();
-        }
 
-        return response()->json([
-            'Item' =>  $Item,
-            'congratulation_msg' =>  $congratulation_msg, 
-        ]); 
+        return $this->returnData('data', ['Item' => $Item, 'congratulation_msg' => $msgs]);
     }
 
     public function excel_event_host_apologize_msg(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $Item     = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner = $Item->user_id == $user->id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){  
-            $apologize_msg = CustomMessage::
-            where("custom_event_id", $Item->id)
-            ->where("type", "apologize")
-            ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
+        $msgs = CustomMessage::where('custom_event_id', $Item->id)
+            ->where('type', 'apologize')
+            ->whereHas('user', function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
             })
             ->get();
-        }
-        else{
-            $apologize_msg = CustomMessage::
-            where("custom_event_id", $Item->id)
-            ->where("type", "apologize")
-            ->whereHas("user", function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->get();
-        }
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'apologize_msg' =>  $apologize_msg,
-        ]); 
+        return $this->returnData('data', ['Item' => $Item, 'apologize_msg' => $msgs]);
     }
 
     public function excel_event_host_apologize(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
+            'custom_event_id' => 'required|exists:custom_event,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $lang = $this->lang;
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $Item     = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner = $Item->user_id == $user->id;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){ 
-            $apologize_count = CustomEventUsers::
-            where("custom_event_id", $Item->id) 
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
+        $data = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where(function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
             })
             ->get();
-        }
-        else{
-            $apologize_count = CustomEventUsers::
-            where("custom_event_id", $Item->id) 
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->get();
-        }
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'apologize_count' =>  $apologize_count, 
-        ]); 
+        return $this->returnData('data', ['Item' => $Item, 'apologize_count' => $data]);
     }
 
     public function excel_event_host_confirm(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'custom_event_id' => 'required|exists:custom_event,id', 
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
-
-        $lang = $this->lang;
-
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($request->custom_event_id);
-        $user_status = $Item->user_id == $user->id;
-        if($user_status){
-            $confirm_count = CustomEventUsers::
-            where("custom_event_id", $Item->id) 
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id)
-                ->orWhereNull("user_id");
-            })
-            ->get(); 
-        }
-        else{
-            $confirm_count = CustomEventUsers::
-            where("custom_event_id", $Item->id) 
-            ->where(function($query) use($request){ 
-                $query->where("user_id", $user->id);
-            })
-            ->get(); 
-        }
-
-        return response()->json([
-            'Item' =>  $Item,   
-            'confirm_count' =>  $confirm_count,  
-        ]); 
-    }
-
-    public function excel_qr_count($id){
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
-
-        $lang = $this->lang;
-
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $custom_event_users = CustomEventUsers::
-        where('custom_event_id',$id)
-        ->where("user_id", $user->id)
-        ->where('scan','yes')
-        ->get();
-
-        return response()->json([
-            "custom_event_users" => $custom_event_users
+            'custom_event_id' => 'required|exists:custom_event,id',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
+
+        $Item     = CustomEvent::findOrFail($request->custom_event_id);
+        $is_owner = $Item->user_id == $user->id;
+
+        $data = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where(function ($q) use ($user, $is_owner) {
+                $is_owner
+                    ? $q->where('user_id', $user->id)->orWhereNull('user_id')
+                    : $q->where('user_id', $user->id);
+            })
+            ->get();
+
+        return $this->returnData('data', ['Item' => $Item, 'confirm_count' => $data]);
     }
-    
-    public function excel_confirm_count(Request $request, $id){
-    
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
 
-        $lang = $this->lang;
+    public function excel_qr_count($id)
+    {
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $user = null;
+        $user_id = $user->user_id ? $user->id : null;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
+        $data = CustomEventUsers::where('custom_event_id', $id)
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->where('user_id', $user->id)->orWhereNull('user_id');
+            })
+            ->where('scan', 'yes')
+            ->get();
 
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($id);
-        $user_events = CustomEventUsers::
-        where('custom_event_id', $Item->id)
-        ->where("confirm_count", ">", 0) 
-        ->where("user_id", $user->id)
-        ->get();
+        return $this->returnData('data', ['custom_event_users' => $data]);
+    }
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'user_events' =>  $user_events,  
-        ]); 
-    } 
-    
-    public function excel_apologize_count(Request $request, $id){
-        
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+    public function excel_confirm_count(Request $request, $id)
+    {
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = CustomEvent::findOrFail($id);
 
-        $user = null;
+        $data = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where('confirm_count', '>', 0)
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->where('user_id', $user->id)->orWhereNull('user_id');
+            })
+            ->get();
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
+        return $this->returnData('data', ['Item' => $Item, 'user_events' => $data]);
+    }
 
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = CustomEvent::findOrFail($id);
-        $user_events = CustomEventUsers::
-        where('custom_event_id', $Item->id)
-        ->where("apologize_count", ">", 0) 
-        ->where("user_id", $user->id)
-        ->get();
+    public function excel_apologize_count(Request $request, $id)
+    {
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        return response()->json([
-            'Item' =>  $Item, 
-            'user_events' =>  $user_events,  
-        ]); 
-    } 
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = CustomEvent::findOrFail($id);
 
-    // EVENT
-     
+        $data = CustomEventUsers::where('custom_event_id', $Item->id)
+            ->where('apologize_count', '>', 0)
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->where('user_id', $user->id)->orWhereNull('user_id');
+            })
+            ->get();
+
+        return $this->returnData('data', ['Item' => $Item, 'user_events' => $data]);
+    }
+
+    // ─── Regular Event ───────────────────────────────────────────────────────
+
     public function excel_all_invited_users(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
+        $data = EventUsers::where('event_id', $Item->id)
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
-        $data = EventUsers::
-        where('event_id', $Item->id)
-        ->where("user_id", $user->id)
-        ->get();
-
-        $title = 'كل المدعوين';
-
-        $type = 'all_invited_users';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل المدعوين',
+            'type'  => 'all_invited_users',
         ]);
     }
 
     public function excel_event_qr_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('scan', 'yes') 
-        ->where("user_id", $user->id)
-        ->get();
+            ->where('scan', 'yes')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'كل المدعوين الذين اكدو الحضور (QR)';
-
-        $is_qr_page = 'yes';
-
-        $type = 'qr';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'is_qr_page' => $is_qr_page, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'       => $Item,
+            'data'       => $data,
+            'title'      => 'كل المدعوين الذين اكدو الحضور (QR)',
+            'is_qr_page' => 'yes',
+            'type'       => 'qr',
         ]);
     }
 
     public function excel_confirmed_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'attend')
-        ->where("user_id", $user->id)
-        ->get();
+            ->where('is_accepted', 'yes')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'كل المدعوين الذين ينوون الحضور';
-
-        $type = 'confirmed_event_details';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل المدعوين الذين ينوون الحضور',
+            'type'  => 'confirmed_event_details',
         ]);
     }
 
     public function excel_confirmed_users_web_chat(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $Item = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
+        $user_id = $user->user_id ? $user->id : null;
 
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUserActions::where('event_id', $Item->id)
-        ->where('action', 'accept_event')
-        ->with("event_user:id,name,users_count,is_read,scan,scan_count", "event.user") 
-        ->whereHas("event_user", function($query) use($user){
-            $query->where("user_id", $user->id);
-        })
-        ->get()
-        ->map(function($item){
-            return [
-                "id" => $item->id,
-                "event_id" => $item->event_id,
-                "event_user_id" => $item->event_user_id,
-                "mobile" => $item->mobile,
-                "action" => $item->action,
-                "msg" => $item->msg,
-                "users_count" => $item->users_count,
-                "event_user" => $item->event_user,
-                "event" => $item?->event?->title,
-                "user_name" => $item?->event?->user?->name,
-                "user_id" => $item?->event?->user?->id,
-            ];
-        });
+            ->where('action', 'accept_event')
+            ->with('event_user:id,name,users_count,is_read,scan,scan_count', 'event.user')
+            ->whereHas('event_user', function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get()
+            ->map(fn($item) => [
+                'id'            => $item->id,
+                'event_id'      => $item->event_id,
+                'event_user_id' => $item->event_user_id,
+                'mobile'        => $item->mobile,
+                'action'        => $item->action,
+                'msg'           => $item->msg,
+                'users_count'   => $item->users_count,
+                'event_user'    => $item->event_user,
+                'event'         => $item?->event?->title,
+                'user_name'     => $item?->event?->user?->name,
+                'user_id'       => $item?->event?->user?->id,
+            ]);
 
-        $title = 'كل المدعوين الذين اكدوا الحضور من الشات الويب';
-
-        $type = 'confirmed_event_details';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل المدعوين الذين اكدوا الحضور من الشات الويب',
+            'type'  => 'confirmed_event_details',
         ]);
     }
 
     public function excel_not_attend_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'not-attend')
-        ->where("user_id", $user->id)
-        ->get();
+            ->where('status', 'not-attend')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'كل المدعوين الذين اعتذرو';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل المدعوين الذين اعتذرو',
         ]);
     }
 
     public function excel_hold_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'hold')
-        ->where('is_new_sent', 0)
-        ->whereNull('is_sent')
-        ->where("user_id", $user->id)
-        ->get();
+            ->where('status', 'hold')
+            ->where('is_new_sent', 0)
+            ->whereNull('is_sent')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'كل المدعوين المنتظرين';
-
-        $type = 'hold';
-
-
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل المدعوين المنتظرين',
+            'type'  => 'hold',
         ]);
     }
 
-  	public function excel_failed_event_details(Request $request, $id)
+    public function excel_failed_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
-
-        //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         $data = EventUsers::where('event_id', $Item->id)
-        //->whereIn('status', ['sent'])
-        ->whereNull('is_accepted')
-        ->whereNull('is_refused')
-        ->where("user_id", $user->id)
-        ->where(function ($query) {
-            $query->where('is_new_sent', 1)
-                ->orWhereNotNull('is_sent');
-        })
-        ->get();
+            ->whereNull('is_accepted')
+            ->whereNull('is_refused')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->where(function ($q) {
+                $q->where('is_new_sent', 1)->orWhereNotNull('is_sent');
+            })
+            ->get();
 
-        $title = 'لم يتم تاكيد الحضور';
-
-      	$type = 'failed';
- 
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'لم يتم تاكيد الحضور',
+            'type'  => 'failed',
         ]);
     }
 
-  	public function excel_non_attendance_event_details(Request $request, $id)
+    public function excel_non_attendance_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
-
-        //$data = EventUsers::where('event_id',$Item->id)->where('status','failed')->get();
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'attend')
-        ->whereNull('scan')
-        ->whereNull('is_refused')
-        ->where("user_id", $user->id) 
-        ->get();
+            ->where('status', 'attend')
+            ->whereNull('scan')
+            ->whereNull('is_refused')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'عدم الحضور فعليا';
-
-      	$type = 'non_attendance';
- 
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title, 
-            'type' => $type, 
-        ]); 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'عدم الحضور فعليا',
+            'type'  => 'non_attendance',
+        ]);
     }
 
-  	public function excel_qr_sent_event_details(Request $request, $id)
+    public function excel_qr_sent_event_details(Request $request, $id)
     {
-      	if ($this->lang == null) {
-            return $this->returnError('E300', 'language is required');
-        }
+        $user = $this->getAuthUser();
+        if (!$user instanceof User) return $user;
 
-        $lang = $this->lang;
+        $user_id = $user->user_id ? $user->id : null;
+        $Item    = Events::where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            })->firstOrFail();
 
-        $user = null;
-
-        if ($this->token != null) {
-            $user = User::where('token', $this->token)->first();
-        }
-
-        if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
-        }
-        $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('qr_sent', 'yes')
-        ->where("user_id", $user->id)
-        ->get();
+            ->where('qr_sent', 'yes')
+            ->where(function ($q) use ($user, $user_id) {
+                $user_id
+                    ? $q->where('user_id', $user_id)
+                    : $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->get();
 
-        $title = 'كل الدعوات (Sent QR)';
-
-
- 
-        return response()->json([
-            'Item' => $Item, 
-            'data' => $data, 
-            'title' => $title,  
-        ]); 
+        return $this->returnData('data', [
+            'Item'  => $Item,
+            'data'  => $data,
+            'title' => 'كل الدعوات (Sent QR)',
+        ]);
     }
 }

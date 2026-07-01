@@ -846,7 +846,7 @@ if (! function_exists('SendCustomMessageV2ArTemplate')) {
                         'parameters' => [
                             [
                                 'type' => $type,
-                                'image' => [
+                                $type => [
                                     'link' => $image_url,
                                 ],
                             ]
@@ -866,7 +866,7 @@ if (! function_exists('SendCustomMessageV2ArTemplate')) {
                         ],
                     ],
                     // [
-                    //     'type' => 'body',
+                    //     'type' => ody',
                     //     'parameters' => [
                     //         [
                     //             'type' => 'text',

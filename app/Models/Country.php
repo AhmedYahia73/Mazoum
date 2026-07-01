@@ -13,4 +13,9 @@ class Country extends Model
         'name',
         'status',
     ];
+
+    public function events()
+    {
+        return $this->hasMany('App\Models\Events', 'country_id');
+    } 
 }

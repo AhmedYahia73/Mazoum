@@ -67,7 +67,13 @@ class CountryController extends Controller
 
     public function destroy($id)
     {
-        Model::findOrFail($id)->delete();
+        $item = Model::
+        whereDoesntHave('events')
+        ->where("id", $id)->first();
+        if (!$item) {
+            return response()->json(['error' => 'You can not delete this item because it has related events'], 400);
+        }
+        $item->delete();
         return response()->json(['success' => 'You delete data success']);
     }
 
@@ -81,7 +87,9 @@ class CountryController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        Model::whereIn('id', $request->items)->delete();
+        Model::whereIn('id', $request->items)
+        ->whereDoesntHave('events')
+        ->delete();
         return response()->json(['success' => 'You delete data success']);
     }
 }

@@ -6,7 +6,6 @@ use App\Events\WattsChat as WattsChatEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Events as modelRequest;
 use App\Models\Assistant;
-use App\Models\WattsChat as WattsChatModel;
 use App\Models\CongratulationMessages;
 use App\Models\EventFamily;
 use App\Models\EventMessages;
@@ -14,8 +13,10 @@ use App\Models\Events as Model;
 use App\Models\EventUserActions;
 use App\Models\EventUsers;
 use App\Models\MobileCodes;
+use App\Models\NewSetting;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\WattsChat as WattsChatModel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Testing\File;
 use Illuminate\Support\Facades\Http;
@@ -1289,5 +1290,182 @@ class EventsController extends Controller
         }
 
         return response()->json(['status' => 'success', 'data' => $message], 200);
+    }
+
+    public function phones_lists(){
+        $data = NewSetting::
+        select("id", "phone_numer_id", "country_id")
+        ->where("status", true)
+        ->get();
+
+        return response()->json([
+            "data" => $data
+        ]);
+    }
+
+    public function all_events(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'country_id'   => 'sometimes|exists:countries,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+        // اللغة
+        $lang = $this->get_lang();
+
+        if (!$lang) {
+            $lang = 'ar';
+            app()->setLocale('ar');
+            session()->put('admin_lang', 'ar');
+        } else {
+            app()->setLocale($lang);
+        }
+
+        // بداية الـ query
+        $query = Model::where('is_open', 'yes')
+                    ->with("user:id,name,mobile", "employee:id,name")
+                    ->select([
+                        'id','title','address','file','user_id',
+                        'first_name','last_name','date','time', 'image',
+                        'assistant_id'
+                    ]);
+        if ($request->country_id) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        // ✔️ search
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%$s%")
+                ->orWhere('address', 'like', "%$s%")
+                ->orWhere('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
+            });
+        }
+
+        // ✔️ pagination
+        $Item = $query->paginate(20);
+
+        return response()->json([
+            "Items" => $Item
+        ]);
+    }
+
+    public function all_current_events(Request $request)
+    { 
+        $validator = Validator::make($request->all(), [
+            'country_id'   => 'sometimes|exists:countries,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+        // اللغة
+        $lang = $this->get_lang();
+
+        if (!$lang) {
+            $lang = 'ar';
+            app()->setLocale('ar');
+            session()->put('admin_lang', 'ar');
+        } else {
+            app()->setLocale($lang);
+        }
+
+        // بداية الـ query
+        $query = Model::where('is_open', 'current')
+                    ->with("user:id,name,mobile", "employee:id,name")
+                    ->select([
+                        'id','title','address','file','user_id',
+                        'first_name','last_name','date','time', 'image',
+                        'assistant_id'
+                    ]);
+
+        if ($request->country_id) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        // ✔️ search
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%$s%")
+                ->orWhere('address', 'like', "%$s%")
+                ->orWhere('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
+            });
+        }
+
+        // ✔️ pagination
+        $Item = $query->paginate(20);
+
+        return response()->json([
+            "Items" => $Item
+        ]);
+    }
+
+  	public function all_closed_events(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'country_id'   => 'sometimes|exists:countries,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+        // اللغة
+        $lang = $this->get_lang();
+
+        if (!$lang) {
+            $lang = 'ar';
+            app()->setLocale('ar');
+            session()->put('admin_lang', 'ar');
+        } else {
+            app()->setLocale($lang);
+        }
+
+        // بداية الـ query
+        $query = Model::where('is_open', 'no')
+                    ->with("user:id,name,mobile", "employee:id,name")
+                    ->select([
+                        'id','title','address','file','user_id',
+                        'first_name','last_name','date','time', 'image',
+                        'assistant_id'
+                    ]);
+
+        if ($request->country_id) {
+            $query->where('country_id', $request->country_id);
+        }
+        // ✔️ search
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%$s%")
+                ->orWhere('address', 'like', "%$s%")
+                ->orWhere('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
+            });
+        }
+
+        // ✔️ pagination
+        $Item = $query->paginate(20);
+
+        return response()->json([
+            "Items" => $Item
+        ]); 
     }
 }

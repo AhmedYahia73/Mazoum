@@ -177,6 +177,7 @@ Route::get('events/phones_lists', 'EventsController@phones_lists');
 Route::get('events/all_events', 'EventsController@all_events');
 Route::get('events/all_current_events', 'EventsController@all_current_events');
 Route::get('events/all_closed_events', 'EventsController@all_closed_events');
+Route::get('events/all_deleted_events', 'EventsController@all_deleted_events');
 Route::post('events/sendNewMessage', 'EventsController@sendNewMessage');
 Route::post('events/delete_items', 'EventsController@delete_items');
 Route::post('events/multi_delete', 'EventsController@multi_delete');

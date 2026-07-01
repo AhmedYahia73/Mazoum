@@ -1468,4 +1468,59 @@ class EventsController extends Controller
             "Items" => $Item
         ]); 
     }
+
+    public function all_deleted_events(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'country_id'   => 'sometimes|exists:countries,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+        // اللغة
+        $lang = $this->get_lang();
+
+        if (!$lang) {
+            $lang = 'ar';
+            app()->setLocale('ar');
+            session()->put('admin_lang', 'ar');
+        } else {
+            app()->setLocale($lang);
+        }
+
+        // بداية الـ query
+        $query = Model::onlyTrashed()
+                    ->with("user:id,name,mobile", "employee:id,name")
+                    ->select([
+                        'id','title','address','file','user_id',
+                        'first_name','last_name','date','time', 'image',
+                        'assistant_id'
+                    ]);
+
+        if ($request->country_id) {
+            $query->where('country_id', $request->country_id);
+        }
+        // ✔️ search
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%$s%")
+                ->orWhere('address', 'like', "%$s%")
+                ->orWhere('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
+            });
+        }
+
+        // ✔️ pagination
+        $Item = $query->paginate(20);
+
+        return response()->json([
+            "Items" => $Item
+        ]);  
+    }
 }

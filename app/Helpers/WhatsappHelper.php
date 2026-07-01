@@ -827,7 +827,7 @@ if (! function_exists('SendWeddingDataV9ArTemplate')) {
 
 if (! function_exists('SendCustomMessageV2ArTemplate')) {
 
-    function SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token)
+    function SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $type = "image")
     {
 
         $arr = [
@@ -845,7 +845,7 @@ if (! function_exists('SendCustomMessageV2ArTemplate')) {
                         'type' => 'header',
                         'parameters' => [
                             [
-                                'type' => 'image',
+                                'type' => $type,
                                 'image' => [
                                     'link' => $image_url,
                                 ],

@@ -880,14 +880,18 @@ class EventUersController extends Controller
 
                                 // $response = SendNewTemplateCodeV1($url);
  
+                                $type = "image";
                                 if($request->type == "pdf"){
                                     $template_name = 'pdf_message';
+                                    $type = "document";
                                 }
                                 elseif($request->type == "video"){
                                     $template_name = 'vide_message';
+                                    $type = "video";
                                 }
                                 else{
                                     $template_name = 'custom_message';
+                                    $type = "image";
                                 }
                                 $language = 'ar';
 
@@ -904,7 +908,7 @@ class EventUersController extends Controller
                                 $image_url = $url_image;
 
                                 // $response = SendCustomMessageTemplate($to,$template_name,$language,$user_name,$message,$number,$phone_numer_id,$token);
-                                $response = SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token);
+                                $response = SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $type);
                               	// dd($response);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);

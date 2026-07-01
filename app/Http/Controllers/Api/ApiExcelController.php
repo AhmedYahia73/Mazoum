@@ -588,8 +588,7 @@ class ApiExcelController extends Controller
         }
         $Item = Events::findOrFail($id);
         $data = EventUsers::
-        where('event_id', $Item->id)
-        ->where("user_id", $user->id)
+        where('event_id', $Item->id) 
         ->get();
 
         $title = 'كل المدعوين';
@@ -628,8 +627,7 @@ class ApiExcelController extends Controller
         }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('scan', 'yes') 
-        ->where("user_id", $user->id)
+        ->where('scan', 'yes')  
         ->get();
 
         $title = 'كل المدعوين الذين اكدو الحضور (QR)';
@@ -671,8 +669,7 @@ class ApiExcelController extends Controller
         }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'attend')
-        ->where("user_id", $user->id)
+        ->where('status', 'attend') 
         ->get();
 
         $title = 'كل المدعوين الذين ينوون الحضور';
@@ -713,9 +710,6 @@ class ApiExcelController extends Controller
         $data = EventUserActions::where('event_id', $Item->id)
         ->where('action', 'accept_event')
         ->with("event_user:id,name,users_count,is_read,scan,scan_count", "event.user") 
-        ->whereHas("event_user", function($query) use($user){
-            $query->where("user_id", $user->id);
-        })
         ->get()
         ->map(function($item){
             return [
@@ -769,8 +763,7 @@ class ApiExcelController extends Controller
         }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('status', 'not-attend')
-        ->where("user_id", $user->id)
+        ->where('status', 'not-attend') 
         ->get();
 
         $title = 'كل المدعوين الذين اعتذرو';
@@ -808,8 +801,7 @@ class ApiExcelController extends Controller
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'hold')
         ->where('is_new_sent', 0)
-        ->whereNull('is_sent')
-        ->where("user_id", $user->id)
+        ->whereNull('is_sent') 
         ->get();
 
         $title = 'كل المدعوين المنتظرين';
@@ -852,8 +844,7 @@ class ApiExcelController extends Controller
         $data = EventUsers::where('event_id', $Item->id)
         //->whereIn('status', ['sent'])
         ->whereNull('is_accepted')
-        ->whereNull('is_refused')
-        ->where("user_id", $user->id)
+        ->whereNull('is_refused') 
         ->where(function ($query) {
             $query->where('is_new_sent', 1)
                 ->orWhereNotNull('is_sent');
@@ -899,8 +890,7 @@ class ApiExcelController extends Controller
         $data = EventUsers::where('event_id', $Item->id)
         ->where('status', 'attend')
         ->whereNull('scan')
-        ->whereNull('is_refused')
-        ->where("user_id", $user->id) 
+        ->whereNull('is_refused') 
         ->get();
 
         $title = 'عدم الحضور فعليا';
@@ -938,8 +928,7 @@ class ApiExcelController extends Controller
         }
         $Item = Events::findOrFail($id);
         $data = EventUsers::where('event_id', $Item->id)
-        ->where('qr_sent', 'yes')
-        ->where("user_id", $user->id)
+        ->where('qr_sent', 'yes') 
         ->get();
 
         $title = 'كل الدعوات (Sent QR)';

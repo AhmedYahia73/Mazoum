@@ -713,7 +713,7 @@ class ApiExcelController extends Controller
         $data = EventUserActions::where('event_id', $Item->id)
         ->where('action', 'accept_event')
         ->with("event_user:id,name,users_count,is_read,scan,scan_count", "event.user") 
-        ->whereHas("event_user", function($query){
+        ->whereHas("event_user", function($query) use($user){
             $query->where("user_id", $user->id);
         })
         ->get()

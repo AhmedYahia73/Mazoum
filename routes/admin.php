@@ -109,6 +109,13 @@ Route::get('country/destroy/{id}', 'CountryController@destroy');
 Route::post('country/multi_delete', 'CountryController@multi_delete');
 Route::patch('country/change_status/{id}', 'CountryController@change_status');
 
+// Phone Setting
+Route::get('phone_setting/lists', 'PhoneSettingController@lists');
+Route::resource('phone_setting', 'PhoneSettingController', ['names' => 'admin.phone_setting']);
+Route::get('phone_setting/destroy/{id}', 'PhoneSettingController@destroy');
+Route::post('phone_setting/multi_delete', 'PhoneSettingController@multi_delete');
+Route::patch('phone_setting/change_status/{id}', 'PhoneSettingController@change_status');
+
 
 // Packages
 Route::resource('packages','PackagesController',['names' => 'admin.packages',

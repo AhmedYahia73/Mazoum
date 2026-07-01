@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\NewSetting as Model;
+use App\Models\Country;
 use Illuminate\Support\Facades\Validator;
 
 class PhoneSettingController extends Controller
@@ -12,6 +13,15 @@ class PhoneSettingController extends Controller
     public function index(Request $request)
     {
         $items = Model::get();
+
+        return response()->json(['items' => $items]);
+    }
+
+    public function lists(Request $request)
+    {
+        $items = Country::
+        select('id', 'name')
+        ->get();
 
         return response()->json(['items' => $items]);
     }

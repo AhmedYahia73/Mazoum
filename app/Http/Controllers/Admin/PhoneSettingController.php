@@ -12,16 +12,16 @@ class PhoneSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $items = Model::
-        with("country:id,name")
-        ->get()
-        ->map(function ($item) {
+        $items = Model::query()
+        ->with('country:id,name') // تأكد أن id موجود هنا
+        ->paginate(10)
+        ->through(function ($item) {
             return [
                 'id' => $item->id,
                 'phone_numer_id' => $item->phone_numer_id,
                 'sender_id' => $item->sender_id,
                 'country_id' => $item->country_id,
-                'country_name' => $item->country ? $item->country->name : null,
+                'country_name' => $item->country?->name, // استخدام Safe Navigation Operator (?->) أفضل وأقصر
                 'status' => $item->status,
             ];
         });

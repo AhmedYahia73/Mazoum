@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\WattsChat as WattsChatModel;
 use App\Http\Controllers\Controller;
 use App\Imports\EventUserImport;
 use App\Models\CongratulationMessages;
@@ -14,10 +13,12 @@ use App\Models\EventUserActions;
 use App\Models\EventUserLogs;
 use App\Models\EventUsers as Model;
 use App\Models\EventUsers;
+use App\Models\NewSetting;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\WattsChat as WattsChatModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -487,6 +488,7 @@ class EventUersController extends Controller
           	'file2'  => 'nullable',
             'date' => 'required',
             'time' => 'required',
+            'phone_setting_id' => 'required|exists:new_settings,id',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -566,8 +568,8 @@ class EventUersController extends Controller
                                 $language = 'ar';
 
                                 $token          = get_whats_setting($event)['token'];
-                                $sender_id      = get_whats_setting($event)['sender_id'];
-                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                                $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                                $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                                 $param_1 = $message;
                                 $param_2 = $time;
@@ -792,6 +794,7 @@ class EventUersController extends Controller
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required',
+            'phone_setting_id' => 'required|exists:new_settings,id',
             "type" => "in:image,pdf,video"
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
@@ -871,8 +874,8 @@ class EventUersController extends Controller
                                 $message = $request->message;
 
                                 $token          = get_whats_setting($event)['token'];
-                                $sender_id      = get_whats_setting($event)['sender_id'];
-                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                                $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                                $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                                 // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
@@ -898,8 +901,8 @@ class EventUersController extends Controller
                                 $message = $request->message;
 
                                 $token          = get_whats_setting($event)['token'];
-                                $sender_id      = get_whats_setting($event)['sender_id'];
-                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                                $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                                $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                                 $number = '966593907079';
 
@@ -1395,6 +1398,7 @@ class EventUersController extends Controller
             'users' => 'required|array', 
             'users.*.id' => 'required|exists:event_users,id',
             'users.*.users_count' => 'required|numeric',
+            'phone_setting_id' => 'required|exists:new_settings,id',
             'type' => 'in:image,video,pdf'
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
@@ -1493,8 +1497,8 @@ class EventUersController extends Controller
                             // $user_name = $user_event->name;
 
                             // $token          = get_whats_setting($event)['token'];
-                            // $sender_id      = get_whats_setting($event)['sender_id'];
-                            // $phone_numer_id = get_whats_setting($event)['sender_id'];
+                            // $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                            // $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                           	//dd($token,$sender_id,$phone_numer_id);
                             // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
@@ -1531,8 +1535,8 @@ class EventUersController extends Controller
                             $user_name = $user_event->name;
 
                             $token          = get_whats_setting($event)['token'];
-                            $sender_id      = get_whats_setting($event)['sender_id'];
-                            $phone_numer_id = get_whats_setting($event)['sender_id'];
+                            $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                            $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                             $param_1   = $user_name;
                             $param_2   = $event->title;
@@ -1707,10 +1711,18 @@ class EventUersController extends Controller
     }
 
 
-  	public function send_qr($id)
+  	public function send_qr(Request $request, $id)
     {
 
-      	//dd('ok');
+       $validator = Validator::make($request->all(), [
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        //dd('ok');
 
       	$setting = Setting::first();
 
@@ -1773,8 +1785,8 @@ class EventUersController extends Controller
         $user_name = $user_event->name;
 
         $token          = get_whats_setting($event)['token'];
-        $sender_id      = get_whats_setting($event)['sender_id'];
-        $phone_numer_id = get_whats_setting($event)['sender_id'];
+        $sender_id      = $this->get_phone_id($request->phone_setting_id);
+        $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
         //$response = SendTemplateV2($to, $template_name, $language, $image_url, $user_name, $phone_numer_id, $token);
 
@@ -1841,9 +1853,17 @@ class EventUersController extends Controller
 
 
 
-  	public function send_new_qr($id)
+  	public function send_new_qr(Request $request, $id)
     {
 
+       $validator = Validator::make($request->all(), [
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
       	$setting = Setting::first();
 
         $user_event = Model::withTrashed()->findOrFail($id);
@@ -1905,8 +1925,8 @@ class EventUersController extends Controller
         $user_name = $user_event->name;
 
         $token          = get_whats_setting($event)['token'];
-        $sender_id      = get_whats_setting($event)['sender_id'];
-        $phone_numer_id = get_whats_setting($event)['sender_id'];
+        $sender_id      = $this->get_phone_id($request->phone_setting_id);
+        $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
         //$response = SendTemplateV2($to, $template_name, $language, $image_url, $user_name, $phone_numer_id, $token);
 
@@ -2944,8 +2964,16 @@ class EventUersController extends Controller
         ]);
   	}
 
-    public function send_event_location($id) {
+    public function send_event_location(Request $request, $id) {
 
+       $validator = Validator::make($request->all(), [
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        } 
         $user_event = Model::withTrashed()->findOrFail($id);
 
         $event = $user_event->event;
@@ -2955,8 +2983,8 @@ class EventUersController extends Controller
         $setting = Setting::first();
 
         $token          = get_whats_setting($event)['token'];
-        $sender_id      = get_whats_setting($event)['sender_id'];
-        $phone_numer_id = get_whats_setting($event)['sender_id'];
+        $sender_id      = $this->get_phone_id($request->phone_setting_id);
+        $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
         if($user_event->send_type == "meta"){ 
             $phone = $mobile;
@@ -3075,8 +3103,16 @@ class EventUersController extends Controller
     }
 
 
-    public function send_congratulations($id) {
+    public function send_congratulations(Request $request, $id) {
 
+       $validator = Validator::make($request->all(), [
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
       $setting = Setting::first();
 
       $event = Events::where('id', $id)->firstOrFail();
@@ -3098,8 +3134,8 @@ class EventUersController extends Controller
 
 
           $token          = get_whats_setting($event)['token'];
-          $sender_id      = get_whats_setting($event)['sender_id'];
-          $phone_numer_id = get_whats_setting($event)['sender_id'];
+          $sender_id      = $this->get_phone_id($request->phone_setting_id);
+          $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
           $whatsapp = '201008478014';
 
@@ -3158,6 +3194,7 @@ class EventUersController extends Controller
             'event_id' => 'required|exists:events,id',
             'users' => 'required|array',
             'users.*.id' => 'required',
+            'phone_setting_id' => 'required|exists:new_settings,id',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -3210,8 +3247,8 @@ class EventUersController extends Controller
                                 $language = 'ar';
 
                                 $token          = get_whats_setting($event)['token'];
-                                $sender_id      = get_whats_setting($event)['sender_id'];
-                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                                $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                                $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                                 // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
@@ -3847,6 +3884,16 @@ class EventUersController extends Controller
         }
     }
      
+
+    private function get_phone_id($id){
+        $data = NewSetting::
+        where("id", $id)
+        ->first();
+        if(empty($data)){
+            return Setting::first()?->phone_numer_id ?? null;
+        }
+        return $data->phone_numer_id;
+    }
 }
 
 

@@ -1131,7 +1131,7 @@ class EventsController extends Controller
             'title','lat', 'long', 'address', 'showing_qr', 'user_id' ,
             'date','time', 'assistant_id','have_reminder',
             'can_replay_messages' , 'gender' , 'sending_type' , 'color',
-            'country_code', 'scan_assistant_id',
+            'country_id', 'scan_assistant_id',
             'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
             'image_height', 'image_width', 'text_color', 'pdf'
         ]);

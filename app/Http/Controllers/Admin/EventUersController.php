@@ -3233,7 +3233,6 @@ class EventUersController extends Controller
 
                         if($user_event != null) {
 
-        return 11;
                           	$user_name = $user_event->name;
 
                             $mobile = $user_event->mobile;
@@ -3257,6 +3256,7 @@ class EventUersController extends Controller
 
                                 $response = SendNewTemplateCodeV1($url);
 
+        return 11;
                               	// dd($response);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);

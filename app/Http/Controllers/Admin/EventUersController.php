@@ -3217,7 +3217,7 @@ class EventUersController extends Controller
         $priority=0;
         $referenceId="SDK";
         $nocache=true;
-        return $client;
+        return 11;
         /* ***************************************************************************** */
 
         try {

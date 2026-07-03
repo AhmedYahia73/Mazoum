@@ -3255,8 +3255,7 @@ class EventUersController extends Controller
                                 $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name;
 
                                 $response = SendNewTemplateCodeV1($url);
-
-        return 11;
+ 
                               	// dd($response);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);

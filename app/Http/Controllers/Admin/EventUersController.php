@@ -3217,7 +3217,6 @@ class EventUersController extends Controller
         $priority=0;
         $referenceId="SDK";
         $nocache=true;
-        return 11;
         /* ***************************************************************************** */
 
         try {
@@ -3234,6 +3233,7 @@ class EventUersController extends Controller
 
                         if($user_event != null) {
 
+        return 11;
                           	$user_name = $user_event->name;
 
                             $mobile = $user_event->mobile;

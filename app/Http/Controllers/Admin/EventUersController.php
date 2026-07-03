@@ -3205,7 +3205,8 @@ class EventUersController extends Controller
 
         $event_id = $request->event_id;
 
-        $event = Events::where('id', $event_id)->firstOrFail();
+        $event = Events::withTrashed()
+        ->where('id', $event_id)->firstOrFail();
 
         /* ***************************************************************************** */
 

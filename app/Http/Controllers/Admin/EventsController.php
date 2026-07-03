@@ -1296,7 +1296,15 @@ class EventsController extends Controller
         $data = NewSetting::
         select("id", "phone_numer_id", "country_id")
         ->where("status", true)
-        ->get();
+        ->with("country")
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "phone_numer_id" => $item->phone_numer_id,
+                "country_name" => $item?->country?->name ?? null
+            ];
+        });
 
         return response()->json([
             "data" => $data

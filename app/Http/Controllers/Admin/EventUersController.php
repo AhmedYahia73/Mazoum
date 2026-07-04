@@ -1920,7 +1920,7 @@ class EventUersController extends Controller
         //$to = $user_event->mobile;
         $to = $mobile;
 
-        $template_name = 'wedding_data_v2_ar';
+        $template_name = 'wedding_data_v_ar__10';
         $language = 'ar';
         $user_name = $user_event->name;
 
@@ -1936,7 +1936,7 @@ class EventUersController extends Controller
 
         // $sender_id = $setting->sender_id;
 
-        $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->users_count,$image_url,$phone_numer_id,$token);
+        $response = SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_event->accept_count,$image_url,$phone_numer_id,$token);
 
         // if($event->country_code == 'kw') {
 

@@ -308,6 +308,7 @@ Route::get('event-user-history/{id}', 'EventUersController@event_user_history');
 Route::get('send-qr/{id}', 'EventUersController@send_qr');
 Route::post('send-qr/{id}', 'EventUersController@send_qr');
 Route::get('send-new-qr/{id}', 'EventUersController@send_new_qr');
+Route::post('send-new-qr/{id}', 'EventUersController@send_new_qr');
 
 
 Route::get('accept-user-event/{id}', 'EventUersController@accept_user_event');

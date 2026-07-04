@@ -16,6 +16,7 @@ use App\Models\Notifications;
 use App\Models\Orders;
 use App\Models\Parking;
 use App\Models\Pricing;
+use App\Models\NewSetting;
 use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\WattsChat as WattsChatModel;
@@ -84,7 +85,7 @@ class HomeController extends Controller
         ]);
 
         $language = 'ar';
-        $token = null;
+        $token = $setting->access_token;
         $from = "sa";
         // جلب الـ value بشكل آمن لتقليل التكرار
         $value = $data['entry'][0]['changes'][0]['value'] ?? null;
@@ -94,24 +95,12 @@ class HomeController extends Controller
             $sentPhoneId = $value['metadata']['phone_number_id'];
 
             $sender_id      = $sentPhoneId;
-            $phone_numer_id = $sentPhoneId;
-            
-            if($phone_numer_id == $setting->phone_numer_id){
-                $token = $setting->access_token;
-                $from = "kw";
-            }
-            elseif($phone_numer_id == $setting->sa_phone_numer_id){
-                $token = $setting->sa_access_token;
-                $from = "sa";
-            }
-            elseif($phone_numer_id == $setting->sa_phone_numer_id2){
-                $token = $setting->sa_access_token2;
-                $from = "sa";
-            }
-            elseif($phone_numer_id == $setting->kw_phone_numer_id2){
-                $token = $setting->kw_access_token2;
-                $from = "kw";
-            } 
+            $phone_numer_id = $sentPhoneId; 
+            $new_setting = NewSetting::
+            with("country")
+            ->where('phone_numer_id', $phone_numer_id)->first();
+
+            $from = $new_setting?->country?->name ?? "sa";
         }
  
         $my_msg = false;

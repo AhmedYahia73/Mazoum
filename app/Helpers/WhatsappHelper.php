@@ -1733,3 +1733,149 @@ if (! function_exists('SendArFlowV9Template')) {
     }
 }
 
+if (! function_exists('SendArFlowV10Template')) {
+
+    function SendArFlowV10Template($to,$template_name,$language,$phone_numer_id,$token)
+    {
+
+        $arr = [
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $to,
+          'type' => 'template',
+          'template' => [
+                'name' => $template_name,
+                'language' => [
+                    'code' => $language
+                ],
+                'components' => [
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'PAYLOAD',
+                                'payload' => '1'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '2'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '3'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '3',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '4'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '4',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '5'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '5',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '6'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '6',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '7'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '7',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '8'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '8',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '9'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '9',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => '10'
+                            ]
+                        ],
+                    ]
+                ]
+           ],
+        ];
+
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
+
+        $client = new Client();
+
+        $response = $client->post($fullUrl, [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+            ],
+            'json' => $arr,
+        ]);
+
+        return $response;
+
+    }
+}
+

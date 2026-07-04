@@ -608,7 +608,7 @@ class HomeController extends Controller
 
                 $to = $mobile;
 
-                $template_name = 'wedding_data_v12_ar';
+                $template_name = 'wedding_data_v16_ar';
                 $language = 'ar';
 
                 $user_event = EventUsers::whereHas('event',function($event) { $event->whereIn('is_open',['yes','current']); })->where('mobile',$mobile)->orderBy('id','desc')->first();
@@ -793,7 +793,7 @@ class HomeController extends Controller
 
                 // $to = $mobile;
 
-                // $template_name = 'wedding_data_v12_ar';
+                // $template_name = 'wedding_data_v16_ar';
                 // $language = 'ar';
 
 

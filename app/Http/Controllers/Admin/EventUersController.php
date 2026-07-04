@@ -1576,7 +1576,7 @@ class EventUersController extends Controller
                                     'message'      => $template_name,
                                     'is_sent_by_me'=> true,
                                     'message_id'   => 0,
-                                    'from'         => $event->country_code,
+                                    'from'         => "Admin",
                                     "template_name" => $template_name,
                                     "event_user_id" => $user_event->id,
                                     "event_id" => $event->id,

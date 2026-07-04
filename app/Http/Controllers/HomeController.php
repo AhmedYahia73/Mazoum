@@ -321,7 +321,7 @@ class HomeController extends Controller
                     /* ******************************************************************************************************************************************* */
 
                     $available = max(1, (int)$user_event->users_count);
-                    $available = min($available, 9);
+                    $available = min($available, 10);
 
                     $template_name6 = 'flow_'.$available;
 

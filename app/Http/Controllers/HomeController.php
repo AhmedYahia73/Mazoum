@@ -321,7 +321,7 @@ class HomeController extends Controller
                     /* ******************************************************************************************************************************************* */
 
                     $available = max(1, (int)$user_event->users_count);
-                    $available = min($available, 10);
+                    $available = min($available, 9);
 
                     $template_name6 = 'flow_'.$available;
 
@@ -627,7 +627,7 @@ class HomeController extends Controller
             }
 
 
-            if(array_key_exists("wa_id", $data['entry'][0]['changes'][0]['value']['contacts'][0]) && (in_array($status, [1,2,3,4,5,6,7,8,9,10]) || in_array($status, ['1','2','3','4','5','6','7','8','9', '10']))) {
+            if(array_key_exists("wa_id", $data['entry'][0]['changes'][0]['value']['contacts'][0]) && (in_array($status, [1,2,3,4,5,6,7,8,9]) || in_array($status, ['1','2','3','4','5','6','7','8','9']))) {
 
                 $mobile = $data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id'];
 

@@ -409,6 +409,7 @@ Route::post('scan_qr', 'EventUersController@scan_qr');
 
 // send-event-location
 Route::get('send-event-location/{id}', 'EventUersController@send_event_location');
+Route::post('send-event-location/{id}', 'EventUersController@send_event_location');
 
 
 // event-report

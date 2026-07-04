@@ -1543,7 +1543,7 @@ class EventUersController extends Controller
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                             $param_4   = $event->address;
                             $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
-							$param_6   = $users_count;
+							$param_6   = $users_count > 10 ? 10 : $users_count;
 
                           	/*
                           	$phone_numer_id = '746157308570599';

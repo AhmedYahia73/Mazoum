@@ -3600,14 +3600,6 @@ class EventUersController extends Controller
         ->first();
         $Item = EventUsers::where('id', $qr_code->event_user_id)
         ->with("event")->first();
-        $user_data = User::
-        where("id", $Item->user_id)
-        ->first();
-        if(!$user_data){
-            $user_data = User::
-            where("id", $Item?->event?->user_id)
-            ->first();
-        } 
         $event = Events::where('id', $Item->event_id)->first();
         dd($event);
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;

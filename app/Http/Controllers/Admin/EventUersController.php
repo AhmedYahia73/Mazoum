@@ -3608,6 +3608,7 @@ class EventUersController extends Controller
             where("id", $Item?->event?->user_id)
             ->first();
         } 
+        dd($Item);
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
         if($request->users_count >= $available){
             return response()->json([

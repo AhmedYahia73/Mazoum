@@ -3596,7 +3596,7 @@ class EventUersController extends Controller
         // qr_id
         
         $qr_code = Qr_Code::
-        where("id",$request->qr_id)
+        where("uu_id",$request->qr_id)
         ->first();
         $Item = EventUsers::where('id', $qr_code->event_user_id)
         ->with("event")->first();

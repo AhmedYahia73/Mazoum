@@ -3600,7 +3600,10 @@ class EventUersController extends Controller
         ->first();
         $Item = EventUsers::
         where('id', $qr_code->event_user_id)
-        ->with("event")->first();
+        ->with(['event' => function($query) {
+            $query->withoutGlobalScopes(); 
+        }])
+        ->first();
         $user_data = User::
         where("id", $Item->user_id)
         ->first();

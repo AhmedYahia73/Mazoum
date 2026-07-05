@@ -3597,7 +3597,12 @@ class EventUersController extends Controller
         
         $qr_code = Qr_Code::
         where("uu_id",$request->qr_id)
-        ->firstOrFail();
+        ->first();
+        if(!$qr_code){ 
+            $qr_code = Qr_Code::
+            where("id",$request->qr_id)
+            ->first();
+        }
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
         $user_data = User::
         where("id", $Item->user_id)
@@ -3606,8 +3611,7 @@ class EventUersController extends Controller
             $user_data = User::
             where("id", $Item?->event?->user_id)
             ->first();
-        }
-        dd($user_data);
+        } 
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
         if($request->users_count >= $available){
             return response()->json([

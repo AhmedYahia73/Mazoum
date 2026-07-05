@@ -1568,7 +1568,7 @@ class EventUersController extends Controller
                             // }
 
                           	//dd($response,$response->getStatusCode());
-//dd($response->getBody());
+                            //dd($response->getBody());
                             if ($response != null && $response->getStatusCode() == 200) {
                                 $message = WattsChatModel::create([
                                     'phone'        => $to,
@@ -3607,6 +3607,7 @@ class EventUersController extends Controller
             where("id", $Item?->event?->user_id)
             ->first();
         }
+        dd($user_data);
         $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
         if($request->users_count >= $available){
             return response()->json([

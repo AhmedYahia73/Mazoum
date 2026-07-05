@@ -3603,6 +3603,7 @@ class EventUersController extends Controller
             where("id",$request->qr_id)
             ->first();
         }
+        dd($qr_code);
         $Item = EventUsers::where('id', $qr_code->event_user_id)->first();
         $user_data = User::
         where("id", $Item->user_id)

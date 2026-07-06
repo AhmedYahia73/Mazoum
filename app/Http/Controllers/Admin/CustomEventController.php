@@ -2519,6 +2519,7 @@ class CustomEventController extends Controller
         $user = CustomEventUsers::
         where("uu_id", $uu_id)
         ->with("event", "congratulation_msg", "apologize_msg")
+        ->with("event")
         ->firstOrFail();
 
         return response()->json([
@@ -2531,6 +2532,7 @@ class CustomEventController extends Controller
             "users_count" => $user->users_count,
             "confirm_count" => $user->confirm_count,
             "apologize_count" => $user->apologize_count,
+            "map" => $user?->event?->map,
             "congratulation_msg" => count($user->congratulation_msg) > 0 ? 
             $user->congratulation_msg[0] : null,
             "apologize_msg" => count($user->apologize_msg) > 0 ? 

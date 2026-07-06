@@ -834,7 +834,7 @@ class EventsController extends Controller
             $query->where("id", $user_id)
             ->orWhere("user_id", $user_id);
         })
-        ->get();
+        ->count();
 
         return response()->json([
             "Item" => $Item,
@@ -851,7 +851,7 @@ class EventsController extends Controller
             "not_confirm" => $not_confirm,
             "send_Qr" => $send_Qr,
             "faild_send" => $faild_send,
-            "event_host" => $event_host + 1,
+            "event_host" => $event_host,
         ]);
     }
 

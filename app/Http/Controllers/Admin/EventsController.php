@@ -828,6 +828,7 @@ class EventsController extends Controller
         where('event_id', $Item->id) 
         ->where('status', 'failed') 
         ->sum('users_count');
+        $user_id = $Item->user_id;
         $event_host = User::
         where(function($query) use($user_id){
             $query->where("id", $user_id)

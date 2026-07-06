@@ -108,6 +108,7 @@ class CustomEventController extends Controller
                 if(isset($arr['mobile'])){
                     $event_users = CustomEventUsers::
                     where('mobile', $arr['mobile'])
+                    ->where("custom_event_id", $event->id)
                     ->first();
                     if($event_users){
                         continue; 

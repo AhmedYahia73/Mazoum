@@ -42,6 +42,7 @@ if (! function_exists('log_sent_watts_message')) {
                 'is_sent_by_me' => true,
                 'message_id'    => $message_id,
                 'from'          => $from,
+                'phone_numer_id' => $phone_numer_id,
             ]);
         } catch (\Exception $e) {
             info('log_sent_watts_message error: ' . $e->getMessage());

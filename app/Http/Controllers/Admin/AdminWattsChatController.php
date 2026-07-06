@@ -14,7 +14,7 @@ class AdminWattsChatController extends Controller
     public function index(Request $request){
         $validator = Validator::make($request->all(), [
             'phone' => 'required',
-            'from' => 'required|in:sa,kw',
+            'phone_numer_id' => 'required',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -24,8 +24,8 @@ class AdminWattsChatController extends Controller
 
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $chatHistory = WattsChat::
-        where('phone', $phone) 
-        ->where('from', $request->from) 
+        where('phone', $phone)
+        ->where("phone_numer_id", $request->phone_numer_id)
         ->orderBy('created_at', 'asc')
         ->get();
 
@@ -79,6 +79,7 @@ class AdminWattsChatController extends Controller
                 'is_sent_by_me' => true, // هنا هيتحفظ كـ outgoing لو إنت اللي بعته من الواتساب
                 'message_id' => $messageId,
                 "my_phone" => $my_phone,
+                "phone_numer_id" => $phoneNumberId,
             ]);
 
             return response()->json([

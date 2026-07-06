@@ -19,5 +19,6 @@ class WattsChat extends Model
         "from",
         "event_user_id",
         "event_id",
+        "phone_numer_id",
     ];
 }

@@ -1059,6 +1059,7 @@ class HomeController extends Controller
         // 1. التحقق من البيانات القادمة من الموقع
         
         $validator = Validator::make($request->all(), [
+            'phone'   => 'required',
             'phone_numer_id'   => 'required',
             'message' => 'required|string', 
         ]);

@@ -13,10 +13,10 @@ use App\Models\EventUserLogs;
 use App\Models\EventUsers;
 use App\Models\Logs;
 use App\Models\Notifications;
+use App\Models\NewSetting;
 use App\Models\Orders;
 use App\Models\Parking;
-use App\Models\Pricing;
-use App\Models\NewSetting;
+use App\Models\Pricing; 
 use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\WattsChat as WattsChatModel;
@@ -1059,23 +1059,19 @@ class HomeController extends Controller
         // 1. التحقق من البيانات القادمة من الموقع
         
         $validator = Validator::make($request->all(), [
-            'phone'   => 'required',
-            'message' => 'required|string',
-            "from" => "required|in:kw,sa",
+            'phone_numer_id'   => 'required',
+            'message' => 'required|string', 
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         } 
 
+        $new_setting = NewSetting::
+        where("phone_numer_id", $request->phone_numer_id)
+        ->first();
         $settings = Setting::first();
-        if($request->from == "kw"){
-            $phone_numer_id = $settings->phone_numer_id;
-            $watts_token = $settings->access_token;
-        }
-        else{
-            $phone_numer_id = $settings->sa_phone_numer_id;
-            $watts_token = $settings->sa_access_token;
-        }
+        $phone_numer_id = $new_setting->phone_numer_id;
+        $watts_token = $settings->access_token;
         $customerPhone = $request->phone;
         $messageText = $request->message;
 

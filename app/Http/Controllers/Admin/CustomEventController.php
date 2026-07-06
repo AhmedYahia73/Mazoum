@@ -105,6 +105,14 @@ class CustomEventController extends Controller
 
             foreach ($request->event_users as $arr) {
 
+                if(isset($arr['mobile'])){
+                    $event_users = CustomEventUsers::
+                    where('mobile', $arr['mobile'])
+                    ->first();
+                    if($event_users){
+                        continue; 
+                    }
+                }
                 if($arr['name'] != null && $arr['users_count'] != null && is_numeric($arr['users_count'])) {
 
                     $uu_id = uniqid();

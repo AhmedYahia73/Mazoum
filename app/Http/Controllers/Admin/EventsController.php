@@ -833,7 +833,7 @@ class EventsController extends Controller
         where(function($query) use($user_id){
             $query->where("id", $user_id)
             ->orWhere("user_id", $user_id);
-        })
+        }) 
         ->count();
 
         return response()->json([

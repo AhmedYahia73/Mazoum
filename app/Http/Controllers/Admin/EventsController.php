@@ -834,9 +834,6 @@ class EventsController extends Controller
             $query->where("id", $user_id)
             ->orWhere("user_id", $user_id);
         })
-        ->whereHas("event_users", function($query) use($Item){
-            $query->where("event_id", $Item->id);
-        })
         ->count();
 
         return response()->json([

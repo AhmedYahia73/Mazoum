@@ -333,9 +333,7 @@ class EventUersController extends Controller
         }
 
     }
-
-
-
+   
   	// send_event_users
     public function update_user_mobile(Request $request)
     {
@@ -1519,8 +1517,7 @@ class EventUersController extends Controller
                             $image_url = $image_path;
                             $user_name = $user_event->name;
 
-                            $token          = get_whats_setting($event)['token'];
-                            $sender_id      = $this->get_phone_id($request->phone_setting_id);
+                            $token          = get_whats_setting($event)['token']; 
                             $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
                             $param_1   = $user_name;
@@ -1530,6 +1527,7 @@ class EventUersController extends Controller
                             $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
 							$param_6   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
+                            dd($phone_number);
                             $event->update([
                                 "phone_number" => $phone_number
                             ]);

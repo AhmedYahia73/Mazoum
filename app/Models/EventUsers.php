@@ -19,7 +19,7 @@ class EventUsers extends Model
         'is_sent', 'is_delivered', 'qr_sent', 'is_accepted', 'is_refused' , 'log' , 'sent_from' , 'is_read',
         'error_title', 'error','confirmed_at','is_open','is_new_sent','scan_count',
         'is_send_congratulation','code', "send_type", "accept_count",
-        "send_time", "accept_time", "user_id"
+        "send_time", "accept_time", "user_id", "phone_number"
     ];
 
     public function enter()

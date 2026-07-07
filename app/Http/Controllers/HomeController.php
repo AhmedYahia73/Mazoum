@@ -1102,6 +1102,7 @@ class HomeController extends Controller
                 'is_sent_by_me' => true,    // مهم جداً لتمييز إنك المُرسل
                 'message_id'    => $messageId,
                 "from"          => $request->from,
+                "phone_numer_id" => $new_setting->phone_numer_id,
             ]);
 
             // إطلاق الـ Event عشان الشات يتحدث في الـ Frontend (Real-time)

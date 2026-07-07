@@ -91,6 +91,8 @@ class Admin
                     "admin/custom_events/apologize_msg/*",
                     "admin/custom_events/status/*",
                     "admin/events/*",
+                    "admin/phone_setting/lists",
+                    "admin/events/*",
                     "admin/events/*/*",
                     "admin/sa-events",
                     "admin/closed-events",

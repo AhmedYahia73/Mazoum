@@ -6,11 +6,14 @@ use App\Models\EventUsers;
 use App\Models\Setting;
 
 
-
 if (! function_exists('SendCarMsgTemplate')) {
 
-    function SendCarMsgTemplate($to,$template_name,$language,$image_url,$param1,$param2,$param3,$phone_numer_id,$token)
+    function SendCarMsgTemplate($to, $template_name, $language, $image_url, $param1, $param2, $param3, $phone_numer_id, $token)
     {
+        // تحويل القيم إلى نصوص بشكل صريح لضمان عدم إرسال null أو مصفوفة تسبب خطأ الـ Schema
+        $p1 = is_array($param1) ? json_encode($param1, JSON_UNESCAPED_UNICODE) : (string)($param1 ?? '');
+        $p2 = is_array($param2) ? json_encode($param2, JSON_UNESCAPED_UNICODE) : (string)($param2 ?? '');
+        $p3 = is_array($param3) ? json_encode($param3, JSON_UNESCAPED_UNICODE) : (string)($param3 ?? '');
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -39,15 +42,15 @@ if (! function_exists('SendCarMsgTemplate')) {
                         'parameters' => [
                             [
                                 'type' => 'text',
-                                'text' => $param1
+                                'text' => $p1
                             ],
                             [
                                 'type' => 'text',
-                                'text' => $param2
+                                'text' => $p2
                             ],
                             [
                                 'type' => 'text',
-                                'text' => $param3
+                                'text' => $p3
                             ]
                         ],
                     ],
@@ -57,17 +60,17 @@ if (! function_exists('SendCarMsgTemplate')) {
 
         $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
 
-        $client = new Client();
+        $client = new \GuzzleHttp\Client();
 
         $response = $client->post($fullUrl, [
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
+                'Content-Type'   => 'application/json',
             ],
             'json' => $arr,
         ]);
 
         return $response;
-
     }
 }
 

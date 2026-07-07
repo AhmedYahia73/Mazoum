@@ -1527,8 +1527,9 @@ class EventUersController extends Controller
                             $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
 							$param_6   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
-                            dd($phone_number);
-                            $event->update([
+                            
+                            Events::where('id', $event_id)
+                            ->update([
                                 "phone_number" => $phone_number
                             ]);
                           	/*

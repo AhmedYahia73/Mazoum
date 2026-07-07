@@ -13,6 +13,7 @@ class NewSetting extends Model
         'phone_numer_id', 
         'sender_id',
         'country_id',
+        'phone_number',
         'status',
     ];
 

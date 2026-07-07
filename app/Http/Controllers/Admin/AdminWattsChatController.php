@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\WattsChat;
+use App\Models\NewSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +15,7 @@ class AdminWattsChatController extends Controller
     public function index(Request $request){
         $validator = Validator::make($request->all(), [
             'phone' => 'required',
-            'phone_numer_id' => 'required',
+            'phone_numer_id' => 'required|exists:new_settings,id',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -22,10 +23,11 @@ class AdminWattsChatController extends Controller
             ],400);
         }
 
+        $setting = NewSetting::find($request->phone_numer_id);
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $chatHistory = WattsChat::
         where('phone', $phone)
-        ->where("phone_numer_id", $request->phone_numer_id)
+        ->where("phone_numer_id", $setting->phone_numer_id)
         ->orderBy('created_at', 'asc')
         ->get();
 

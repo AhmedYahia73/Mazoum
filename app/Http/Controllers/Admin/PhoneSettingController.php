@@ -45,6 +45,7 @@ class PhoneSettingController extends Controller
             'sender_id'   => 'required',
             'country_id' => 'required|exists:countries,id',
             'status' => 'required|boolean',
+            'phone_number' => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
@@ -55,6 +56,7 @@ class PhoneSettingController extends Controller
             'sender_id' => $request->sender_id,
             'country_id' => $request->country_id,
             'status' => $request->status,
+            "phone_number" => $request->phone_number,
         ]);
 
         return response()->json(['success' => 'You add data success', 'item' => $item]);
@@ -73,6 +75,7 @@ class PhoneSettingController extends Controller
             'sender_id'   => 'required',
             'country_id' => 'required|exists:countries,id',
             'status' => 'required|boolean',
+            'phone_number' => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
@@ -84,6 +87,7 @@ class PhoneSettingController extends Controller
             'sender_id' => $request->sender_id,
             'country_id' => $request->country_id,
             'status' => $request->status,
+            'phone_number' => $request->phone_number,
         ]);
 
         return response()->json(['success' => 'You update data success', 'item' => $item]);

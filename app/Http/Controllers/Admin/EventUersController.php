@@ -1528,8 +1528,7 @@ class EventUersController extends Controller
 							$param_6   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
                             
-                            Events::where('id', $event_id)
-                            ->update([
+                            $user_event->update([
                                 "phone_number" => $phone_number
                             ]);
                           	/*

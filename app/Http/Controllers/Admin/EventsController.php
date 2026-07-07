@@ -1303,7 +1303,7 @@ class EventsController extends Controller
 
     public function phones_lists(){
         $data = NewSetting::
-        select("id", "phone_numer_id", "country_id")
+        select("id", "phone_numer_id", "country_id", "phone_number")
         ->where("status", true)
         ->with("country")
         ->get()
@@ -1311,6 +1311,7 @@ class EventsController extends Controller
             return [
                 "id" => $item->id,
                 "phone_numer_id" => $item->phone_numer_id,
+                "phone_number" => $item->phone_number,
                 "country_name" => $item?->country?->name ?? null
             ];
         });

@@ -21,6 +21,7 @@ class PhoneSettingController extends Controller
                 'phone_numer_id' => $item->phone_numer_id,
                 'sender_id' => $item->sender_id,
                 'country_id' => $item->country_id,
+                'phone_number' => $item->phone_number,
                 'country_name' => $item->country?->name, // استخدام Safe Navigation Operator (?->) أفضل وأقصر
                 'status' => $item->status,
             ];

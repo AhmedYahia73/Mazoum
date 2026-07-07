@@ -1060,7 +1060,7 @@ class HomeController extends Controller
         
         $validator = Validator::make($request->all(), [
             'phone'   => 'required',
-            'phone_numer_id'   => 'required',
+            'phone_numer_id'   => 'required|exists:new_settings,id',
             'message' => 'required|string', 
         ]);
         if ($validator->fails()) {
@@ -1068,7 +1068,7 @@ class HomeController extends Controller
         } 
 
         $new_setting = NewSetting::
-        where("phone_numer_id", $request->phone_numer_id)
+        where("id", $request->phone_numer_id)
         ->first();
         $settings = Setting::first();
         $phone_numer_id = $new_setting->phone_numer_id;

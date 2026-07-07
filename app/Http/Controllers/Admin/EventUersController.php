@@ -31,8 +31,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class EventUersController extends Controller
 {
-
-
     public function get_lang()
     {
         $lang = session()->get('admin_lang');
@@ -43,7 +41,6 @@ class EventUersController extends Controller
             return 'ar';
         }
     }
-
 
     public function import(Request $request)
     {
@@ -93,8 +90,7 @@ class EventUersController extends Controller
         return response()->json([
             'success' => 'imported successfully!', 
         ]);
-    }
-
+    } 
 
     public function import_users(Request $request)
     {
@@ -146,8 +142,7 @@ class EventUersController extends Controller
         return response()->json([
             'success' => 'imported successfully!', 
         ]);
-    }
-
+    } 
 
     public function event_chat_details($event_user_id) {
 
@@ -170,8 +165,7 @@ class EventUersController extends Controller
             'varibles' => $varibles, 
         ]);
 
-    }
-
+    } 
 
     // new-send-event-invitation
     public function new_send_event_invitation(Request $request) {
@@ -386,10 +380,7 @@ class EventUersController extends Controller
             dd($e->getMessage(), $e->getLine());
         }
 
-    }
-
-
-
+    } 
 
   	// delete_selected_event_users
     public function delete_selected_event_users(Request $request) {
@@ -423,9 +414,7 @@ class EventUersController extends Controller
             ]);
         }
 
-    }
-
-
+    } 
 
   	// delete_messages
     public function delete_messages(Request $request) {
@@ -471,10 +460,6 @@ class EventUersController extends Controller
         }
 
     }
-
-
-
-
 
 	// send_event_users
     public function remember_users_to_event(Request $request)
@@ -1544,7 +1529,10 @@ class EventUersController extends Controller
                             $param_4   = $event->address;
                             $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
 							$param_6   = $users_count > 10 ? 10 : $users_count;
-
+                            $phone_number = $this->get_phone_number($request->phone_setting_id);
+                            $event->update([
+                                "phone_number" => $phone_number
+                            ]);
                           	/*
                           	$phone_numer_id = '746157308570599';
                             $sender_id      = '746157308570599';
@@ -3898,6 +3886,14 @@ class EventUersController extends Controller
             return Setting::first()?->phone_numer_id ?? null;
         }
         return $data->phone_numer_id;
+    }
+
+    private function get_phone_number($id){
+        $data = NewSetting::
+        where("id", $id)
+        ->first();
+        
+        return $data->phone_number;
     }
 }
 

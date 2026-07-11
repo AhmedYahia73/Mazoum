@@ -652,7 +652,7 @@ class EventsController extends Controller
                 $query->where("qr_sent", "yes");
             } 
             else {
-                $query->where("qr_sent", function($query1){
+                $query->where(function($query1){
                     $query1->whereNull("qr_sent")
                     ->orWhere("qr_sent", "!=", "yes");
                 }); 

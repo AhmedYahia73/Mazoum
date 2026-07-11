@@ -81,7 +81,11 @@ class ApiEventsController extends Controller
         }
 
         $Item = Model::where('id', $id)->where(function ($query) use ($user) {
-              $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
+              $query->where('user_id', $user->id)
+              ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+              })
+              ->orWhere('assistant_id',$user->id);
         })->select([
             'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
             'resend_qr'

@@ -194,6 +194,12 @@ Route::resource('events', 'EventsController', [
 Route::post('events/{id}', 'EventsController@update');
 Route::get('sa-events', 'EventsController@sa_events');
 
+Route::get('events/phones_lists', 'EventsController@phones_lists');
+Route::get('events/all_events', 'EventsController@all_events');
+Route::get('events/all_current_events', 'EventsController@all_current_events');
+Route::get('events/all_closed_events', 'EventsController@all_closed_events');
+Route::get('events/all_deleted_events', 'EventsController@all_deleted_events');
+
 
 Route::patch('events/update_event_package/{id}', 'EventsController@update_event_package')->name('admin.events.update_event_package');
 

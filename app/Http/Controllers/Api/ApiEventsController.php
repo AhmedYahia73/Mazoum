@@ -894,6 +894,8 @@ class ApiEventsController extends Controller
             return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
         }
 
+        $user_status = $Item->user_id == $user->id;
+        $user_id = $user->id;
         $search = $request->search;
         $perPage = $request->per_page ?? 15;
 
@@ -979,6 +981,7 @@ class ApiEventsController extends Controller
             case 'non_attendance_users':
                 $data = EventUsers::where('event_id', $Item->id)
                     ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
+                    
                     ->get($baseFields)
                     ->map(function ($item) {
                         $attendance = $item->accept_count - $item->scan_count;
@@ -1011,6 +1014,7 @@ class ApiEventsController extends Controller
                 ]);
 
             case 'enterd_events':
+                
                 $familyQuery = EventFamily::where('event_id', $Item->id)
                     ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"));
                 $paged = $familyQuery->paginate($perPage);
@@ -1062,6 +1066,16 @@ class ApiEventsController extends Controller
         };
 
         $count = (clone $query)->sum($countCol);
+        if($type == "all_invited_users" ||$type == "invitations_not_sent_users" ||
+            $type == "confirmed_invitatios_users" ||$type == "scaned_qr_users" ||
+            $type == "apologized_invitatios_users" ||$type == "failed_invitatios_users" ||
+            $type == "send_Qr" ||$type == "confirm_web_users" || $type == "non_attendance_users"){
+            $query = !$user_status ? $query->where("user_id", $user_id): 
+            $query->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            });
+        }
         $paged = $query->paginate($perPage, $baseFields);
 
         return $this->returnData('data', [
@@ -1097,10 +1111,6 @@ class ApiEventsController extends Controller
         } 
  
         $user_status = $Item->user_id == $user->id;
-        $event_id = $Item->id;
-        $event_host = User::
-        where("id", $user->id) 
-        ->first();
         $user_id = $user->id;
         $all_invited_users = EventUsers::where('event_id', $Item->id);
             $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('accept_count'): 

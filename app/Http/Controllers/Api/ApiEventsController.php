@@ -872,7 +872,7 @@ class ApiEventsController extends Controller
      */
 
     public function event_users_list(Request $request, $id, $type)
-    {
+    {2
         if ($this->token == null) {
             return $this->returnError('E100', 'المستخدم مطلوب');
         }
@@ -1083,7 +1083,10 @@ class ApiEventsController extends Controller
         }
  
         $Item = Model::where('id', $id)->where(function ($query) use ($user) {
-              $query->where('user_id', $user->id)->orWhere('assistant_id',$user->id);
+              $query->where(function($q) use($user){
+                    $q->where("user_id", $user->id)
+                    ->orWhereNull("user_id");
+                })->orWhere('assistant_id',$user->id);
         })->select([
             'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
             'resend_qr'

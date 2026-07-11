@@ -648,7 +648,7 @@ class EventsController extends Controller
             $query->where("status", $request->status);
         }
         if($request->qr_sent){
-            if($request->qr_sent == "true" || $request->qr_sent) {
+            if($request->qr_sent == "true" || $request->qr_sent === true) {
                 $query->where("qr_sent", "yes");
             } 
             else {

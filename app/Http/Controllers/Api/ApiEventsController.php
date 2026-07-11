@@ -1177,7 +1177,6 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user_id);
             })
             ->sum('accept_count'); 
-        $non_attendance_users = $confirmed_invitatios_users - $scaned_qr_users;
         $enterd_events = EventFamily::where('event_id', $Item->id)
         ->count(); 
         $scan_enterd_events = EventFamily::where('event_id', $Item->id)
@@ -1203,7 +1202,6 @@ class ApiEventsController extends Controller
             "failed_invitatios_users" => intval($failed_invitatios_users), 
             "send_Qr" => intval($send_Qr), 
             "confirm_web_users" => intval($confirm_web_users), 
-            "non_attendance_users" => intval($non_attendance_users), 
             "enterd_events" => intval($enterd_events),
             "scan_enterd_events" => intval($scan_enterd_events), 
             "not_scan_enterd_events" => intval($not_scan_enterd_events),

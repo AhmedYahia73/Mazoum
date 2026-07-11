@@ -872,7 +872,7 @@ class ApiEventsController extends Controller
      */
 
     public function event_users_list(Request $request, $id, $type)
-    {2
+    {
         if ($this->token == null) {
             return $this->returnError('E100', 'المستخدم مطلوب');
         }
@@ -1083,10 +1083,10 @@ class ApiEventsController extends Controller
         }
  
         $Item = Model::where('id', $id)->where(function ($query) use ($user) {
-              $query->where(function($q) use($user){
-                    $q->where("user_id", $user->id)
-                    ->orWhereNull("user_id");
-                })->orWhere('assistant_id',$user->id);
+              $query->where('user_id', $user->id)   
+              ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+              })->orWhere('assistant_id',$user->id);
         })->select([
             'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
             'resend_qr'
@@ -1097,23 +1097,43 @@ class ApiEventsController extends Controller
         } 
  
         $all_invited_users = EventUsers::where('event_id', $Item->id)
+                ->where(function($q) use($user){
+                    $q->where("user_id", $user->id)
+                    ->orWhereNull("user_id");
+                })
             ->sum("users_count");   
         $invitations_not_sent_users = EventUsers::where('event_id', $Item->id)
+                ->where(function($q) use($user){
+                    $q->where("user_id", $user->id)
+                    ->orWhereNull("user_id");
+                })
             ->where('status', 'hold')
             ->where('is_new_sent', 0)
             ->whereNull('is_sent')
             ->sum('users_count');
         $confirmed_invitatios_users = EventUsers::
             where('event_id', $Item->id) 
+            ->where(function($q) use($user){
+                $q->where("user_id", $user->id)
+                ->orWhereNull("user_id");
+            })
             ->sum('accept_count'); 
 
         $scaned_qr_users = EventUsers::
             where('event_id',$Item->id)
             ->where('scan','yes')
+            ->where(function($q) use($user){
+                $q->where("user_id", $user->id)
+                ->orWhereNull("user_id");
+            })
             ->sum('scan_count');
         $apologized_invitatios_users = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend')
+        ->where(function($q) use($user){
+            $q->where("user_id", $user->id)
+            ->orWhereNull("user_id");
+        })
         ->sum('users_count'); 
         $failed_invitatios_users = EventUsers::where('event_id', $Item->id)
             ->where('accept_count', 0)
@@ -1121,14 +1141,26 @@ class ApiEventsController extends Controller
                 $q->where('is_new_sent', '!=', 0)
                     ->where('status', '!=', 'hold')
                     ->whereNotNull('is_sent');
+            })          
+            ->where(function($q) use($user){
+                $q->where("user_id", $user->id)
+                ->orWhereNull("user_id");
             })
             ->sum('users_count');
         $send_Qr = EventUsers::where('event_id', $Item->id)
             ->where('qr_sent', 'yes')
+            ->where(function($q) use($user){
+                $q->where("user_id", $user->id)
+                ->orWhereNull("user_id");
+            })
             ->sum('accept_count'); 
         $confirm_web_users = EventUsers::where('event_id', $Item->id)
             ->where('send_type', 'link')
             ->where('qr_sent', 'yes')
+            ->where(function($q) use($user){
+                $q->where("user_id", $user->id)
+                ->orWhereNull("user_id");
+            })
             ->sum('accept_count'); 
         $non_attendance_users = $confirmed_invitatios_users - $scaned_qr_users;
         $enterd_events = EventFamily::where('event_id', $Item->id)

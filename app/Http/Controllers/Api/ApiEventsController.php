@@ -883,7 +883,11 @@ class ApiEventsController extends Controller
         }
 
         $Item = Model::where('id', $id)->where(function ($q) use ($user) {
-            $q->where('user_id', $user->id)->orWhere('assistant_id', $user->id);
+            $q->where('user_id', $user->id)
+            ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+              })
+              ->orWhere('assistant_id', $user->id);
         })->first();
 
         if (!$Item) {

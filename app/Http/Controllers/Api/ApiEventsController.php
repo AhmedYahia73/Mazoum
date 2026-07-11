@@ -904,29 +904,46 @@ class ApiEventsController extends Controller
         switch ($type) {
 
             case 'all_invited_users':
-                $query = EventUsers::where('event_id', $Item->id);
+                $query = EventUsers::where('event_id', $Item->id)
+                ->where(function($q) use($user){
+                    $q->where("user_id", $user->id)
+                    ->orWhereNull("user_id");
+                });
                 break;
 
             case 'invitations_not_sent_users':
                 $query = EventUsers::where('event_id', $Item->id)
                     ->where('status', 'hold')
                     ->where('is_new_sent', 0)
-                    ->whereNull('is_sent');
+                    ->whereNull('is_sent')
+                    ->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'confirmed_invitatios_users':
                 $query = EventUsers::where('event_id', $Item->id)
-                    ->where('is_accepted', 'yes');
+                    ->where('is_accepted', 'yes')->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'scaned_qr_users':
                 $query = EventUsers::where('event_id', $Item->id)
-                    ->where('scan', 'yes');
+                    ->where('scan', 'yes')->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'apologized_invitatios_users':
                 $query = EventUsers::where('event_id', $Item->id)
-                    ->where('status', 'not-attend');
+                    ->where('status', 'not-attend')->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'failed_invitatios_users':
@@ -936,18 +953,27 @@ class ApiEventsController extends Controller
                         $q->where('is_new_sent', '!=', 0)
                           ->where('status', '!=', 'hold')
                           ->whereNotNull('is_sent');
+                    })->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
                     });
                 break;
 
             case 'send_Qr':
                 $query = EventUsers::where('event_id', $Item->id)
-                    ->where('qr_sent', 'yes');
+                    ->where('qr_sent', 'yes')->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'confirm_web_users':
                 $query = EventUsers::where('event_id', $Item->id)
                     ->where('send_type', 'link')
-                    ->where('qr_sent', 'yes');
+                    ->where('qr_sent', 'yes')->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    });
                 break;
 
             case 'non_attendance_users':
@@ -961,6 +987,10 @@ class ApiEventsController extends Controller
                         return $item;
                     })
                     ->where('available', '>', 0)
+                    ->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    })
                     ->values();
 
                 $page    = $request->page ?? 1;

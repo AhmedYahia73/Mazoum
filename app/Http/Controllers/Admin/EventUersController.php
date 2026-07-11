@@ -593,6 +593,7 @@ class EventUersController extends Controller
                                         "template_name" => $template_name,
                                         "event_user_id" => $user_event->id,
                                         "event_id" => $event->id,
+                                        "phone_numer_id" => $phone_numer_id,
                                     ]);
 
                                 } else {
@@ -911,6 +912,7 @@ class EventUersController extends Controller
                                         "template_name" => $template_name,
                                         "event_user_id" => $user_event->id,
                                         "event_id" => $event->id,
+                                        "phone_numer_id" => $phone_numer_id,
                                     ]);
                                     $body = $response->getBody();
                                     $data = json_decode($body, true);
@@ -1566,6 +1568,7 @@ class EventUersController extends Controller
                                     "template_name" => $template_name,
                                     "event_user_id" => $user_event->id,
                                     "event_id" => $event->id,
+                                    "phone_numer_id" => $phone_numer_id,
                                 ]);
                                 $user->update([
                                     'balance' => $user->balance - $users_count
@@ -1795,6 +1798,7 @@ class EventUersController extends Controller
                     "template_name" => $template_name,
                     "event_user_id" => $user_event->id,
                     "event_id" => $event->id,
+                    "phone_numer_id" => $phone_numer_id,
                 ]);
             }
         }
@@ -1949,6 +1953,7 @@ class EventUersController extends Controller
                 "template_name" => $template_name,
                 "event_user_id" => $user_event->id,
                 "event_id" => $event->id,
+                "phone_numer_id" => $phone_numer_id,
             ]);
           $user_event->update([ 'qr_sent' => 'yes'  ]);
 
@@ -2996,6 +3001,7 @@ class EventUersController extends Controller
                     "template_name" => $template_name,
                     "event_user_id" => $user_event->id,
                     "event_id" => $event->id,
+                    "phone_numer_id" => $phone_numer_id,
                 ]);
             }
         }
@@ -3144,6 +3150,7 @@ class EventUersController extends Controller
                 "template_name" => $template_name,
                 "event_user_id" => $user_event->id,
                 "event_id" => $event->id,
+                "phone_numer_id" => $phone_numer_id,
             ]);
             $arr[] = $user_event->name;
           }
@@ -3263,6 +3270,7 @@ class EventUersController extends Controller
                                         "template_name" => $template_name,
                                         "event_user_id" => $user_event->id,
                                         "event_id" => $event->id,
+                                        "phone_numer_id" => $phone_numer_id,
                                     ]);
 
                                 } else {
@@ -3827,6 +3835,7 @@ class EventUersController extends Controller
                         "template_name" => $template_name,
                         "event_user_id" => $user->id,
                         "event_id" => $event->id,
+                        "phone_numer_id" => $phone_numer_id,
                     ]);
                     //dd($data);
                     // dd(11,$response_data,json_decode($response_data,true));

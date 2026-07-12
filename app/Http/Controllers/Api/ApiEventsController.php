@@ -1103,7 +1103,7 @@ class ApiEventsController extends Controller
               })->orWhere('assistant_id',$user->id);
         })->select([
             'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
-            'resend_qr'
+            'resend_qr', 'user_id'
         ])->first();
 
         if (!$Item) {
@@ -1111,11 +1111,7 @@ class ApiEventsController extends Controller
         } 
  
         $user_status = $Item->user_id == $user->id;
-        $user_id = $user->id;
-            return response()->json([
-                "Item" => $Item,
-                "user" => $user->id,
-            ]);
+        $user_id = $user->id; 
         $all_invited_users = EventUsers::where('event_id', $Item->id);
             $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('accept_count'): 
             $all_invited_users->where(function($query) use($user_id){

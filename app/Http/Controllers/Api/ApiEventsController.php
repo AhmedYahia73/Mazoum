@@ -1118,7 +1118,10 @@ class ApiEventsController extends Controller
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             })
-            ->sum("users_count");   
+            ->sum("users_count");
+            return response()->json([
+                "all_invited_users" => $all_invited_users
+            ]);
         $invitations_not_sent_users = EventUsers::where('event_id', $Item->id);
                 
             $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users->where("user_id", $user_id)->sum('accept_count'): 

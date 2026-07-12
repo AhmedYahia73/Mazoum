@@ -1113,7 +1113,7 @@ class ApiEventsController extends Controller
         $user_status = $Item->user_id == $user->id;
         $user_id = $user->id; 
         $all_invited_users = EventUsers::where('event_id', $Item->id);
-            $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('accept_count'): 
+            $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('users_count'): 
             $all_invited_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
@@ -1121,7 +1121,7 @@ class ApiEventsController extends Controller
             ->sum("users_count");
         $invitations_not_sent_users = EventUsers::where('event_id', $Item->id);
                 
-            $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users->where("user_id", $user_id)->sum('accept_count'): 
+            $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users->where("user_id", $user_id)->sum('users_count'): 
             $invitations_not_sent_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
@@ -1142,7 +1142,7 @@ class ApiEventsController extends Controller
         $scaned_qr_users = EventUsers::
             where('event_id',$Item->id)
             ->where('scan','yes');
-            $scaned_qr_users = !$user_status ? $scaned_qr_users->where("user_id", $user_id)->sum('accept_count'): 
+            $scaned_qr_users = !$user_status ? $scaned_qr_users->where("user_id", $user_id)->sum('scan_count'): 
             $scaned_qr_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
@@ -1151,7 +1151,7 @@ class ApiEventsController extends Controller
         $apologized_invitatios_users = EventUsers::
         where('event_id',$Item->id)
         ->where('status','not-attend');
-            $apologized_invitatios_users = !$user_status ? $apologized_invitatios_users->where("user_id", $user_id)->sum('accept_count'): 
+            $apologized_invitatios_users = !$user_status ? $apologized_invitatios_users->where("user_id", $user_id)->sum('users_count'): 
             $apologized_invitatios_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
@@ -1164,6 +1164,11 @@ class ApiEventsController extends Controller
                 $query->where('is_new_sent', "!=", 0)
                 ->orWhere('status', "!=", 'hold')
                 ->orWhereNotNull('is_sent'); 
+            });
+            $failed_invitatios_users = !$user_status ? $failed_invitatios_users->where("user_id", $user_id)->sum('users_count'): 
+            $failed_invitatios_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
             })
             ->sum('users_count');
         $send_Qr = EventUsers::where('event_id', $Item->id)

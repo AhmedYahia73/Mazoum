@@ -1113,7 +1113,7 @@ class ApiEventsController extends Controller
         $user_status = $Item->user_id == $user->id;
         $user_id = $user->id;
             return response()->json([
-                "Item" => $Item->user_id,
+                "Item" => $Item,
                 "user" => $user->id,
             ]);
         $all_invited_users = EventUsers::where('event_id', $Item->id);

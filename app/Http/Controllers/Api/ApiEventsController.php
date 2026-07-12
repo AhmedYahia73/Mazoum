@@ -1118,7 +1118,7 @@ class ApiEventsController extends Controller
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             })
-            ->sum("users_count");
+            ->count();
             return response()->json([
                 "all_invited_users" => $all_invited_users
             ]);

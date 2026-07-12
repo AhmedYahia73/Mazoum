@@ -1007,6 +1007,7 @@ class EventUersController extends Controller
             'event_users.*.name' => 'required',
             'event_users.*.mobile' => 'required|numeric',
           	'event_users.*.users_count' => 'required|numeric|min:1',
+            'event_users.*.suit_num' => 'numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1033,6 +1034,7 @@ class EventUersController extends Controller
                         'mobile' => ltrim($arr['mobile'],"+"),
                         'users_count' => $arr['users_count'],
                         'status' => 'hold', 
+                        'suit_num' => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
                   }
@@ -1059,6 +1061,7 @@ class EventUersController extends Controller
             'event_users.*.name' => 'required',
             'event_users.*.mobile' => 'required|numeric',
           	'event_users.*.users_count' => 'required|numeric|min:1',
+            'event_users.*.suit_num' => 'numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1086,6 +1089,7 @@ class EventUersController extends Controller
                         'users_count' => $arr['users_count'],
                         'status' => 'hold',
                         "user_id" => $request->user_id,
+                        "suit_num" => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
                   }
@@ -1113,6 +1117,7 @@ class EventUersController extends Controller
             'old_event_users.*.name' => 'required',
             'old_event_users.*.mobile' => 'required|numeric',
             'old_event_users.*.users_count' => 'required|numeric|min:0',
+            'old_event_users.*.suit_num' => 'numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -1144,6 +1149,7 @@ class EventUersController extends Controller
                         'name' => $item['name'],
                         'mobile' => $mobile,
                         'users_count' => $item['users_count'],
+                        'suit_num' => isset($item['suit_num']) ? $item['suit_num'] : 0,
                     ]);
 
                     ////////////////////////////////////////////////////////////////////////////

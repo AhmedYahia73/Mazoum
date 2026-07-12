@@ -1159,15 +1159,11 @@ class ApiEventsController extends Controller
         ->sum('users_count'); 
         $failed_invitatios_users = EventUsers::where('event_id', $Item->id)
             ->where('accept_count', 0)
-            ->where(function ($q) {
-                $q->where('is_new_sent', '!=', 0)
-                    ->where('status', '!=', 'hold')
-                    ->whereNotNull('is_sent');
-            });
-            $failed_invitatios_users = !$user_status ? $failed_invitatios_users->where("user_id", $user_id)->sum('accept_count'): 
-            $failed_invitatios_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
+            ->where('status', "!=", 'not-attend')
+            ->where(function($query) { 
+                $query->where('is_new_sent', "!=", 0)
+                ->orWhere('status', "!=", 'hold')
+                ->orWhereNotNull('is_sent'); 
             })
             ->sum('users_count');
         $send_Qr = EventUsers::where('event_id', $Item->id)

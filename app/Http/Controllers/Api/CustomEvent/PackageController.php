@@ -1089,12 +1089,19 @@ class PackageController extends Controller
             $user_count_label = 'عدد الضيوف ' . $row->users_count;
             $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
             $name2 = $Arabic2->utf8Glyphs($user_count_label);
+            if($row->suit_num && $row->suit_num != 0){
+                $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
+                $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $row->suit_num);
+            }
             
             $font_path = public_path('font/DroidArabicKufiRegular.ttf');
         } else {
             $name = $row->name;
             $name2 = 'Entered Users ' . $row->users_count;
             $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+            if($row->suit_num && $row->suit_num != 0){
+                $name3     = "Suit Num " . $row->suit_num;
+            }
         }
 
         // مركز الصورة للنص
@@ -1124,6 +1131,17 @@ class PackageController extends Controller
                 $font->align('center');
                 $font->valign('top');
             });
+            $text_y += 25;
+        }
+
+        if ($name3) {
+            $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                $font->file($font_path);
+                $font->size(20);
+                $font->color($text_color);
+                $font->align('center');
+                $font->valign('top');
+            }); 
         }
 
         // حفظ الصورة النهائية

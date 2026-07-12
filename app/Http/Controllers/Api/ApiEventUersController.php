@@ -1644,10 +1644,18 @@ class ApiEventUersController extends Controller
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
+                if($user_event->suit_num && $user_event->suit_num != 0){
+                    $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
+                    $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
+                }
             } else {
                 $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
                 $name      = $user_event->name;
                 $name2     = 'Entered Users ' . $user_event->users_count;
+                if($user_event->suit_num && $user_event->suit_num != 0){
+                    $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
+                    $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
+                }
             }
 
             if ($name_qr) {
@@ -1669,6 +1677,17 @@ class ApiEventUersController extends Controller
                     $font->align('center');
                     $font->valign('top');
                 });
+                $text_y += 25;
+            }
+
+            if ($name3) {
+                $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                }); 
             }
 
             $background->save($qr_code_path, 100);

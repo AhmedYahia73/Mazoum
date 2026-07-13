@@ -982,7 +982,7 @@ class EventUersController extends Controller
                 $text_y += 25;
             }
 
-            if ($name3) {
+            if (isset($name3)) {
                 $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
                     $font->file($font_path);
                     $font->size(20);

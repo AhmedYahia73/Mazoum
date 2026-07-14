@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Imports\EventUserImport;
+use App\Jobs\SendEventPdfJob;
 use App\Models\CongratulationMessages;
 use App\Models\EnterUserEvent;
 use App\Models\EventFamily;
@@ -268,8 +269,7 @@ class EventUersController extends Controller
                   if($request->file_type == 'image') {
 
                     $image = $row->event->file;
-                    $caption .= "?type=image";
-
+                    $caption .= "?type=image"; 
                     // $api=$client->sendChatMessage($to,$body);
                     $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
 
@@ -277,7 +277,8 @@ class EventUersController extends Controller
                   elseif($request->file_type == 'pdf'){
                     $document = $row->event->pdf;
                     $caption .= "?type=pdf";
-		            $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
+                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom);
+		            // $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
                   }
                   else {
 

@@ -48,6 +48,8 @@ class Events extends FormRequest
                 'image_height' => ['numeric'],
                 'image_width' => ['numeric'],
                 'text_color' => ['required'],
+                'pdf_bottom' => ['numeric'],
+                'show_data_pdf' => ['boolean'],
             ];
         }
 
@@ -78,6 +80,8 @@ class Events extends FormRequest
                 'image_height' => ['required', 'numeric'],
                 'image_width' => ['required', 'numeric'],
                 'text_color' => ['required'],
+                'pdf_bottom' => ['numeric'],
+                'show_data_pdf' => ['boolean'],
             ];
         }
 

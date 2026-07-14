@@ -78,8 +78,8 @@ class SendEventPdfJob implements ShouldQueue
                 $this->caption;
         }
 
-        $confirm_link = "https://mazoominvitations.com/event-login" . $row->code;
-        $apologize_link = "https://mazoominvitations.com/event-login" . $row->code;
+        $confirm_link = "https://mazoominvitations.com/event-login/" . $row->code;
+        $apologize_link = "https://mazoominvitations.com/event-login/" . $row->code;
         
         // استخدام المسار الداخلي المطلق للسيرفر للخلفية
         $pdfFile = $event->getRawOriginal('file');

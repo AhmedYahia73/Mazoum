@@ -3762,6 +3762,127 @@ class EventUersController extends Controller
         ]); 
     }
 
+    public function is_remember(Request $request, $id){ 
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::
+        where('event_id',$id)
+        ->where('remember',1) 
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        }) 
+        ->paginate(15)
+        ->withQueryString() 
+        ->through(function($item) { 
+            return [
+                "id" => $item->id,
+                "users_count" => $item->users_count, 
+                'event_id' => $item->event_id,
+                'uu_id' => $item->uu_id,
+                'message_id' => $item->message_id,
+                'name' => $item->name,
+                'mobile' => $item->mobile,
+                'status' => $item->status,
+                'scan' => $item->scan,
+                'scan_at' => $item->scan_at,
+                'get_location' => $item->get_location,
+                'accept_count' => $item->accept_count,
+                'is_sent' => $item->is_sent,
+                'is_delivered' => $item->is_delivered,
+                'qr_sent' => $item->qr_sent,
+                'is_accepted' => $item->is_accepted,
+                'is_refused' => $item->is_refused,
+                'log' => $item->log,
+                'sent_from' => $item->sent_from,
+                'is_read' => $item->is_read,
+                'error_title' => $item->error_title,
+                'error' => $item->error,
+                'confirmed_at' => $item->confirmed_at,
+                'is_open' => $item->is_open,
+                'is_new_sent' => $item->is_new_sent,
+                'scan_count' => $item->scan_count,
+                'is_send_congratulation' => $item->is_send_congratulation,
+                'code' => $item->code,
+                "send_time" => $item->send_time,
+                "accept_time" => $item->accept_time,
+                "remember" => $item->remember,
+            ];
+        });
+
+        $title = 'كل الدعوات (Faild Send)';
+
+
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title,  
+        ]); 
+    }
+
+    public function excel_is_remember(Request $request, $id){ 
+        $Item = Events::findOrFail($id);
+        $data = EventUsers::
+        where('event_id',$id)
+        ->where('remember',1) 
+        ->when($request->search, function ($q) use ($request) {
+            $search = $request->search;
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        }) 
+        ->get() 
+        ->map(function($item) { 
+            return [
+                "id" => $item->id,
+                "users_count" => $item->users_count, 
+                'event_id' => $item->event_id,
+                'uu_id' => $item->uu_id,
+                'message_id' => $item->message_id,
+                'name' => $item->name,
+                'mobile' => $item->mobile,
+                'status' => $item->status,
+                'scan' => $item->scan,
+                'scan_at' => $item->scan_at,
+                'get_location' => $item->get_location,
+                'accept_count' => $item->accept_count,
+                'is_sent' => $item->is_sent,
+                'is_delivered' => $item->is_delivered,
+                'qr_sent' => $item->qr_sent,
+                'is_accepted' => $item->is_accepted,
+                'is_refused' => $item->is_refused,
+                'log' => $item->log,
+                'sent_from' => $item->sent_from,
+                'is_read' => $item->is_read,
+                'error_title' => $item->error_title,
+                'error' => $item->error,
+                'confirmed_at' => $item->confirmed_at,
+                'is_open' => $item->is_open,
+                'is_new_sent' => $item->is_new_sent,
+                'scan_count' => $item->scan_count,
+                'is_send_congratulation' => $item->is_send_congratulation,
+                'code' => $item->code,
+                "send_time" => $item->send_time,
+                "accept_time" => $item->accept_time,
+                "remember" => $item->remember,
+            ];
+        });
+
+        $title = 'كل الدعوات (Faild Send)';
+
+
+ 
+        return response()->json([
+            'Item' => $Item, 
+            'data' => $data, 
+            'title' => $title,  
+        ]); 
+    }
+
     public function send_invite_utility_msg(Request $request){
        $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',

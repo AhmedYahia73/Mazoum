@@ -334,6 +334,8 @@ Route::get('not-attend-event-details/{id}', 'EventUersController@not_attend_even
 Route::get('excel-not-attend-event-details/{id}', 'EventUersController@excel_not_attend_event_details');
 Route::get('hold-event-details/{id}', 'EventUersController@hold_event_details');
 Route::get('excel-hold-event-details/{id}', 'EventUersController@excel_hold_event_details');
+Route::get('is_remember/{id}', 'EventUersController@is_remember');
+Route::get('excel_is_remember/{id}', 'EventUersController@excel_is_remember');
 Route::get('failed-event-details/{id}', 'EventUersController@failed_event_details');
 Route::get('excel-failed-event-details/{id}', 'EventUersController@excel_failed_event_details');
 Route::get('non-attendance-event-details/{id}', 'EventUersController@non_attendance_event_details');

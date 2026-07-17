@@ -817,6 +817,10 @@ class EventsController extends Controller
         $invitees = EventUsers::
         where('event_id',$Item->id)
         ->sum('users_count');
+        $is_remember = EventUsers::
+        where('event_id',$Item->id)
+        ->where("remember", 1)
+        ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
         ->where("accept_count", 0) 
@@ -837,7 +841,7 @@ class EventsController extends Controller
             $query->where("id", $user_id)
             ->orWhere("user_id", $user_id);
         })
-        ->count();
+        ->count(); 
 
         return response()->json([
             "Item" => $Item,
@@ -855,6 +859,7 @@ class EventsController extends Controller
             "send_Qr" => $send_Qr,
             "faild_send" => $faild_send,
             "event_host" => $event_host,
+            "is_remember" => $is_remember
         ]);
     }
 

@@ -433,7 +433,8 @@ class ApiEventsController extends Controller
               ->orWhereHas("sub_user", function($query) use($user){
                 $query->where("users.id", $user->id);
               });
-        })->get(['id','title','address','file as image','date','time','sending_type']);
+        })->get(['id','title','address','file as image','date','time',
+        'sending_type', '']);
 
         if($Item != null && $Item->count() > 0) {
             $data = UserEventsData_V2::collection($Item);
@@ -599,9 +600,7 @@ class ApiEventsController extends Controller
             }
         }
 
-        $Item = Model::where('id', $id)->where('user_id', $user->id)->select([
-            'id', 'title', 'file as image', 'lat', 'long', 'address', 'showing_qr','sending_type'
-        ])->first();
+        $Item = Model::where('id', $id)->first();
 
         if ($Item != null) {
             return $this->returnData('data', $Item);

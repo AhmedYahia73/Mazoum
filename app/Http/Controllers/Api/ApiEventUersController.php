@@ -14,6 +14,7 @@ use App\Models\EventMessages;
 use App\Models\Events;
 use App\Models\EventUsers as Model;
 use App\Models\EventUsers;
+use App\Models\NewSetting;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
 use App\Models\Setting;
@@ -627,8 +628,8 @@ class ApiEventUersController extends Controller
                                 // $response = SendNewTemplateCodeV1($url);
 
                                 $token          = get_whats_setting($event)['token'];
-                                $sender_id      = get_whats_setting($event)['sender_id'];
-                                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                                $sender_id      = $this->get_phone_id($event->phone_setting_id);
+                                $phone_numer_id = $this->get_phone_id($event->phone_setting_id);
 
                                 $param_1   = $user_name;
                                 $param_2   = $event->title;
@@ -1745,6 +1746,21 @@ class ApiEventUersController extends Controller
     }
 
 
+    private function get_phone_id($id){
+        $data = NewSetting::
+        where("id", $id)
+        ->first();
+        if(empty($data)){
+            return Setting::first()?->phone_numer_id ?? null;
+        }
+        return $data->phone_numer_id;
+    }
 
-
+    private function get_phone_number($id){
+        $data = NewSetting::
+        where("id", $id)
+        ->first();
+        
+        return $data->phone_number;
+    }
 }

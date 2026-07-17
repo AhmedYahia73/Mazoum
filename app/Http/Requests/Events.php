@@ -50,6 +50,7 @@ class Events extends FormRequest
                 'text_color' => ['required'],
                 'pdf_bottom' => ['numeric'],
                 'show_data_pdf' => ['boolean'],
+                'phone_setting_id' => ['required', 'exists:new_settings,id'],
             ];
         }
 
@@ -82,6 +83,7 @@ class Events extends FormRequest
                 'text_color' => ['required'],
                 'pdf_bottom' => ['numeric'],
                 'show_data_pdf' => ['boolean'],
+                'phone_setting_id' => ['required', 'exists:new_settings,id'],
             ];
         }
 

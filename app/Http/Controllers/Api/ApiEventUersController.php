@@ -580,11 +580,11 @@ class ApiEventUersController extends Controller
 
             $event_id = $request->event_id;
 
-            $event = Events::where('id', $event_id)->where('user_id', $user->id)->first();
+            $event = Events::where('id', $event_id)->first();
 
             try {
 
-                if($event != null) {
+                if($event != null && ($event->user_id = $user->id || $event->user_id = $user->user_id)) {
 
                     if($request->event_users != null && ! empty($request->event_users)) {
 

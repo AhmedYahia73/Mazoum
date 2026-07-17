@@ -448,8 +448,8 @@ class EventHostController extends Controller
         where("id", $user_id)
         ->first();
         $available = $user->custom_invetaion - $user->send_custom_invetaion;
-        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $request->custom_invetaion - $request->custom_invetaion : 0;
-        $user->custom_invetaion -=  $user_custom_invetaion;
+        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $user->custom_invetaion - $request->custom_invetaion : 0;
+        $user->custom_invetaion = $user_custom_invetaion;
         $user->balance -= $request->custom_invetaion;
         $user->save();
         User::create([

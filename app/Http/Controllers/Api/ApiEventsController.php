@@ -1065,7 +1065,6 @@ class ApiEventsController extends Controller
             default                      => 'users_count',
         };
 
-        $count = (clone $query)->sum($countCol);
         if($type == "all_invited_users" ||$type == "invitations_not_sent_users" ||
             $type == "confirmed_invitatios_users" ||$type == "scaned_qr_users" ||
             $type == "apologized_invitatios_users" ||$type == "failed_invitatios_users" ||
@@ -1076,6 +1075,7 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user_id);
             });
         }
+        $count = (clone $query)->sum($countCol);
         $paged = $query->paginate($perPage, $baseFields);
 
         return $this->returnData('data', [

@@ -359,7 +359,7 @@ class ApiEventUersController extends Controller
                               'mobile' => ltrim($arr['mobile'],"+"),
                               'users_count' => $arr['users_count'],
                               'status' => 'hold',2,
-                              "user_id" => auth()->user()->id
+                              "user_id" => $user->id
                             ]);
 
                         } else {

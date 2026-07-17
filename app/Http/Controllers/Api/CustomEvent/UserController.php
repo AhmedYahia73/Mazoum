@@ -124,7 +124,7 @@ class UserController extends Controller
             ], 400);
         }
         $user->custom_invetaion -=  $user_custom_invetaion;
-        $user->balance -= $request->custom_invetaion;
+        $user->balance -= $user_custom_invetaion;
         $user->save();
         User::create([
             "mobile_code" => $request->mobile_code,

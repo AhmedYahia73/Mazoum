@@ -2043,6 +2043,7 @@ class EventUersController extends Controller
             'is_sent' => "yes",
             'is_delivered' => "yes",
             'qr_sent' => "yes",
+            'is_read' => "yes",
         ]);
 
       	if($event != null && $event->showing_qr == 'yes') {

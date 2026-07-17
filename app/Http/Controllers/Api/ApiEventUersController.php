@@ -337,7 +337,9 @@ class ApiEventUersController extends Controller
             });
         })->first();
         $errors = 0;
-
+return response()->json([
+    $event
+]);
 
         if($event != null) {
 

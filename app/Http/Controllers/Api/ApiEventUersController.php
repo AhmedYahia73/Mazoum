@@ -329,7 +329,13 @@ class ApiEventUersController extends Controller
 
         $event_id = $request->event_id;
 
-        $event = Events::where('id', $event_id)->where('user_id', $user->id)->first();
+        $event = Events::where('id', $event_id)
+        ->where(function($query) use($user){
+            $query->where('user_id', $user->id)
+            ->orWhereHas("user", function($q) use($user){
+                $q->where("user_id", $user->id);
+            });
+        })->first();
         $errors = 0;
 
 

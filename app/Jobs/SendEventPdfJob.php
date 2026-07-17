@@ -64,7 +64,7 @@ class SendEventPdfJob implements ShouldQueue
         if($event->show_data_pdf){
             $caption = empty($this->caption) ? $row->name . PHP_EOL . PHP_EOL .
                 $event->title . PHP_EOL . PHP_EOL .
-                "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق"  . $event->date . " 📆" 
+                "وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق  📆 "  . $event->date
                 . PHP_EOL . PHP_EOL .
                 "وقت الاستقبال ⏱️الساعـة " . $event->time . " مساءاً" . PHP_EOL . PHP_EOL .
                 "📍مكان الحفـل " . $event->address  . PHP_EOL . PHP_EOL .

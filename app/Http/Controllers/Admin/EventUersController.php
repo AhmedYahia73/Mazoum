@@ -257,7 +257,7 @@ class EventUersController extends Controller
 
                   $caption = $row->name . PHP_EOL . PHP_EOL .
                         $row->event->title . PHP_EOL . PHP_EOL .
-                        " وذلك بمشيئة الله تعالى يوم " . $day_name ." 📆 الموافق " .
+                        " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
                         $row->event->date  . PHP_EOL . PHP_EOL .
                         " وقت الاستقبال ⏱️ " . $row->event->time . " مساءًً" . PHP_EOL . PHP_EOL .
                         "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 

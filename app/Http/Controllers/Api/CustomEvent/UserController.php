@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\CustomEvent;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomEvent;
+use App\Models\Events;
 use App\Models\MobileCodes;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -96,19 +98,35 @@ class UserController extends Controller
 
         if(!$request->custom_event_id && !$request->event_user_id){
             return response()->json([
-                "errors" => "custom_event_id or event_user_id is required"
+                "errors" => "custom_event_id or event_id is required"
             ]);
 
-        } 
-        auth()->user()->custom_invetaion -= $request->custom_invetaion;
-        auth()->user()->balance -= $request->custom_invetaion;
-        auth()->user()->save();
+        }
+        $user_id = 0;
+        if($request->event_user_id){ 
+            $user_id = Events::
+            where("id", $request->event_user_id)
+            ->first()->user_id;
+        }
+        if($request->custom_event_id){ 
+            $user_id = CustomEvent::
+            where("id", $request->custom_event_id)
+            ->first()->user_id;
+        }
+        $user = User::
+        where("id", $user_id)
+        ->first();
+        $available = $user->custom_invetaion - $user->send_custom_invetaion;
+        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $request->custom_invetaion - $request->custom_invetaion : 0;
+        $user->custom_invetaion -=  $user_custom_invetaion;
+        $user->balance -= $request->custom_invetaion;
+        $user->save();
         User::create([
             "mobile_code" => $request->mobile_code,
             "mobile" => $request->mobile,
             "name" => $request->name,
             "custom_invetaion" => $request->custom_invetaion,
-            "user_id" => $request->user()->id,
+            "user_id" => $user->id,
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_id" => $request->event_user_id ?? null,
             "password" => Hash::make($request->password),

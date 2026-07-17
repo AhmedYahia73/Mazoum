@@ -977,6 +977,11 @@ class ApiEventsController extends Controller
                     });
                 break;
 
+            case 'remember_users':
+                $query = EventUsers::where('event_id', $Item->id)
+                    ->where('remember', 1);
+                break;
+
             case 'non_attendance_users':
                 $data = EventUsers::where('event_id', $Item->id)
                     ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
@@ -1067,7 +1072,8 @@ class ApiEventsController extends Controller
         if($type == "all_invited_users" ||$type == "invitations_not_sent_users" ||
             $type == "confirmed_invitatios_users" ||$type == "scaned_qr_users" ||
             $type == "apologized_invitatios_users" ||$type == "failed_invitatios_users" ||
-            $type == "send_Qr" ||$type == "confirm_web_users" || $type == "non_attendance_users"){
+            $type == "send_Qr" ||$type == "confirm_web_users" || $type == "non_attendance_users" ||
+            $type == "remember_users"){
             $query = !$user_status ? $query->where("user_id", $user_id): 
             $query->where(function($query) use($user_id){
                 $query->whereNull("user_id")
@@ -1114,6 +1120,14 @@ class ApiEventsController extends Controller
         $all_invited_users = EventUsers::where('event_id', $Item->id);
             $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('users_count'): 
             $all_invited_users->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            })
+            ->sum("users_count");
+        $remember_users = EventUsers::where('event_id', $Item->id)
+        ->where("remember", 1);
+            $remember_users = !$user_status ? $remember_users->where("user_id", $user_id)->sum('users_count'): 
+            $remember_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             })
@@ -1219,6 +1233,7 @@ class ApiEventsController extends Controller
             "not_scan_enterd_events" => intval($not_scan_enterd_events),
             "congratulation_msgs" => intval($congratulation_msgs),
             "apologize_msgs" => intval($apologize_msgs),
+            "remember_users" => intval($remember_users),
         ]);
 
     } 

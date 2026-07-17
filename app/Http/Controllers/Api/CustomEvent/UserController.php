@@ -114,7 +114,7 @@ class UserController extends Controller
             ->first()->user_id;
         }
         $user = User::
-        where("id", $user_id)
+        where("id", auth()->user()->id)
         ->first();
         $available = $user->custom_invetaion - $user->send_custom_invetaion;
         $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $request->custom_invetaion - $request->custom_invetaion : 0;
@@ -126,7 +126,7 @@ class UserController extends Controller
             "mobile" => $request->mobile,
             "name" => $request->name,
             "custom_invetaion" => $request->custom_invetaion,
-            "user_id" => $user->id,
+            "user_id" => $user_id,
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_id" => $request->event_user_id ?? null,
             "password" => Hash::make($request->password),

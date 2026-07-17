@@ -117,7 +117,12 @@ class UserController extends Controller
         where("id", auth()->user()->id)
         ->first();
         $available = $user->custom_invetaion - $user->send_custom_invetaion;
-        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion > 0 ? $request->custom_invetaion - $request->custom_invetaion : 0;
+        $user_custom_invetaion = $user->custom_invetaion - $request->custom_invetaion;
+        if($user_custom_invetaion < 0){
+            return response()->json([
+                "errors" => "أنت لا تملتلك كل هذه الدعوات"
+            ], 400);
+        }
         $user->custom_invetaion -=  $user_custom_invetaion;
         $user->balance -= $request->custom_invetaion;
         $user->save();

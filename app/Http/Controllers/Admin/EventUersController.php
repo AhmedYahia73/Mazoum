@@ -296,8 +296,8 @@ class EventUersController extends Controller
 
                     // dd('ok');
                     $row->update([
-                        'is_new_sent' => 1,
-                        'is_sent' => "yes",
+                        'is_new_sent' => 1, 
+                        'is_sent' => "yes", 
                     ]);
 
                     $user->update([

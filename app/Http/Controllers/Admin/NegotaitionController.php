@@ -86,7 +86,7 @@ class NegotaitionController extends Controller
         return response()->json([
             "negotation" => $negotation
         ]);
-    }
+    } 
 
     public function status(Request $request, $id){
         $validator = Validator::make($request->all(), [

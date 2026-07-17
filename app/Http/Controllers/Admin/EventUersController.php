@@ -295,10 +295,13 @@ class EventUersController extends Controller
                   if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
                     // dd('ok');
-                    $row->update(['is_new_sent' => 1]);
+                    $row->update([
+                        'is_new_sent' => 1,
+                        'is_sent' => "yes",
+                    ]);
 
                     $user->update([
-                      'balance' => $user->balance - $row->users_count
+                      'balance' => $user->balance - $row->users_count,
                     ]);
 
                   } else {
@@ -2037,6 +2040,9 @@ class EventUersController extends Controller
             'is_refused' => null,
             'status' => 'attend',
             'accept_time' => now(),
+            'is_sent' => "yes",
+            'is_delivered' => "yes",
+            'qr_sent' => "yes",
         ]);
 
       	if($event != null && $event->showing_qr == 'yes') {

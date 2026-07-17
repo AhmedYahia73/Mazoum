@@ -434,7 +434,7 @@ class ApiEventsController extends Controller
                 $query->where("users.id", $user->id);
               });
         })->get(['id','title','address','file as image','date','time',
-        'sending_type', '']);
+        'sending_type']);
 
         if($Item != null && $Item->count() > 0) {
             $data = UserEventsData_V2::collection($Item);

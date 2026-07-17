@@ -586,6 +586,9 @@ class EventUersController extends Controller
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
+                                    $user_event->update([
+                                        'remember' => 1,
+                                    ]);
                                     $body = $response->getBody();
                                     $data = json_decode($body, true);
                                     $message = WattsChatModel::create([
@@ -627,6 +630,9 @@ class EventUersController extends Controller
                                 if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
                                     // dd('ok');
                                     info('error sending');
+                                    $user_event->update([
+                                        'remember' => 1,
+                                    ]);
                                 } else {
                                     // dd('not ok',$api);
                                     $errors = $errors + 1;

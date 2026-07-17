@@ -2312,6 +2312,7 @@ class EventUersController extends Controller
                 "phone_number" => $item->phone_number,
                 "accept_time" => $item->accept_time,
                 "accept_count" => $item->accept_count,
+                "remember" => $item->remember,
             ];
         });
 
@@ -2651,7 +2652,8 @@ class EventUersController extends Controller
                     'is_send_congratulation' => $item->is_send_congratulation,
                     'code' => $item->code,
                     "send_time" => $item->send_time,
-                    "accept_time" => $item->accept_time
+                    "accept_time" => $item->accept_time,
+                    "remember" => $item->remember,
                 ];
             });
 
@@ -2752,7 +2754,8 @@ class EventUersController extends Controller
                         "date" => $element->created_at->format("Y-m-d"),
                         "time" => $element->created_at->format("h:i A"),
                     ];
-                })
+                }),
+                "remember" => $item->remember,
             ];
         });
 
@@ -3743,7 +3746,8 @@ class EventUersController extends Controller
                 'is_send_congratulation' => $item->is_send_congratulation,
                 'code' => $item->code,
                 "send_time" => $item->send_time,
-                "accept_time" => $item->accept_time
+                "accept_time" => $item->accept_time,
+                "remember" => $item->remember,
             ];
         });
 

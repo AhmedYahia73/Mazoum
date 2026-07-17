@@ -330,18 +330,11 @@ class ApiEventUersController extends Controller
         $event_id = $request->event_id;
 
         $event = Events::where('id', $event_id)
-        ->where(function($query) use($user){
-            $query->where('user_id', $user->id)
-            ->orWhereHas("user", function($q) use($user){
-                $q->where("user_id", $user->id);
-            });
-        })->first();
+        ->first();
         $errors = 0;
-return response()->json([
-    $event
-]);
 
-        if($event != null) {
+
+        if($event != null && ($event->user_id == $user->id || $event->user_id == $user->user_id)) {
 
           	$uu_id = $this->Get_UUID();
 

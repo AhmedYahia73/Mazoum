@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Imports\EventUserImport;
 use App\Jobs\SendEventPdfJob;
+use App\Events\WattsChat as WattsChatEvent;
 use App\Models\CongratulationMessages;
 use App\Models\EnterUserEvent;
 use App\Models\EventFamily;
@@ -23,6 +24,7 @@ use App\Models\WattsChat as WattsChatModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use Maatwebsite\Excel\Facades\Excel;
@@ -4046,7 +4048,84 @@ class EventUersController extends Controller
             ]);
         }
     }
-     
+  
+
+    public function sendMessageFashalTemplate (Request $request)
+    {
+        // 1. التحقق من البيانات القادمة من الموقع
+        $validator = Validator::make($request->all(), [
+            'user_event_id'   => 'required|array',
+            'user_event_id.*' => 'required|exists:event_users,id',
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+
+        $messageText = "... الرجـاء إرسال كلمة ( *معزوم* ) لإستقبال الدعوة الخاصة بكم من قبل الشركة .";
+
+        $event_users = EventUsers::whereIn("id", $request->user_event_id)->get();
+        $settings = Setting::first();
+        $access_token = $settings?->access_token;
+        $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
+        $language = 'ar';
+        $template_name = "message__fashal";
+        $from = $this->get_phone_number($request->phone_setting_id);
+
+        // مصفوفة لتجميع الرسائل التي تم حفظها بنجاح لتجنب خطأ الـ Undefined variable
+        $savedMessages = [];
+
+        foreach ($event_users as $item) {
+            $customerPhone = $item->mobile;
+            
+            // 2. إرسال الرسالة إلى Meta WhatsApp API
+            $response = Http::withToken($access_token)
+                ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type'    => 'individual',
+                    'to'                => $customerPhone,
+                    'type'              => 'template',
+                    'template'          => [
+                        'name'     => $template_name,
+                        'language' => [
+                            'code' => $language
+                        ],
+                        'components' => []
+                    ],
+                ]);
+
+            // 3. التعامل مع الرد من Meta
+            if ($response->successful()) {
+                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+
+                // حفظ الرسالة في قاعدة البيانات
+                $message = WattsChatModel::create([
+                    'phone'         => $customerPhone,
+                    'name'          => 'Admin', 
+                    'message'       => $messageText,
+                    'is_sent_by_me' => true,    
+                    'message_id'    => $messageId,
+                    "from"          => $from,
+                    "event_user_id" => $item->id,
+                    "event_id"      => $item->event_id,
+                ]);
+
+                // إطلاق الـ Event للـ Real-time
+                WattsChatEvent::dispatch($message);
+
+                // إضافة الرسالة للمصفوفة
+                $savedMessages[] = $message;
+            }
+        }
+
+        // إرجاع رد يضمن عدم حدوث خطأ حتى لو كانت المصفوفة فارغة
+        return response()->json([
+            'status' => 'success', 
+            'count'  => count($savedMessages),
+            'data'   => $savedMessages
+        ], 200);
+    }
 
     private function get_phone_id($id){
         $data = NewSetting::

@@ -1566,6 +1566,7 @@ class CustomEventController extends Controller
                 $query->where("user_id", $request->user_id)
                 ->orWhereNull("user_id");
             })
+            ->with("user:id,name,mobile")
             ->get();
         }
         else{
@@ -1575,6 +1576,7 @@ class CustomEventController extends Controller
             ->whereHas("user", function($query) use($request){ 
                 $query->where("user_id", $request->user_id);
             })
+            ->with("user:id,name,mobile")
             ->get();
         }
 
@@ -1605,6 +1607,7 @@ class CustomEventController extends Controller
                 $query->where("user_id", $request->user_id)
                 ->orWhereNull("user_id");
             })
+            ->with("user:id,name,mobile")
             ->get();
         }
         else{
@@ -1614,6 +1617,7 @@ class CustomEventController extends Controller
             ->whereHas("user", function($query) use($request){ 
                 $query->where("user_id", $request->user_id);
             })
+            ->with("user:id,name,mobile")
             ->get();
         }
 

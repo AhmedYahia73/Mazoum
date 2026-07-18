@@ -1106,10 +1106,7 @@ class ApiEventsController extends Controller
               ->orWhereHas("sub_user", function($q) use($user){
                 $q->where("users.id", $user->id);
               })->orWhere('assistant_id',$user->id);
-        })->select([
-            'id','title', 'file as image', 'lat', 'long', 'address', 'showing_qr', 'first_name' , 'last_name' , 'date' , 'have_reminder','can_replay_messages' ,'sent_remember','sending_type',
-            'resend_qr', 'user_id'
-        ])->first();
+        })->first();
 
         if (!$Item) {
             return $this->returnError('404', 'عفوا هذا الحدث غير موجود');

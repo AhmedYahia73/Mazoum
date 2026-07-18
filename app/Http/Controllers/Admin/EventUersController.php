@@ -4122,8 +4122,7 @@ class EventUersController extends Controller
         // إرجاع رد يضمن عدم حدوث خطأ حتى لو كانت المصفوفة فارغة
         return response()->json([
             'status' => 'success', 
-            'count'  => count($savedMessages),
-            'data'   => $savedMessages
+            'count'  => count($savedMessages), 
         ], 200);
     }
 

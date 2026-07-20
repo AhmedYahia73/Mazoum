@@ -18,12 +18,14 @@ class MemoryController extends Controller
     use imageTrait;
 
     public function custom_memories($id){
-        $custom_event = CustomEventUsers::
+        $custom_user_event = CustomEventUsers::
         with("event")
-        ->findOrFail($id)?->event;
+        ->where("uu_id", $id)
+        ->firstOrFail();
+        $custom_event = $custom_user_event?->event;
 
         $memories = CustomMemory::
-        where("custom_user_id", $id)
+        where("custom_user_id", $custom_user_event->id)
         ->get()
         ->map(function($item){
             return [
@@ -37,6 +39,7 @@ class MemoryController extends Controller
         return response()->json([
             "memories" => $memories,
             "custom_event" => $custom_event,
+            "custom_user_id" => $custom_user_event->id
         ]);
     }
 

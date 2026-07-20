@@ -41,17 +41,18 @@ class MemoryController extends Controller
     }
 
     public function memories($id){
-        $event = Qr_Code::
+        $qr_code = Qr_Code::
         where("uu_id", $id)
-        ->first()
-        ?->event;
+        ->first(); 
+        
+        $event = $qr_code?->event;
         if(!$event){
             return response()->json([
                 "errors" => "QR is expired"
             ], 400);
         } 
         $memories = Memory::
-        where("event_user_id", $id)
+        where("event_user_id", $qr_code->event_user_id)
         ->get()
         ->map(function($item){
             return [
@@ -65,6 +66,7 @@ class MemoryController extends Controller
         return response()->json([
             "memories" => $memories,
             "event" => $event,
+            "event_user_id" => $qr_code->event_user_id,
         ]);
     }
     

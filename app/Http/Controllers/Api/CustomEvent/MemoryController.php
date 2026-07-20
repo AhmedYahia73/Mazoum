@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Traits\imageTrait;
 
 use App\Models\Memory;
+use App\Models\Qr_Code;
 use App\Models\CustomMemory;
 use App\Models\CustomEventUsers;
 use App\Models\EventUsers;
@@ -40,9 +41,15 @@ class MemoryController extends Controller
     }
 
     public function memories($id){
-        $event = EventUsers::
-        with("event")
-        ->findOrFail($id)?->event;
+        $event = Qr_Code::
+        where("uu_id", $id)
+        ->first()
+        ?->event;
+        if(!$event){
+            return response()->json([
+                "errors" => "QR is expired"
+            ], 400);
+        } 
         $memories = Memory::
         where("event_user_id", $id)
         ->get()

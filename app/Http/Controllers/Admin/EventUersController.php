@@ -4322,22 +4322,11 @@ foreach ($event_users as $item) {
                 'language' => [
                     'code' => $language
                 ], 
-                'components' => [
-                    [
-                        'type'       => 'header',
-                        'parameters' => [
-                            [
-                                'type'        => $header_type,
-                                $header_type => [
-                                    'link' => $image_url,
-                                ],
-                            ]
-                        ],
-                    ],
+                'components' => [ 
                     [
                         'type'       => 'body',
                         'parameters' => [
-                            ['type' => 'text', 'text' => $guestName],  // {{1}} اسم المدعو
+                            ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
                             ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
                             ['type' => 'text', 'text' => $param_3],    // {{3}} اليوم
                             ['type' => 'text', 'text' => $param_4],    // {{4}} الوقت

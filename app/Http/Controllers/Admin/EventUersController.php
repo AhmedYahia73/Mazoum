@@ -4305,75 +4305,43 @@ class EventUersController extends Controller
         $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
         $image_url = $event->file;
         $mapUrl = "https://www.google.com/maps?q={$event->lat},{$event->long}";
-foreach ($event_users as $item) {
-    $customerPhone = $item->mobile;
-    
-    // ملاحظة: تأكد من ترتيب المتغيرات الخاصة بالـ Body بشكل صحيح
-    // $param_1 هنا يمثل اسم المدعو
-    $guestName = $item->name; 
+        foreach ($event_users as $item) {
+            $customerPhone = $item->mobile;
+            
+            // ملاحظة: تأكد من ترتيب المتغيرات الخاصة بالـ Body بشكل صحيح
+            // $param_1 هنا يمثل اسم المدعو
+            $guestName = $item->name; 
 
-    $response = Http::withToken($access_token)
-        ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
-            'messaging_product' => 'whatsapp',
-            'recipient_type'    => 'individual',
-            'to'                => $customerPhone,
-            'type'              => 'template',
-            'template'          => [
-                'name'     => $template_name,
-                'language' => [
-                    'code' => $language
-                ], 
-                'components' => [ 
-                    [
-                        'type'       => 'body',
-                        'parameters' => [
-                            ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
-                            ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
-                            ['type' => 'text', 'text' => $param_3],    // {{3}} اليوم
-                            ['type' => 'text', 'text' => $param_4],    // {{4}} الوقت
-                        ],
-                    ],
-                    [
-                        'type'       => 'button',
-                        'sub_type'   => 'url',
-                        'index'      => '0',
-                        'parameters' => [
-                            [
-                                'type' => 'text',
-                                'text' => $mapUrl // الجزء المتغير المكمل للرابط
-                            ]
-                        ],
-                    ], 
-                ],
-            ]
-        ]);
+            $response = SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $access_token, $customerPhone);
+            // 3. التعامل مع الرد والتنقيح (Debugging)
+            if ($response->successful()) {
+                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
 
-    // 3. التعامل مع الرد والتنقيح (Debugging)
-    if ($response->successful()) {
-        $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+                $message = WattsChatModel::create([
+                    'phone'         => $customerPhone,
+                    'name'          => 'Admin', 
+                    'message'       => "wedding__masj_1",
+                    'is_sent_by_me' => true,    
+                    'message_id'    => $messageId,
+                    "from"          => $from,
+                    "event_user_id" => $item->id,
+                    "event_id"      => $item->event_id,
+                ]);
 
-        $message = WattsChatModel::create([
-            'phone'         => $customerPhone,
-            'name'          => 'Admin', 
-            'message'       => "wedding__masj_1",
-            'is_sent_by_me' => true,    
-            'message_id'    => $messageId,
-            "from"          => $from,
-            "event_user_id" => $item->id,
-            "event_id"      => $item->event_id,
-        ]);
-
-        WattsChatEvent::dispatch($message);
-        $savedMessages[] = $message;
-    } else {
-        // 🔴 ارجاع تفاصيل الخطأ القادم من ميتا مباشرة لمعرفة السبب
+                WattsChatEvent::dispatch($message);
+                $savedMessages[] = $message;
+            } else {
+                // 🔴 ارجاع تفاصيل الخطأ القادم من ميتا مباشرة لمعرفة السبب
+                return response()->json([
+                    'status' => 'error_from_meta',
+                    'meta_response' => $response->json(),
+                    'http_code' => $response->status()
+                ], 400);
+            }
+        }
         return response()->json([
-            'status' => 'error_from_meta',
-            'meta_response' => $response->json(),
-            'http_code' => $response->status()
-        ], 400);
-    }
-}
+            'success' => 'You send message success',
+        ]);
     }
 
     private function get_phone_id($id){

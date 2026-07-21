@@ -1,9 +1,10 @@
 <?php
 
-use GuzzleHttp\Client;
 use App\Models\EventUserActions;
 use App\Models\EventUsers;
 use App\Models\Setting;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
 
 
 if (! function_exists('SendCarMsgTemplate')) {
@@ -248,6 +249,51 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
         return $response;
 
+    }
+}
+
+
+if (! function_exists('SendEventDetailsArTemplate')) {
+
+    function SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $access_token, $customerPhone)
+    {
+        
+        $response = Http::withToken($access_token)
+        ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+            'messaging_product' => 'whatsapp',
+            'recipient_type'    => 'individual',
+            'to'                => $customerPhone,
+            'type'              => 'template',
+            'template'          => [
+                'name'     => $template_name,
+                'language' => [
+                    'code' => $language
+                ], 
+                'components' => [ 
+                    [
+                        'type'       => 'body',
+                        'parameters' => [
+                            ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
+                            ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
+                            ['type' => 'text', 'text' => $param_3],    // {{3}} اليوم
+                            ['type' => 'text', 'text' => $, $mapUrl],    // {{4}} الوقت
+                        ],
+                    ],
+                    [
+                        'type'       => 'button',
+                        'sub_type'   => 'url',
+                        'index'      => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $mapUrl // الجزء المتغير المكمل للرابط
+                            ]
+                        ],
+                    ], 
+                ],
+            ]
+        ]);
+        return $response;
     }
 }
 

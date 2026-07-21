@@ -4142,13 +4142,38 @@ class EventUersController extends Controller
         $messageText = "🔔 تنبية نود التذكير تبقي على*مناسبة فاطمة والسيد *24 *ساعة";
 
         $event_users = EventUsers::whereIn("id", $request->user_event_id)->get();
+        $event = $event_users[0]->event;
         $settings = Setting::first();
         $access_token = $settings?->access_token;
         $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
         $language = 'ar';
         $template_name = "sms_alert";
         $from = $this->get_phone_number($request->phone_setting_id);
+        $param_1 = $event->title;
 
+                // 1. دمج التاريخ والوقت في كائن Carbon واحد
+        $eventDateTime = Carbon::parse($event->date . ' ' . $event->time);
+
+        // 2. الحصول على الوقت الحالي
+        $now = Carbon::now();
+
+        // 3. التأكد من أن المناسبة لم تنتهِ بعد
+        if ($eventDateTime->isPast()) {
+            $param_2 = "انتهت!";
+        } else {
+            // حساب الفرق بالساعات الكلية
+            $totalHours = $now->diffInHours($eventDateTime);
+            
+            // أو إذا حابب تجيب الفرق بالساعات والدقائق بشكل دقيق ومفصل:
+            $diff = $now->diff($eventDateTime);
+            // $diff->days (الأيام), $diff->h (الساعات), $diff->i (الدقائق)
+
+            // مثال لطباعة الساعات الكلية فقط:
+            $param_2 = $totalHours;
+
+            // أو مثال للعرض التفصيلي (أيام + ساعات + دقائق):
+            // $param_2 = "فاضل {$diff->days} يوم و {$diff->h} ساعة و {$diff->i} دقيقة.";
+        }
         // مصفوفة لتجميع الرسائل التي تم حفظها بنجاح لتجنب خطأ الـ Undefined variable
         $savedMessages = [];
 
@@ -4167,7 +4192,16 @@ class EventUersController extends Controller
                         'language' => [
                             'code' => $language
                         ],
-                        'components' => []
+                        'components' => [
+                            
+                            [
+                                'type'       => 'body',
+                                'parameters' => [
+                                    ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
+                                    ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
+                                ],
+                            ],
+                        ]
                     ],
                 ]);
 // قم بإضافة هذا السطر لمعرفة الخطأ الحقيقي

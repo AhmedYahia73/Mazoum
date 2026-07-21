@@ -4125,8 +4125,9 @@ class EventUersController extends Controller
             'count'  => count($savedMessages), 
         ], 200);
     }
+
     public function sendWedingMsg(Request $request)
-     {
+    {
         // 1. التحقق من البيانات القادمة من الموقع
         $validator = Validator::make($request->all(), [
             'user_event_id'   => 'required|array',
@@ -4225,12 +4226,145 @@ class EventUersController extends Controller
                             'parameters' => [
                                 [
                                     'type' => 'payload',
-                                    'payload' => 'location'
+                                    'payload' => 'event_details'
                                 ]
                             ],
                         ]
                     ],
                 ]
+            ]);
+
+            // 3. التعامل مع الرد من Meta
+            if ($response->successful()) {
+                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+
+                // حفظ الرسالة في قاعدة البيانات
+                $message = WattsChatModel::create([
+                    'phone'         => $customerPhone,
+                    'name'          => 'Admin', 
+                    'message'       => "wedding__masj_1",
+                    'is_sent_by_me' => true,    
+                    'message_id'    => $messageId,
+                    "from"          => $from,
+                    "event_user_id" => $item->id,
+                    "event_id"      => $item->event_id,
+                ]);
+
+                // إطلاق الـ Event للـ Real-time
+                WattsChatEvent::dispatch($message);
+
+                // إضافة الرسالة للمصفوفة
+                $savedMessages[] = $message;
+            }
+        }
+
+        // إرجاع رد يضمن عدم حدوث خطأ حتى لو كانت المصفوفة فارغة
+        return response()->json([
+            'status' => 'success', 
+            'count'  => count($savedMessages), 
+        ], 200);
+    }
+
+    public function sendEventDetailsMsg(Request $request)
+    {
+        // 1. التحقق من البيانات القادمة من الموقع
+        $validator = Validator::make($request->all(), [
+            'user_event_id'   => 'required|array',
+            'user_event_id.*' => 'required|exists:event_users,id',
+            'phone_setting_id' => 'required|exists:new_settings,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        } 
+
+        $messageText = "... الرجـاء إرسال كلمة ( *معزوم* ) لإستقبال الدعوة الخاصة بكم من قبل الشركة .";
+
+        $event_users = EventUsers::
+        whereIn("id", $request->user_event_id)
+        ->with("event")
+        ->get();
+        $settings = Setting::first();
+        $access_token = $settings?->access_token;
+        $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
+        $language = 'ar';
+        $template_name = "wedding__masj_1";
+        $from = $this->get_phone_number($request->phone_setting_id);
+        $header_type = "image";
+        // مصفوفة لتجميع الرسائل التي تم حفظها بنجاح لتجنب خطأ الـ Undefined variable
+        $savedMessages = [];
+        $event = $event_users[0]?->event;
+        $param_1 = $event->address;
+        $date = Carbon::parse($event->date)->locale('ar');
+        $param_2 = $event->date;
+        $param_3 = $date->translatedFormat('l');
+        
+        $param_4 = Carbon::createFromFormat('H:i', $event->time)->format('g:i A');
+
+        // تحويل AM/PM إلى (صباحاً / مساءً)
+        $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
+        $image_url = $event->file;
+        foreach ($event_users as $item) {
+            $customerPhone = $item->mobile;
+            $param_1 = $item->name;
+            // 2. إرسال الرسالة إلى Meta WhatsApp API
+            $response = Http::withToken($access_token)
+                ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type'    => 'individual',
+                    'to'                => $customerPhone,
+                    'type'              => 'template',
+                    'template'          => [
+                        'name'     => $template_name,
+                        'language' => [
+                            'code' => $language
+                        ], 
+                    'components' => [
+                        [
+                            'type' => 'header',
+                            'parameters' => [
+                                [
+                                    'type' => $header_type,
+                                    $header_type => [
+                                        'link' => $image_url,
+                                    ],
+                                ]
+                            ],
+                        ],
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                [
+                                    'type' => 'text',
+                                    'text' => $param_1
+                                ],
+                                [
+                                    'type' => 'text',
+                                    'text' => $param_2
+                                ],
+                                [
+                                    'type' => 'text',
+                                    'text' => $param_3
+                                ],
+                                [
+                                    'type' => 'text',
+                                    'text' => $param_4
+                                ],
+                            ],
+                        ], ,
+                        ], 
+                        [
+                            'type' => 'button',
+                            'sub_type' => 'quick_reply',
+                            'index' => '2',
+                            'parameters' => [
+                                [
+                                    'type' => 'payload',
+                                    'payload' => 'location'
+                                ]
+                            ],
+                        ]
+                    ],  
             ]);
 
             // 3. التعامل مع الرد من Meta

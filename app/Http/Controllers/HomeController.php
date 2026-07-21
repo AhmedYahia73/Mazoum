@@ -242,13 +242,28 @@ elseif (data_get($value, 'statuses.0')) {
 // -------------------------------------------------------------
 // 4. التفاعل مع الضغط على الأزرار (Interactive Buttons Click)
 // -------------------------------------------------------------
-elseif (data_get($value, 'messages.0.button.payload')) {
+elseif (data_get($value, 'messages.0.button.payload') || data_get($value, 'messages.0.type') === 'text') {
     $btnMessage = $value['messages'][0];
-    $message_id = data_get($btnMessage, 'context.id');
-    $status     = data_get($btnMessage, 'button.payload');
+    $message_id = data_get($btnMessage, 'context.id') ?? data_get($btnMessage, 'id');
+    
+    // جلب النص سواء كان من زرار أو من رسالة نصية عادية
+    $status     = data_get($btnMessage, 'button.payload'); 
+    $textBody   = data_get($btnMessage, 'text.body');
+
+    // توحيد الحالة لو العميل كتب النص بدلاً من الضغط على الزر
+    if (!$status && $textBody) {
+        if (str_contains($textBody, 'تفاصيل') || str_contains($textBody, 'تفاصيـل')) {
+            $status = 'event_details';
+        } elseif (str_contains($textBody, 'الاعتذار') || str_contains($textBody, 'اعتذار')) {
+            $status = 'not-attend';
+        } elseif (str_contains($textBody, 'تأكيد') || str_contains($textBody, 'حضور')) {
+            $status = 'attend';
+        }
+    }
 
     $log->update(['message_id' => $message_id]);
 
+    // 1. البحث الأول عن طريق message_id
     $user_event = EventUsers::where('message_id', $message_id)->first();
 
     if ($user_event) {

@@ -4304,98 +4304,86 @@ class EventUersController extends Controller
         // تحويل AM/PM إلى (صباحاً / مساءً)
         $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
         $image_url = $event->file;
-        foreach ($event_users as $item) {
-            $customerPhone = $item->mobile;
-            $param_1 = $item->name;
-            // 2. إرسال الرسالة إلى Meta WhatsApp API
-            $response = Http::withToken($access_token)
-            ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
-                'messaging_product' => 'whatsapp',
-                'recipient_type'    => 'individual',
-                'to'                => $customerPhone,
-                'type'              => 'template',
-                'template'          => [
-                    'name'     => $template_name,
-                    'language' => [
-                        'code' => $language
-                    ], 
-                    'components' => [
-                        [
-                            'type'       => 'header',
-                            'parameters' => [
-                                [
-                                    'type'        => $header_type,
-                                    $header_type => [
-                                        'link' => $image_url,
-                                    ],
-                                ]
-                            ],
+foreach ($event_users as $item) {
+    $customerPhone = $item->mobile;
+    
+    // ملاحظة: تأكد من ترتيب المتغيرات الخاصة بالـ Body بشكل صحيح
+    // $param_1 هنا يمثل اسم المدعو
+    $guestName = $item->name; 
+
+    $response = Http::withToken($access_token)
+        ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+            'messaging_product' => 'whatsapp',
+            'recipient_type'    => 'individual',
+            'to'                => $customerPhone,
+            'type'              => 'template',
+            'template'          => [
+                'name'     => $template_name,
+                'language' => [
+                    'code' => $language
+                ], 
+                'components' => [
+                    [
+                        'type'       => 'header',
+                        'parameters' => [
+                            [
+                                'type'        => $header_type,
+                                $header_type => [
+                                    'link' => $image_url,
+                                ],
+                            ]
                         ],
-                        [
-                            'type'       => 'body',
-                            'parameters' => [
-                                [
-                                    'type' => 'text',
-                                    'text' => $param_1
-                                ],
-                                [
-                                    'type' => 'text',
-                                    'text' => $param_2
-                                ],
-                                [
-                                    'type' => 'text',
-                                    'text' => $param_3
-                                ],
-                                [
-                                    'type' => 'text',
-                                    'text' => $param_4
-                                ],
-                            ],
-                        ],
-                        [
-                            'type'       => 'button',
-                            'sub_type'   => 'quick_reply',
-                            'index'      => '2',
-                            'parameters' => [
-                                [
-                                    'type'    => 'payload',
-                                    'payload' => 'location'
-                                ]
-                            ],
-                        ]
                     ],
-                ] // إغلاق مصفوفة template
-            ]);
+                    [
+                        'type'       => 'body',
+                        'parameters' => [
+                            ['type' => 'text', 'text' => $guestName],  // {{1}} اسم المدعو
+                            ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
+                            ['type' => 'text', 'text' => $param_3],    // {{3}} اليوم
+                            ['type' => 'text', 'text' => $param_4],    // {{4}} الوقت
+                        ],
+                    ],
+                    [
+                        'type'       => 'button',
+                        'sub_type'   => 'quick_reply',
+                        'index'      => '2',
+                        'parameters' => [
+                            [
+                                'type'    => 'payload',
+                                'payload' => 'location'
+                            ]
+                        ],
+                    ]
+                ],
+            ]
+        ]);
 
-            // 3. التعامل مع الرد من Meta
-            if ($response->successful()) {
-                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+    // 3. التعامل مع الرد والتنقيح (Debugging)
+    if ($response->successful()) {
+        $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
 
-                // حفظ الرسالة في قاعدة البيانات
-                $message = WattsChatModel::create([
-                    'phone'         => $customerPhone,
-                    'name'          => 'Admin', 
-                    'message'       => "wedding__masj_1",
-                    'is_sent_by_me' => true,    
-                    'message_id'    => $messageId,
-                    "from"          => $from,
-                    "event_user_id" => $item->id,
-                    "event_id"      => $item->event_id,
-                ]);
+        $message = WattsChatModel::create([
+            'phone'         => $customerPhone,
+            'name'          => 'Admin', 
+            'message'       => "wedding__masj_1",
+            'is_sent_by_me' => true,    
+            'message_id'    => $messageId,
+            "from"          => $from,
+            "event_user_id" => $item->id,
+            "event_id"      => $item->event_id,
+        ]);
 
-                // إطلاق الـ Event للـ Real-time
-                WattsChatEvent::dispatch($message);
-
-                // إضافة الرسالة للمصفوفة
-                $savedMessages[] = $message;
-            }
-        }
-
-        // إرجاع رد يضمن عدم حدوث خطأ حتى لو كانت المصفوفة فارغة
+        WattsChatEvent::dispatch($message);
+        $savedMessages[] = $message;
+    } else {
+        // 🔴 ارجاع تفاصيل الخطأ القادم من ميتا مباشرة لمعرفة السبب
         return response()->json([
-            'status' => 'success', 
-            'count'  => count($savedMessages), 
-        ], 200);
+            'status' => 'error_from_meta',
+            'meta_response' => $response->json(),
+            'http_code' => $response->status()
+        ], 400);
+    }
+}
     }
 
     private function get_phone_id($id){

@@ -4170,7 +4170,10 @@ class EventUersController extends Controller
                         'components' => []
                     ],
                 ]);
-
+// قم بإضافة هذا السطر لمعرفة الخطأ الحقيقي
+    if (!$response->successful()) {
+        dd($response->json()); // سيعرض لك سبب رفض Meta للرسالة فوراً
+    }
             // 3. التعامل مع الرد من Meta
             if ($response->successful()) {
                 $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();

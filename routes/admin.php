@@ -278,6 +278,7 @@ Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
 Route::get('event_open_users/{id}', 'EventUersController@event_open_users');
 Route::post('event_user/sendWedingMsg', 'EventUersController@sendWedingMsg');
 Route::post('event_user/sendEventDetailsMsg', 'EventUersController@sendEventDetailsMsg');
+Route::post('event_user/sendِAlertTemplate', 'EventUersController@sendِAlertTemplate');
 Route::post('save_event_users', 'EventUersController@save_event_users');
 Route::post('sendMessageFashalTemplate', 'EventUersController@sendMessageFashalTemplate');
 Route::post('user_save_event_users', 'EventUersController@user_save_event_users');

@@ -4320,7 +4320,7 @@ class EventUersController extends Controller
                 $message = WattsChatModel::create([
                     'phone'         => $customerPhone,
                     'name'          => 'Admin', 
-                    'message'       => "wedding__masj_1",
+                    'message'       => "wedding___details",
                     'is_sent_by_me' => true,    
                     'message_id'    => $messageId,
                     "from"          => $from,

@@ -466,6 +466,39 @@ class HomeController extends Controller
 
                 }
 
+                if($status == 'event_details' && $event != null) {
+
+
+                    $mobile = $user_event->mobile;
+
+                    $to = $mobile;
+
+                    $template_name = 'wedding___details';
+                    $language = 'ar';
+                    $user_name = $user_event->name;
+                    $location = '?q=' . $event->lat . ',' . $event->long;
+                    $param_1 = $event->address;
+                    $date = Carbon::parse($event->date)->locale('ar');
+                    $param_2 = $event->date;
+                    $param_3 = $date->translatedFormat('l');
+                    
+                    $param_4 = Carbon::createFromFormat('H:i', $event->time)->format('g:i A');
+                    $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
+                    $image_url = $event->file;
+                    $mapUrl = "https://www.google.com/maps?q={$event->lat},{$event->long}";
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                    // $response = SendTemplateV3($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
+                    $response = SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $token, $to);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyL = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
+
+                }
+
 
                 if($status == 'date' && $event != null) {
 

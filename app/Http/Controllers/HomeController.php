@@ -73,348 +73,467 @@ class HomeController extends Controller
   	public function new_webhook_post(Request $request)
     {
         info('WEBHOOK POST RECEIVED');
-info($request->all());
+        info($request->all());
 
-$setting = Setting::first();  
-$data    = $request->all();
+        $setting = Setting::first();  
 
-$log = Logs::create([
-    'log'  => json_encode($data),
-    'type' => gettype($data)
-]);
+        $data = $request->all();
 
-$language = 'ar';
-$token    = $setting->access_token;
-$from     = "sa";
+        $log = Logs::create([
+            'log' => json_encode($data),
+            'type' => gettype($data)
+        ]);
 
-// جلب الـ value بشكل آمن
-$value = data_get($data, 'entry.0.changes.0.value');
+        $language = 'ar';
+        $token = $setting->access_token;
+        $from = "sa";
+        // جلب الـ value بشكل آمن لتقليل التكرار
+        $value = $data['entry'][0]['changes'][0]['value'] ?? null;
 
-if ($value && isset($value['metadata']['phone_number_id'])) {
-    $sentPhoneId    = $value['metadata']['phone_number_id'];
-    $sender_id      = $sentPhoneId;
-    $phone_numer_id = $sentPhoneId; 
+        if ($value && isset($value['metadata']['phone_number_id'])) {
 
-    $new_setting = NewSetting::with("country")
-        ->where('phone_numer_id', $phone_numer_id)
-        ->first();
+            $sentPhoneId = $value['metadata']['phone_number_id'];
 
-    $from = $new_setting?->country?->name ?? "sa";
-}
+            $sender_id      = $sentPhoneId;
+            $phone_numer_id = $sentPhoneId; 
+            $new_setting = NewSetting::
+            with("country")
+            ->where('phone_numer_id', $phone_numer_id)->first();
 
-// -------------------------------------------------------------
-// 1. معالجة الرسائل القادمة (Incoming Messages Inspection)
-// -------------------------------------------------------------
-$my_msg     = false;
-$message_id = 0;
+            $from = $new_setting?->country?->name ?? "sa";
+        }
+ 
+        $my_msg = false;
+        $message_id = 0;
+        if(isset($value['messages'])){
 
-if (isset($value['messages'][0])) {
-    $messageData = $value['messages'][0]; 
-    $message_id  = $messageData["id"];
-
-    $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+            $messageData = $value['messages'][0]; 
+            $message_id = $messageData["id"];
     
-    $last_msg = WattsChatModel::where("phone", $customerPhone) 
-        ->whereNotNull("message")
-        ->where("is_sent_by_me", 1)
-        ->orderByDesc("id")
-        ->first(); 
-
-    if ($last_msg) {
-        $user_msgs = WattsChatModel::where("phone", $customerPhone) 
+            $customerPhone = preg_replace('/[^0-9]/', '', $messageData['from']);
+            $last_msg = WattsChatModel::
+            where("phone", $customerPhone) 
             ->whereNotNull("message")
-            ->where("is_sent_by_me", 0)
-            ->where("id", ">", $last_msg->id)
-            ->count(); 
-
-        $my_msg = str_starts_with($last_msg->message, "... ") && $user_msgs == 0;
-        Log::info($my_msg ? "::::::::::::::::::::::::::::::" . $last_msg->message : "_____________________________________" . $last_msg->message);
-    }
-}
-
-// -------------------------------------------------------------
-// 2. إرسال بطاقة الدعوة الرئيسية (الرد التلقائي)
-// -------------------------------------------------------------
-if ($my_msg && isset($customerPhone)) {
-    $user_event = EventUsers::where("id", $last_msg->event_user_id)->with("event")->first();
-
-    if ($user_event && $user_event->event) {
-        $event   = $user_event->event;
-        $param_1 = $user_event->name;
-        $param_2 = $event->title;
-        $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-        $param_4 = $event->address;
-        $param_5 = $event->time != null ? $event->time . ' مساءً ' : '07:00 مساءً';
-        $param_6 = $user_event->users_count;
-
-        $template_name = 'wedding_data_v1_ar';
-        $image_url     = $event->file;
-        $header_type   = 'image';
-
-        $response = SendWeddingDataV1ArTemplate($customerPhone, $template_name, $language, $param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, $header_type);
-
-        if ($response && $response->getStatusCode() == 200) {
-            if ($event->user) {
-                $event->user->decrement('balance', $user_event->users_count);
+            ->where("is_sent_by_me", 1)
+            ->orderByDesc("id")
+            ->first(); 
+            if($last_msg){
+                $user_msgs = WattsChatModel::
+                where("phone", $customerPhone) 
+                ->whereNotNull("message")
+                ->where("is_sent_by_me", 0)
+                ->where("id", ">", $last_msg->id)
+                ->count(); 
+                $my_msg = str_starts_with($last_msg->message, "... ");
+                $my_msg = $my_msg && $user_msgs == 0;
+                Log::info($my_msg ? "::::::::::::::::::::::::::::::" .$last_msg->message :
+                "_____________________________________" .$last_msg->message);
             }
+        }
+        if($my_msg){
+            $user_event = EventUsers::
+            where("id", $last_msg->event_user_id)
+            ->with("event")
+            ->first();
 
-            $user_event->update([
-                'is_sent'    => 'yes',
-                'sent_from'  => 'dashboard',
-                'status'     => 'sent',
-                'message_id' => $message_id,
-                'send_type'  => 'meta',
+            $event = $user_event?->event;
+            $param_1   = $user_event->name;
+            $param_2   = $event->title;
+            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+            $param_4   = $event->address;
+            $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
+            $param_6   = $user_event->users_count;
+            $template_name = 'wedding_data_v1_ar';
+            $language = 'ar';
+            $image_url = $event->file;
+            $header_type = 'image';
+            $response = SendWeddingDataV1ArTemplate($customerPhone,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+            if ($response != null && $response->getStatusCode() == 200) {
+                $user = $event->user;
+                $user->update([
+                    'balance' => $user->balance - $user_event->users_count
+                ]);
+ 
+
+                $response_data = $response->getBody()->getContents();
+                $data = json_decode($response_data, true);
+  
+                $user_event->update([
+                    'is_sent' => 'yes',
+                    'sent_from' => 'dashboard',
+                    'status' => 'sent',
+                    'message_id' => $message_id,
+                    "send_type" => "meta",
+                ]);
+
+                $message = WattsChatModel::create([
+                    'phone'        => $customerPhone,
+                    'name'         => "Admin",
+                    'message'      => $template_name,
+                    'is_sent_by_me'=> true,
+                    'message_id'   => $message_id,
+                    'from'         => $from,
+                    "template_name" => $template_name,
+                    "event_user_id" => $user_event->id,
+                    "event_id" => $event->id,
+                ]);
+            }
+        }
+        elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
+           array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&
+           array_key_exists("value", $data['entry'][0]['changes'][0]) && array_key_exists("statuses", $data['entry'][0]['changes'][0]['value']) &&
+           count($data['entry'][0]['changes'][0]['value']['statuses']) >= 0 && array_key_exists("id", $data['entry'][0]['changes'][0]['value']['statuses'][0]) &&
+           array_key_exists("status", $data['entry'][0]['changes'][0]['value']['statuses'][0])) {
+
+            $message_id = $data['entry'][0]['changes'][0]['value']['statuses'][0]['id'];
+            $status =     $data['entry'][0]['changes'][0]['value']['statuses'][0]['status'];
+
+             $check_user_event = EventUsers::where('message_id', $message_id)->first();
+
+            $log->update([
+              	'event_user_id' => $check_user_event != null ? $check_user_event->id : 0,
+                'event_id' => $check_user_event != null ? $check_user_event->event_id : 0,
+                'message_id' => $message_id
             ]);
 
-            WattsChatModel::create([
-                'phone'         => $customerPhone,
-                'name'          => 'Admin',
-                'message'       => $template_name,
-                'is_sent_by_me' => true,
-                'message_id'    => $message_id,
-                'from'          => $from,
-                'template_name' => $template_name,
-                'event_user_id' => $user_event->id,
-                'event_id'      => $event->id,
-            ]);
-        }
-    }
-}
-// -------------------------------------------------------------
-// 3. تحديث حالات الرسائل (Statuses: Delivered, Sent, Read, Failed)
-// -------------------------------------------------------------
-elseif (data_get($value, 'statuses.0')) {
-    $statusData = $value['statuses'][0];
-    $message_id = $statusData['id'];
-    $status     = $statusData['status'];
+          	$error_title = null;
+          	$error_details = null;
 
-    $check_user_event = EventUsers::where('message_id', $message_id)->first();
+          	if($status == 'failed') {
 
-    $log->update([
-        'event_user_id' => $check_user_event ? $check_user_event->id : 0,
-        'event_id'      => $check_user_event ? $check_user_event->event_id : 0,
-        'message_id'    => $message_id
-    ]);
+                if(array_key_exists("errors", $data['entry'][0]['changes'][0]['value']['statuses'][0]) && array_key_exists("title", $data['entry'][0]['changes'][0]['value']['statuses'][0]['errors'][0]) && array_key_exists("error_data", $data['entry'][0]['changes'][0]['value']['statuses'][0]['errors'][0]) ) {
 
-    $error_title   = data_get($statusData, 'errors.0.title');
-    $error_details = data_get($statusData, 'errors.0.error_data.details');
+                  	$error_title = $data['entry'][0]['changes'][0]['value']['statuses'][0]['errors'][0]['title'];
+          			    $error_details = $data['entry'][0]['changes'][0]['value']['statuses'][0]['errors'][0]['error_data']['details'];
 
-    $events_users = EventUsers::where('message_id', $message_id)->get();
-
-    foreach ($events_users as $user_event) {
-        $user_event->update(['status' => $status, 'log' => json_encode($data)]);
-
-        EventUserLogs::create([
-            'log'           => json_encode($data),
-            'event_id'      => $user_event->event_id,
-            'event_user_id' => $user_event->id,
-            'message_id'    => $message_id,
-            'status'        => $status,
-            'error_title'   => $error_title,
-            'error_details' => $error_details,
-        ]);
-
-        if ($status == 'delivered') $user_event->update(['is_delivered' => 'yes']);
-        if ($status == 'read')      $user_event->update(['is_read' => 'yes']);
-    }
-
-    Parking::where('message_id', $message_id)->update(['status' => $status]);
-
-    if ($status === 'sent' && !WattsChatModel::where('message_id', $message_id)->exists()) {
-        $recipient   = $statusData['recipient_id'] ?? null;
-        $userName    = $check_user_event ? $check_user_event->name : null;
-        $sentPhoneId = data_get($value, 'metadata.phone_number_id');
-        $fromSent    = ($sentPhoneId && $sentPhoneId == ($setting->sa_phone_numer_id ?? null)) ? 'sa' : 'kw';
-
-        if ($recipient) {
-            WattsChatModel::create([
-                'phone'         => preg_replace('/[^0-9]/', '', $recipient),
-                'name'          => $userName,
-                'message'       => null,
-                'template_name' => null,
-                'is_sent_by_me' => true,
-                'message_id'    => $message_id,
-                'from'          => $fromSent,
-            ]);
-        }
-    }
-}
-// -------------------------------------------------------------
-// 4. التفاعل مع الضغط على الأزرار (Interactive Buttons Click)
-// -------------------------------------------------------------
-elseif (data_get($value, 'messages.0.button.payload') || data_get($value, 'messages.0.type') === 'text') {
-    $btnMessage = $value['messages'][0];
-    $message_id = data_get($btnMessage, 'context.id') ?? data_get($btnMessage, 'id');
-    
-    // جلب النص سواء كان من زرار أو من رسالة نصية عادية
-    $status     = data_get($btnMessage, 'button.payload'); 
-    $textBody   = data_get($btnMessage, 'text.body');
-
-    // توحيد الحالة لو العميل كتب النص بدلاً من الضغط على الزر
-    if (!$status && $textBody) {
-        if (str_contains($textBody, 'تفاصيل') || str_contains($textBody, 'تفاصيـل')) {
-            $status = 'event_details';
-        } elseif (str_contains($textBody, 'الاعتذار') || str_contains($textBody, 'اعتذار')) {
-            $status = 'not-attend';
-        } elseif (str_contains($textBody, 'تأكيد') || str_contains($textBody, 'حضور')) {
-            $status = 'attend';
-        }
-    }
-
-    $log->update(['message_id' => $message_id]);
-
-    // 1. البحث الأول عن طريق message_id
-    $user_event = EventUsers::where('message_id', $message_id)->first();
-
-    if ($user_event) {
-        $user_event->update(['log' => json_encode($data)]);
-
-        EventUserLogs::create([
-            'log'           => json_encode($data),
-            'event_id'      => $user_event->event_id,
-            'event_user_id' => $user_event->id,
-            'message_id'    => $message_id,
-            'status'        => $status,
-        ]);
-
-        $event = Events::find($user_event->event_id);
-
-        if ($event) {
-            // جلب الإعدادات الخاصة بالمناسبة لتحديد الـ Token و Phone ID
-            $whatsSettings  = get_whats_setting($event);
-            $token          = $whatsSettings['token'] ?? $token;
-            $phone_numer_id = $whatsSettings['sender_id'] ?? ($phone_numer_id ?? null);
-            $to             = $user_event->mobile;
-
-            // --- 1. زرار تفاصيل الدعوة ---
-            if ($status == 'event_details') {
-                $template_name = 'wedding___details';
-                $param_1       = $event->address;
-                $date          = Carbon::parse($event->date)->locale('ar');
-                $param_2       = $event->date;
-                $param_3       = $date->translatedFormat('l');
-                $param_4       = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], Carbon::createFromFormat('H:i', $event->time)->format('g:i A'));
-                $mapUrl        = "https://www.google.com/maps?q={$event->lat},{$event->long}";
-
-                $response = SendEventDetailsArTemplate($template_name, $language, $param_1, $param_2, $param_3, $param_4, $mapUrl, $phone_numer_id, $token, $to);
-                
-                if ($response && $response->getStatusCode() == 200) {
-                    $bodyL = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                 }
             }
 
-            // --- 2. زرار التأكيد والحضور ---
-            if ($status == 'attend') {
-                $user_event->update(['is_accepted' => 'yes']);
+          	$events_users = EventUsers::where('message_id', $message_id)->get();
 
-                Notifications::create([
-                    'add_by'         => 'event_user',
-                    'user_id'        => $user_event->id,
-                    'send_to_type'   => 'user',
-                    'send_to_id'     => $event->user_id,
-                    'en_title'       => $event->title,
-                    'ar_title'       => $event->title,
-                    'en_description' => $user_event->name,
-                    'ar_description' => $user_event->name,
-                    'type'           => 'accept_event',
-                    'item_id'        => $event->id,
-                    'user_event_id'  => $user_event->id,
-                    'status'         => 'accept_event',
+          	foreach($events_users as $user_event) {
+
+            	$user_event->update([ 'status' => $status, 'log' => json_encode($data) ]);
+
+               	EventUserLogs::create([
+                	'log' => json_encode($data),
+                  	'event_id' => $user_event->event_id,
+                    'event_user_id' => $user_event->id,
+                    'message_id' => $message_id,
+                  	'status' => $status,
+                  	'error_title' => $error_title,
+                    'error_details' => $error_details,
                 ]);
 
-                if ($event->showing_qr == 'yes') {
-                    $available     = min(max(1, (int)$user_event->users_count), 10);
-                    $template_name = 'flow_' . $available;
-                    $func          = 'SendArFlowV' . $available . 'Template';
+              	if($status == 'delivered') {
+                	$user_event->update([ 'is_delivered' => 'yes'  ]);
+                }
 
+              	if($status == 'read') {
+                	$user_event->update([ 'is_read' => 'yes'  ]);
+                }
+            }
+
+
+            Parking::where('message_id', $message_id)->update([
+               'status' => $status
+            ]);
+
+            // ????? ??????? ??????? ?? WattsChat ??? status = sent
+            if ($status === 'sent' && !WattsChatModel::where('message_id', $message_id)->exists()) {
+                $recipient    = $data['entry'][0]['changes'][0]['value']['statuses'][0]['recipient_id'] ?? null;
+                $userName     = $check_user_event ? $check_user_event->name : null;
+                $sentPhoneId  = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+                $fromSent     = ($sentPhoneId && $sentPhoneId == ($setting->sa_phone_numer_id ?? null)) ? 'sa' : 'kw';
+                if ($recipient) {
+                    WattsChatModel::create([
+                        'phone'         => preg_replace('/[^0-9]/', '', $recipient),
+                        'name'          => $userName,
+                        'message'       => null,
+                        'template_name' => null,
+                        'is_sent_by_me' => true,
+                        'message_id'    => $message_id,
+                        'from'          => $fromSent,
+                    ]);
+                }
+            }
+
+        } elseif($data != null && gettype($data) == 'array' && array_key_exists("entry", $data) && count($data['entry']) >= 0 &&
+           array_key_exists("changes", $data['entry'][0]) && count($data['entry'][0]['changes']) >= 0 &&
+           array_key_exists("value", $data['entry'][0]['changes'][0]) && array_key_exists("messages", $data['entry'][0]['changes'][0]['value']) &&
+           count($data['entry'][0]['changes'][0]['value']['messages']) >= 0 && array_key_exists("context", $data['entry'][0]['changes'][0]['value']['messages'][0]) &&
+           array_key_exists("id", $data['entry'][0]['changes'][0]['value']['messages'][0]['context']) && array_key_exists("button", $data['entry'][0]['changes'][0]['value']['messages'][0]) &&
+           array_key_exists("payload", $data['entry'][0]['changes'][0]['value']['messages'][0]['button'])) {
+
+
+            $message_id = $data['entry'][0]['changes'][0]['value']['messages'][0]['context']['id'];
+            $status =    $data['entry'][0]['changes'][0]['value']['messages'][0]['button']['payload'];
+
+            $log->update([ 'message_id' => $message_id ]);
+
+            $user_event = EventUsers::where('message_id', $message_id)->first();
+
+            if($user_event != null) {
+
+                $user_event->update([
+                	'log' => json_encode($data)
+                ]);
+
+
+                EventUserLogs::create([
+                	'log' => json_encode($data),
+                  	'event_id' => $user_event->event_id,
+                    'event_user_id' => $user_event->id,
+                    'message_id' => $message_id,
+                    'status' => $status,
+                ]);
+
+                $event = Events::find($user_event->event_id);
+
+                if($status == 'event_details' && $event != null) {
+
+ 
+
+                    $mobile = $user_event->mobile;
+
+                    $template_name = 'wedding___details';
+                    $language = 'ar'; 
+                    $location = '?q=' . $event->lat . ',' . $event->long;
+                    $param_1 = $event->address;
+                    $date = Carbon::parse($event->date)->locale('ar');
+                    $param_2 = $event->date;
+                    $param_3 = $date->translatedFormat('l');
+                    
+                    $param_4 = Carbon::createFromFormat('H:i', $event->time)->format('g:i A');
+                    $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
+                    $image_url = $event->file;
+                    $mapUrl = "https://www.google.com/maps?q={$event->lat},{$event->long}";
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                    // $response = SendTemplateV3($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
+                    $response = SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $token, $to);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyL = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
+
+                }
+                if($status == 'delivered') {
+                	$user_event->update([ 'is_delivered' => 'yes'  ]);
+                }
+
+                if($status == 'attend' && $event != null && $event->showing_qr == 'yes') {
+
+                    $user_event->update([ 'is_accepted' => 'yes'  ]);
+
+                
+                    /////////////////////////////////////////////////////////
+
+                    $phone = $user_event->mobile;
+
+                    Notifications::create([
+                      'add_by'         => 'event_user',
+                        'user_id'        => $user_event != null ? $user_event->id : 0,
+                        'send_to_type'   => 'user',
+                        'send_to_id'     => $user_event->event->user_id,
+                        'en_title'       => $user_event->event->title,
+                        'ar_title'       => $user_event->event->title,
+                        'en_description' => $user_event->name,
+                        'ar_description' => $user_event->name,
+                        'type'           => 'accept_event',
+                        'item_id'        => $user_event->event->id,
+                        'user_event_id'  => $user_event != null ? $user_event->id : 0,
+                        'status'         => 'accept_event',
+                    ]);
+
+                    /* ******************************************************************************************************************************************* */
+
+                    $available = max(1, (int)$user_event->users_count);
+                    $available = min($available, 10);
+
+                    $template_name6 = 'flow_'.$available;
+
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                    $to = $phone;
+                    $language = 'ar';
+
+                    $func = 'SendArFlowV' . $available . 'Template';
                     if (function_exists($func)) {
-                        $response = $func($to, $template_name, $language, $phone_numer_id, $token);
-                        if ($response && $response->getStatusCode() == 200) {
-                            $body = json_decode($response->getBody()->getContents(), true);
-                            log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        $response6 = $func($to,$template_name6,$language,$phone_numer_id,$token);
+                        if ($response6 && $response6->getStatusCode() == 200) {
+                            $body6 = json_decode($response6->getBody()->getContents(), true);
+                            $mid6  = $body6['messages'][0]['id'] ?? null;
+                            log_sent_watts_message($to, $template_name6, $mid6, $user_event->name, $phone_numer_id);
                         }
                     }
-                } else {
-                    $template_name = 'send_congratulation_ar_new';
-                    $response      = SendCongratulationArNewTemplate($to, $template_name, $language, $phone_numer_id, $token);
 
-                    if ($response && $response->getStatusCode() == 200) {
-                        $body = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                } elseif($status == 'attend' && $event != null && $event->showing_qr != 'yes') {
+
+
+                  	$user_event->update([ 'is_accepted' => 'yes'  ]);
+
+                    $mobile = $user_event->mobile;
+
+                    $to = $mobile;
+
+                    $language = 'ar';
+                    $user_name = $user_event->name;
+
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                  	$template_name2 = 'send_congratulation_ar_new';
+
+                    // $response2 = SendTemplateV9($to,$template_name2,$language,$phone_numer_id,$token);
+                    $response2 = SendCongratulationArNewTemplate($to,$template_name2,$language,$phone_numer_id,$token);
+                    if ($response2 && $response2->getStatusCode() == 200) {
+                        $body2 = json_decode($response2->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                     }
-                }
-            }
 
-            // --- 3. زرار الاعتذار عن الحضور ---
-            if ($status == 'not-attend') {
-                Notifications::create([
+                }
+
+
+                if($status == 'not-attend' && $event != null) {
+
+                  Notifications::create([
                     'add_by'         => 'event_user',
-                    'user_id'        => $user_event->id,
-                    'send_to_type'   => 'user',
-                    'send_to_id'     => $event->user_id,
-                    'en_title'       => $event->title,
-                    'ar_title'       => $event->title,
-                    'en_description' => $user_event->name,
-                    'ar_description' => $user_event->name,
-                    'type'           => 'refuse_event',
-                    'item_id'        => $event->id,
-                    'user_event_id'  => $user_event->id,
-                    'status'         => 'refuse_event',
-                ]);
+                      'user_id'        => $user_event != null ? $user_event->id : 0,
+                      'send_to_type'   => 'user',
+                      'send_to_id'     => $user_event->event->user_id,
+                      'en_title'       => $user_event->event->title,
+                      'ar_title'       => $user_event->event->title,
+                      'en_description' => $user_event->name,
+                      'ar_description' => $user_event->name,
+                      'type'           => 'refuse_event',
+                      'item_id'        => $user_event->event->id,
+                      'user_event_id'  => $user_event != null ? $user_event->id : 0,
+                      'status'         => 'refuse_event',
+                  ]);
 
-                Qr_Code::where('event_user_id', $user_event->id)->delete();
+                  Qr_Code::where('event_user_id', $user_event->id)->delete();
 
-                $user_event->update([ 
-                    'scan'         => null, 
-                    'scan_at'      => null, 
-                    'is_refused'   => 'yes',
-                    'is_accepted'  => 'no',
-                    'status'       => 'not-attend',
-                    'accept_count' => 0,
-                ]);
+                  $user_event->update([ 
+                    'scan' => null , 
+                    'scan_at' => null, 
+                    'is_refused' => 'yes',
+                    'is_accepted' => 'no' ,
+                    'status' => 'not-attend',
+                    "accept_count" => 0,
+                  ]);
+                $user_event->is_refused = 'yes';
+                $user_event->save();
+                  $event = Events::find($user_event->event_id);
 
-                $template_name = 'wedding_data_v3_ar';
-                $response      = SendApologizedTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                //   $token          = get_whats_setting($event)['token'];
+                //   $sender_id      = get_whats_setting($event)['sender_id'];
+                //   $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-                if ($response && $response->getStatusCode() == 200) {
-                    $body = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+
+                  $mobile = $user_event->mobile;
+                  $to = $mobile;
+
+                  $phone = $mobile;
+                  $template_name = 'wedding_data_v3_ar';
+
+                  // $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$phone.'&template='.$template_name;
+                  // $response = SendNewTemplateCodeV1($url);
+
+                  $response = SendApologizedTemplate($to,$template_name,$language,$phone_numer_id,$token);
+
+                  if ($response && $response->getStatusCode() == 200) {
+                      $bodyR = json_decode($response->getBody()->getContents(), true);
+                      log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                  }
+
+                    // Qr_Code::where('event_user_id', $user_event->id)->delete();
+
+                    // $user_event->update([ 'scan' => null , 'scan_at' => null, 'is_refused' => 'yes','is_accepted' => 'no'  ]);
+
+                    // $mobile = $user_event->mobile;
+
+                    // $to = $mobile;
+
+                    // $template_name = 'wedding_data_v3_ar';
+                    // $language = 'ar';
+
+
+                    // $phone_numer_id = $setting->sa_phone_numer_id;
+                    // $token = $setting->sa_access_token;
+
+                    // $response = SendTemplateV4($to, $template_name, $language, $phone_numer_id, $token);
+
                 }
-            }
 
-            // --- 4. زرار الخريطة/الموقع ---
-            if ($status == 'location') {
-                $template_name = 'wedding_data_v7_ar';
-                $location      = '?q=' . $event->lat . ',' . $event->long;
+                if($status == 'location' && $event != null) {
 
-                $response = SendWeddingDataV7ATemplate($to, $template_name, $language, $user_event->name, $location, $phone_numer_id, $token);
 
-                if ($response && $response->getStatusCode() == 200) {
-                    $body = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    $mobile = $user_event->mobile;
+
+                    $to = $mobile;
+
+                    $template_name = 'wedding_data_v7_ar';
+                    $language = 'ar';
+                    $user_name = $user_event->name;
+                    $location = '?q=' . $event->lat . ',' . $event->long;
+
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                    // $response = SendTemplateV3($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
+                    $response = SendWeddingDataV7ATemplate($to, $template_name, $language, $user_name, $location, $phone_numer_id, $token);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyL = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
+
                 }
-            }
 
-            // --- 5. زرار الموعد ---
-            if ($status == 'date') {
-                $template_name = 'wedding_data_v9_ar';
-                $response      = SendWeddingDataV9ArTemplate($to, $template_name, $language, $event->date, $phone_numer_id, $token);
 
-                if ($response && $response->getStatusCode() == 200) {
-                    $body = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+
+                if($status == 'date' && $event != null) {
+
+                    $mobile = $user_event->mobile;
+                    $to = $mobile;
+
+                    $template_name = 'wedding_data_v9_ar';
+                    $language = 'ar';
+
+                    $date = $event->date;
+
+                    // $token          = get_whats_setting($event)['token'];
+                    // $sender_id      = get_whats_setting($event)['sender_id'];
+                    // $phone_numer_id = get_whats_setting($event)['sender_id'];
+
+                    // $response = SendTemplateV7($to, $template_name, $language, $date, $phone_numer_id, $token);
+                    $response = SendWeddingDataV9ArTemplate($to, $template_name, $language, $date, $phone_numer_id, $token);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyD = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($to, $template_name, $bodyD['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    }
+
                 }
-            }
 
-            // --- تحديث حالة المستخدم في النهاية ---
-            if ($status != 'location') {
-                $user_event->update(['status' => $status]);
-            } else {
-                $user_event->update(['get_location' => 'yes']);
+                ////////////////////////////////////////////////////////////////
+                if($status != 'location') {
+                    $user_event->update([
+                       'status' => $status
+                    ]);
+                } else {
+                    $user_event->update([
+                       'get_location' => 'yes'
+                    ]);
+                }
+                ////////////////////////////////////////////////////////////////
+
             }
-        }
-    } 
 
             /* ****************************************************************************************** */
 

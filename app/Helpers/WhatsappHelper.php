@@ -276,7 +276,7 @@ if (! function_exists('SendEventDetailsArTemplate')) {
                             ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
                             ['type' => 'text', 'text' => $param_2],    // {{2}} التاريخ
                             ['type' => 'text', 'text' => $param_3],    // {{3}} اليوم
-                            ['type' => 'text', 'text' => $, $mapUrl],    // {{4}} الوقت
+                            ['type' => 'text', 'text' => $param_4],    // {{4}} الوقت
                         ],
                     ],
                     [

@@ -4304,6 +4304,7 @@ class EventUersController extends Controller
         // تحويل AM/PM إلى (صباحاً / مساءً)
         $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $param_4);
         $image_url = $event->file;
+        $mapUrl = "https://www.google.com/maps?q={$event->lat},{$event->long}";
 foreach ($event_users as $item) {
     $customerPhone = $item->mobile;
     
@@ -4334,15 +4335,15 @@ foreach ($event_users as $item) {
                     ],
                     [
                         'type'       => 'button',
-                        'sub_type'   => 'quick_reply',
+                        'sub_type'   => 'url',
                         'index'      => '0',
                         'parameters' => [
                             [
-                                'type'    => 'payload',
-                                'payload' => 'location'
+                                'type' => 'text',
+                                'text' => $mapUrl // الجزء المتغير المكمل للرابط
                             ]
                         ],
-                    ]
+                    ], 
                 ],
             ]
         ]);

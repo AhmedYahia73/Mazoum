@@ -4288,7 +4288,7 @@ class EventUersController extends Controller
         $access_token = $settings?->access_token;
         $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
         $language = 'ar';
-        $template_name = "wedding__masj_1";
+        $template_name = "wedding___details";
         $from = $this->get_phone_number($request->phone_setting_id);
         $header_type = "image";
         // مصفوفة لتجميع الرسائل التي تم حفظها بنجاح لتجنب خطأ الـ Undefined variable

@@ -4252,7 +4252,11 @@ class EventUersController extends Controller
 
                 // إطلاق الـ Event للـ Real-time
                 WattsChatEvent::dispatch($message);
-
+                EventUsers::
+                whereIn("id", $request->user_event_id)
+                ->update([
+                    "message_id" => $messageId
+                ]);
                 // إضافة الرسالة للمصفوفة
                 $savedMessages[] = $message;
             }

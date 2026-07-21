@@ -4335,7 +4335,7 @@ foreach ($event_users as $item) {
                     [
                         'type'       => 'button',
                         'sub_type'   => 'quick_reply',
-                        'index'      => '2',
+                        'index'      => '0',
                         'parameters' => [
                             [
                                 'type'    => 'payload',

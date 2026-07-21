@@ -4309,22 +4309,22 @@ class EventUersController extends Controller
             $param_1 = $item->name;
             // 2. إرسال الرسالة إلى Meta WhatsApp API
             $response = Http::withToken($access_token)
-                ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
-                    'messaging_product' => 'whatsapp',
-                    'recipient_type'    => 'individual',
-                    'to'                => $customerPhone,
-                    'type'              => 'template',
-                    'template'          => [
-                        'name'     => $template_name,
-                        'language' => [
-                            'code' => $language
-                        ], 
+            ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+                'messaging_product' => 'whatsapp',
+                'recipient_type'    => 'individual',
+                'to'                => $customerPhone,
+                'type'              => 'template',
+                'template'          => [
+                    'name'     => $template_name,
+                    'language' => [
+                        'code' => $language
+                    ], 
                     'components' => [
                         [
-                            'type' => 'header',
+                            'type'       => 'header',
                             'parameters' => [
                                 [
-                                    'type' => $header_type,
+                                    'type'        => $header_type,
                                     $header_type => [
                                         'link' => $image_url,
                                     ],
@@ -4332,7 +4332,7 @@ class EventUersController extends Controller
                             ],
                         ],
                         [
-                            'type' => 'body',
+                            'type'       => 'body',
                             'parameters' => [
                                 [
                                     'type' => 'text',
@@ -4351,20 +4351,20 @@ class EventUersController extends Controller
                                     'text' => $param_4
                                 ],
                             ],
-                        ], ,
-                        ], 
+                        ],
                         [
-                            'type' => 'button',
-                            'sub_type' => 'quick_reply',
-                            'index' => '2',
+                            'type'       => 'button',
+                            'sub_type'   => 'quick_reply',
+                            'index'      => '2',
                             'parameters' => [
                                 [
-                                    'type' => 'payload',
+                                    'type'    => 'payload',
                                     'payload' => 'location'
                                 ]
                             ],
                         ]
-                    ],  
+                    ],
+                ] // إغلاق مصفوفة template
             ]);
 
             // 3. التعامل مع الرد من Meta

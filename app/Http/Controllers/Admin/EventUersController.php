@@ -4139,7 +4139,7 @@ class EventUersController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         } 
 
-        $messageText = "... الرجـاء إرسال كلمة ( *معزوم* ) لإستقبال الدعوة الخاصة بكم من قبل الشركة .";
+        $messageText = "🔔 تنبية نود التذكير تبقي على*مناسبة فاطمة والسيد *24 *ساعة";
 
         $event_users = EventUsers::whereIn("id", $request->user_event_id)->get();
         $settings = Setting::first();

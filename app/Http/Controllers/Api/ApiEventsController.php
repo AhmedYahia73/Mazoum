@@ -1303,7 +1303,7 @@ class ApiEventsController extends Controller
         ->select([
             'id','title','address','file','user_id',
             'first_name','last_name','date','time', 'image',
-            'assistant_id'
+            'assistant_id', 'is_open'
         ]); 
         // ✔️ search
         if ($request->search) {

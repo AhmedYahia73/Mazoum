@@ -1298,13 +1298,18 @@ class ApiEventsController extends Controller
         }
         
         $query = Model::
-        where('user_id', 2526)
-        ->where('is_open', 'yes')
+        where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+            ->orWhere('assistant_id',$user->id)
+            ->orWhereHas("sub_user", function($query) use($user){
+                $query->where("users.id", $user->id);
+            });
+        }) 
         ->with("user:id,name,mobile", "employee:id,name")
         ->select([
             'id','title','address','file','user_id',
             'first_name','last_name','date','time', 'image',
-            'assistant_id'
+            'assistant_id', 'is_open'
         ]); 
         // ✔️ search
         if ($request->search) {

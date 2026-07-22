@@ -42,7 +42,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/event_user_send_custom_msg', 'event_user_send_custom_msg')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         
         Route::get('/event_users/{id}', 'event_users');
-        Route::get('/event_msgs/{id}', 'event_msgs');
+        Route::get('/event_msgs/{id}', 'event_msgs')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::get('/event_msg_read/{id}', 'event_msg_read');
         Route::get('/event_msg_vistor_read/{id}', 'event_msg_vistor_read')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::post('/user_send_event_msg', 'user_send_event_msg');

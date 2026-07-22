@@ -61,7 +61,7 @@ class ChatController extends Controller
             return [
                 "id" => $item->id,
                 "msg" => $item->msg,
-                "image" => url("storage/" . $item->image),
+                "image" => !empty($item->image) ? url("storage/", $item->image) : null,
                 "is_read" => $item->is_read,
                 "user_sent" => $item->user_sent,
                 "date" => $item->created_at->format("Y-m-d"),
@@ -240,7 +240,7 @@ class ChatController extends Controller
             return [
                 "id" => $item->id,
                 "msg" => $item->msg,
-                "image" => url("storage/", $item->image),
+                "image" => !empty($item->image) ? url("storage/", $item->image) : null,
                 "is_read" => $item->is_read,
                 "user_sent" => $item->user_sent,
                 "date" => $item->created_at->format("Y-m-d"),

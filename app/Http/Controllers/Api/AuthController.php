@@ -338,7 +338,8 @@ class AuthController extends Controller
         $validated_arr = [
             'name'      => 'required|max:200',
             'mobile'      => 'required|numeric|unique:admin|unique:users,mobile,' . $user->id,
-            'mobile_code' => 'required'
+            'mobile_code' => 'required',
+            'password' => "min:8"
         ];
 
         if ($lang == 'ar') {
@@ -352,6 +353,7 @@ class AuthController extends Controller
                 'mobile.digits' => "الهاتف يجب ان يحتوي علي 12 رقم",
                 'mobile_code.required' => "كود الهاتف مطلوب",
                 'mobile_code.exists' => "عفوا كود الهاتف غير صحيح",
+                'password.min' => "يجب الا يقل عن 8 احرف",
             ];
         } else {
             $custom_messages =  [
@@ -364,6 +366,7 @@ class AuthController extends Controller
                 'mobile.unique' => 'mobile must be unique',
                 'mobile_code.required' => 'mobile code is required',
                 'mobile_code.exists' => 'sorry this mobile code not exist',
+                'password.min' => "min char 8",
             ];
         }
 
@@ -380,6 +383,10 @@ class AuthController extends Controller
         $data['mobile_code'] = $request->mobile_code;
         $data['mobile'] = $request->mobile;
 
+        if(isset($request->password) && !empty($request->password)){
+            $data['password'] = bcrypt($request->password);
+            $data['pass'] = $request->password;
+        }
         $user->update($data);
 
         if ($lang == 'en') {

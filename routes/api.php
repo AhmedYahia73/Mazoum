@@ -35,7 +35,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     Route::controller('Api\CustomEvent\ChatController')
     ->prefix("chat")->group(function () {
         Route::get('/custom_users/{id}', 'custom_users');
-        Route::get('/custom_msgs/{id}', 'custom_msgs');
+        Route::get('/custom_msgs/{id}', 'custom_msgs')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::get('/custom_msg_read/{id}', 'custom_msg_read');
         Route::get('/custom_msg_vistor_read/{id}', 'custom_msg_vistor_read')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::post('/user_send_custom_msg', 'user_send_custom_msg');

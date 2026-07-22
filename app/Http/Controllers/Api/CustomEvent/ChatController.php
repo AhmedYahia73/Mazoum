@@ -228,11 +228,12 @@ class ChatController extends Controller
     }
 
     public function event_msgs(Request $request, $id){
-        $event = EventUsers::
+        $event_user = EventUsers::
         with("event")
-        ->findOrFail($id)?->event;
+        ->findOrFail($id);
+        $event = $event_user?->event;
         $chat = EventChat::
-        where("user_id", $request->user()->id)
+        where("event_user_id ", $event_user->id)
         ->where("event_user_id", $id)
         ->get()
         ->map(function($item){

@@ -1296,7 +1296,7 @@ class ApiEventsController extends Controller
                 return $this->returnError('E100', 'المستخدم مطلوب');
             }
         }
-
+return $user;
         $query = Model::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
             ->orWhere('assistant_id',$user->id)

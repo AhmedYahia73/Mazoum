@@ -50,12 +50,12 @@ class ChatController extends Controller
     }
 
     public function custom_msgs(Request $request, $id){
-        $custom_event = CustomEventUsers::
+        $custom_event_user = CustomEventUsers::
         with("event")
-        ->findOrFail($id)?->event;
-        $chat = CustomChat::
-        where("user_id", $request->user()->id)
-        ->where("custom_user_id", $id)
+        ->findOrFail($id);
+        $custom_event = $custom_event_user?->event;
+        $chat = CustomChat:: 
+        where("custom_user_id", $id)
         ->get()
         ->map(function($item){
             return [

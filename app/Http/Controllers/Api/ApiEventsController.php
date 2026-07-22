@@ -1304,7 +1304,8 @@ class ApiEventsController extends Controller
             ->orWhereHas("sub_user", function($query) use($user){
                 $query->where("users.id", $user->id);
             });
-        }) 
+        })
+        ->where('is_open', 'yes')
         ->with("user:id,name,mobile", "employee:id,name")
         ->select([
             'id','title','address','file','user_id',

@@ -1297,11 +1297,8 @@ class ApiEventsController extends Controller
             }
         }
         
-        $query = Model::where(function ($query) use ($user) {
-            $query->where('user_id', $user->id)
-            ;
-        })
-        ->where('is_open', 'yes')
+        $query = Model::
+   where('is_open', 'yes')
         ->with("user:id,name,mobile", "employee:id,name")
         ->select([
             'id','title','address','file','user_id',

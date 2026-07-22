@@ -1332,4 +1332,35 @@ class ApiEventsController extends Controller
  
         return $this->returnData('data', $data);
     }
+
+    public function best_memories_users(Request $request, $id)
+    {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
+
+        $users = EventUsers::
+        where("event_id", $id)
+        ->whereHas("best_memories")
+        ->paginate(15);
+
+        return $this->returnData('users', $users);
+
+    }
 }

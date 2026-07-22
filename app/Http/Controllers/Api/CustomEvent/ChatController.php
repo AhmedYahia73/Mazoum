@@ -72,6 +72,7 @@ class ChatController extends Controller
         return response()->json([
             "chat" => $chat,
             "custom_event" => $custom_event,
+            "custom_event_user" => $custom_event_user,
         ]);
     }
 
@@ -251,6 +252,7 @@ class ChatController extends Controller
         return response()->json([
             "chat" => $chat,
             "event" => $event,
+            "event_user" => $event_user,
         ]);
     }
 

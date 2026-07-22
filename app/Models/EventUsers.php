@@ -31,6 +31,10 @@ class EventUsers extends Model
         return $this->hasMany(EventChat::class, "event_user_id");
     }
 
+    public function best_memories(){
+        return $this->hasMany(Memory::class, "event_user_id");
+    }
+
     public function un_read_user_msgs(){
         return $this->hasMany(EventChat::class, "event_user_id")
         ->where("is_read", false)

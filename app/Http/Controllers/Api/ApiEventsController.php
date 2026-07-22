@@ -1274,4 +1274,61 @@ class ApiEventsController extends Controller
             "congratulation_msgs" => $congratulation_msgs
         ]);
     }
+
+    public function all_events(Request $request)
+    {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        if ($user == null) {
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'user is required');
+            } else {
+                return $this->returnError('E100', 'المستخدم مطلوب');
+            }
+        }
+
+        $query = Model::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+            ->orWhere('assistant_id',$user->id)
+            ->orWhereHas("sub_user", function($query) use($user){
+                $query->where("users.id", $user->id);
+            });
+        })
+        ->where('is_open', 'yes')
+        ->with("user:id,name,mobile", "employee:id,name")
+        ->select([
+            'id','title','address','file','user_id',
+            'first_name','last_name','date','time', 'image',
+            'assistant_id'
+        ]); 
+        // ✔️ search
+        if ($request->search) {
+            $s = $request->search;
+
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%$s%")
+                ->orWhere('address', 'like', "%$s%")
+                ->orWhere('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhereHas("user", function($q2) use($s){
+                    $q2->where("name", "like", "%$s%")
+                    ->orWhere('mobile', 'like', "%$s%");
+                });
+            });
+        } 
+
+        $data = $query->paginate(20);
+ 
+        return $this->returnData('data', $data);
+    }
 }

@@ -371,8 +371,7 @@ class ApiEventsController extends Controller
 
     public function best_memories(Request $request, $id) {
         // , 
-        $memories = Memory::where('event_id', $id)
-        ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        $memories = Memory::where('event_id', $id)  // تحديد الأعمدة المطلوبة
         ->with("user:id,name,mobile")
         ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
         ->through(function($item) {
@@ -391,8 +390,7 @@ class ApiEventsController extends Controller
 
     public function best_custom_memories(Request $request, $id) {
         // CustomMemory, 
-        $memories = CustomMemory::where('custom_event_id', $id)
-        ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        $memories = CustomMemory::where('custom_event_id', $id)  // تحديد الأعمدة المطلوبة
         ->with("user:id,name,mobile")
         ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
         ->through(function($item) {

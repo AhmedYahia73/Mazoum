@@ -373,12 +373,14 @@ class ApiEventsController extends Controller
         // , 
         $memories = Memory::where('event_id', $id)
         ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        ->with("user:id,name,mobile")
         ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
         ->through(function($item) {
             return [
                 "id" => $item->id,
                 "image" => $item->image_url,
                 "time" => $item->created_at->format("h:i:s A"),
+                "user" => $item->user,
             ];
         });
 
@@ -391,12 +393,14 @@ class ApiEventsController extends Controller
         // CustomMemory, 
         $memories = CustomMemory::where('custom_event_id', $id)
         ->select(['id', 'image', 'created_at']) // تحديد الأعمدة المطلوبة
+        ->with("user:id,name,mobile")
         ->paginate(10) // حدد عدد العناصر في الصفحة الواحدة (مثلاً 10)
         ->through(function($item) {
             return [
                 "id" => $item->id,
                 "image" => $item->image_url,
                 "time" => $item->created_at->format("h:i:s A"),
+                "user" => $item->user,
             ];
         });
 

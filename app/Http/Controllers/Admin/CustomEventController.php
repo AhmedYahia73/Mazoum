@@ -2466,7 +2466,25 @@ class CustomEventController extends Controller
         'scan_at' => $now,
         'scan_count' => $request->users_count + $Item->scan_count]);
 
- 
+        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+        $instance_id="instance109805"; // Ultramsg.com instance id
+        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+        $priority=0;
+        $referenceId="SDK";
+        $nocache=true;
+
+
+        $param_1 = Carbon::parse($Item?->event?->date . " " . $Item?->event?->time)->format("h:i A");
+        $caption = "حياكـم الله ،، اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
+        " وقت الحضور " . $param_1;
+        $customerPhone = $Item->mobile;
+        $customerPhone = str_replace("+","",$customerPhone);
+
+        // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
+
+        // $api=$client->sendChatMessage($to,$body);
+        $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
         return response()->json([
             'success' => 'تم عمل QR Scan  بنجاح', 
         ]);

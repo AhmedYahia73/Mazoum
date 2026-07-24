@@ -378,7 +378,7 @@ class ApiEventsController extends Controller
             return [
                 "id" => $item->id,
                 "image" => $item->image_url,
-                "time" => $item->created_at->format("h:i:s A"),
+                "time" => $item?->created_at?->format("h:i:s A"),
                 "user" => $item->user,
             ];
         });
@@ -397,7 +397,7 @@ class ApiEventsController extends Controller
             return [
                 "id" => $item->id,
                 "image" => $item->image_url,
-                "time" => $item->created_at->format("h:i:s A"),
+                "time" => $item?->created_at?->format("h:i:s A"),
                 "user" => $item->user,
             ];
         });

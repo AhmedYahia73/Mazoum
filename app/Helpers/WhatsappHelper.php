@@ -297,6 +297,36 @@ if (! function_exists('SendEventDetailsArTemplate')) {
     }
 }
 
+if (! function_exists('SendScanMsgArTemplate')) {
+
+    function SendScanMsgArTemplate($template_name,$language,$param_1, $phone_numer_id, $access_token, $customerPhone)
+    {
+        
+        $response = Http::withToken($access_token)
+        ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
+            'messaging_product' => 'whatsapp',
+            'recipient_type'    => 'individual',
+            'to'                => $customerPhone,
+            'type'              => 'template',
+            'template'          => [
+                'name'     => $template_name,
+                'language' => [
+                    'code' => $language
+                ], 
+                'components' => [ 
+                    [
+                        'type'       => 'body',
+                        'parameters' => [
+                            ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
+                        ],
+                    ], 
+                ],
+            ]
+        ]);
+        return $response;
+    }
+}
+
 
 if (! function_exists('SendWeddingUtilityV1ArTemplate')) {
 

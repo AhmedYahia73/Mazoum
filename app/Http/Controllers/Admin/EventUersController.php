@@ -3630,7 +3630,7 @@ class EventUersController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }  
-        // qr_id
+        // qr_id // wedding_data_v10_ar_new
         
         $qr_code = Qr_Code::
         where("uu_id",$request->qr_id)
@@ -3679,6 +3679,35 @@ class EventUersController extends Controller
             "count" => $request->users_count
         ]);
 
+        $param_1 = Carbon::parse($Item?->event?->date . " " . $Item?->event?->time)->format("h:i A");
+        $customerPhone = $Item?->mobile;
+        if($Item->send_type == "link"){
+
+            $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+            $instance_id="instance109805"; // Ultramsg.com instance id
+            $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+            $priority=0;
+            $referenceId="SDK";
+            $nocache=true;
+
+
+            $caption = "حياكـم الله ،،" . PHP_EOL . PHP_EOL . 
+           " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
+           " وقت الحضور " . $param_1;
+
+            // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
+
+            // $api=$client->sendChatMessage($to,$body);
+            $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
+        }
+        else{
+            $template_name = "wedding_data_v10_ar_new";
+            $language = "ar";
+            $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
+            $access_token = Setting::first()?->access_token;
+            SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+        }
  
         return response()->json([
             'success' => 'تم عمل QR Scan  بنجاح', 

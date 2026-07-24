@@ -3642,7 +3642,7 @@ class EventUersController extends Controller
         }])
         ->first();
         $user_data = User::
-        where("id", $Item->user_id)
+        where("id", $Item?->user_id)
         ->first();
         if(!$user_data){
             $user_data = User::

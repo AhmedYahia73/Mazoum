@@ -3259,21 +3259,15 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
+                            $param_1 = Carbon::parse($user_event?->event?->date . " " . $user_event?->event?->time)->format("h:i A");
                             if($request->sending_type == 'old_send') {
-
-                                $template_name = 'wedding_data_v10_ar_new';
-                                $language = 'ar';
-
-                                $token          = get_whats_setting($event)['token'];
-                                $sender_id      = $this->get_phone_id($request->phone_setting_id);
-                                $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
-
-                                // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
-
-                                $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name;
-
-                                $response = SendNewTemplateCodeV1($url);
- 
+  
+                                $customerPhone = $user_event?->mobile;
+                                $template_name = "wedding_data_v10_ar_new";
+                                $language = "ar";
+                                $phone_numer_id = $this->get_phone_id($user_event?->event?->phone_setting_id);
+                                $access_token = Setting::first()?->access_token;
+                                $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone); 
                               	// dd($response);
 
                                 //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
@@ -3307,11 +3301,15 @@ class EventUersController extends Controller
 
                             } else {
 
-                                $caption = 'حياكم الله ،،' .
-                                'اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة🌹';
+
+
+                                $caption = "حياكـم الله ،، اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
+                                " وقت الحضور " . $param_1;
+
+                                // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
 
                                 // $api=$client->sendChatMessage($to,$body);
-                                $api = $client->sendChatMessage($to,$caption,$priority,$referenceId,$nocache);
+                                $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
 
                                 // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
 
@@ -3655,12 +3653,11 @@ class EventUersController extends Controller
                 "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
             ], 400);
         }
-        // if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
-        //     return response()->json([
-        //         'errors' => 'عفوا هذا QR غير متاح', 
-        //     ],400);
-
-        // }
+        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+            return response()->json([
+                'errors' => 'عفوا هذا QR غير متاح', 
+            ],400); 
+        }
         $user_data->send_custom_invetaion += $request->users_count;
         $user_data->save();
         EnterUserEvent::create([

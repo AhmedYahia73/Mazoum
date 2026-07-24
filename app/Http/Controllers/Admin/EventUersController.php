@@ -3650,11 +3650,11 @@ class EventUersController extends Controller
                 "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
             ], 400);
         }
-        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
-            return response()->json([
-                'errors' => 'عفوا هذا QR غير متاح', 
-            ],400); 
-        }
+        // if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+        //     return response()->json([
+        //         'errors' => 'عفوا هذا QR غير متاح', 
+        //     ],400); 
+        // }
         $user_data->send_custom_invetaion += $request->users_count;
         $user_data->save();
         EnterUserEvent::create([

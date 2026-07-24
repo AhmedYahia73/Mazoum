@@ -3675,6 +3675,8 @@ class EventUersController extends Controller
 
         $param_1 = Carbon::parse($Item?->event?->date . " " . $Item?->event?->time)->format("h:i A");
         $customerPhone = $Item?->mobile;
+        
+        $customerPhone = str_replace("+","",$customerPhone);
         if($Item->send_type == "link"){
 
             $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
@@ -3700,6 +3702,18 @@ class EventUersController extends Controller
             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
             $access_token = Setting::first()?->access_token;
             SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            $message = WattsChatModel::create([
+                'phone'        => $customerPhone,
+                'name'         => "Admin",
+                'message'      => $template_name,
+                'is_sent_by_me'=> true,
+                'message_id'   => 0,
+                'from'         => "Admin",
+                "template_name" => $template_name,
+                "event_user_id" => $Item->id,
+                "event_id" => $Item?->event?->id,
+                "phone_numer_id" => $phone_numer_id,
+            ]);
         }
  
         return response()->json([

@@ -3309,7 +3309,7 @@ class EventUersController extends Controller
                                 // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
 
                                 // $api=$client->sendChatMessage($to,$body);
-                                $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
+                                $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
 
                                 // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
 

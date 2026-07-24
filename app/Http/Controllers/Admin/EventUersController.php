@@ -3300,9 +3300,6 @@ class EventUersController extends Controller
                                 }
 
                             } else {
-
-
-
                                 $caption = "حياكـم الله ،، اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
                                 " وقت الحضور " . $param_1;
 

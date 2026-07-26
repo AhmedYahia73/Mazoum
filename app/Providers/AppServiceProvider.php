@@ -17,6 +17,12 @@ class AppServiceProvider extends ServiceProvider
         foreach (glob(app_path() . '/Helpers/*.php') as $file) {
             require_once($file);
         }
+
+        if (class_exists(\Dedoc\Scramble\Infer\Services\FileParser::class)) {
+            $this->app->singleton(\Dedoc\Scramble\Infer\Services\FileParser::class, function ($app) {
+                return new \App\Support\ScrambleFileParser($app->make(\PhpParser\Parser::class));
+            });
+        }
     }
 
     /**

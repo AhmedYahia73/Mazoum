@@ -1,0 +1,12 @@
+<?php
+class Validator {
+/**
+     * Get all of the validation error messages.
+     *
+     * @return \Illuminate\Support\MessageBag
+     */
+    public function errors();
+
+}
+
+}

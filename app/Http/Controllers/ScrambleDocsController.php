@@ -16,26 +16,35 @@ class ScrambleDocsController extends Controller
     {
         Scramble::routes(function (Route $route) {
             return Str::startsWith($route->uri, 'api/') || Str::startsWith($route->uri, 'api');
-        });
 
-        Scramble::extendOpenApi(function (\Dedoc\Scramble\Support\Generator\OpenApi $openApi) {
-            $openApi->components->securitySchemes['token'] = \Dedoc\Scramble\Support\Generator\SecurityScheme::apiKey('header', 'token')
-                ->setDescription('معرف التوكن الخاص بالمستخدم (token)');
-            
-            $openApi->components->securitySchemes['password'] = \Dedoc\Scramble\Support\Generator\SecurityScheme::apiKey('header', 'password')
-                ->setDescription('كلمة مرور الـ API (password)');
-
-            $openApi->security[] = [
-                'token' => [],
-                'password' => []
-            ];
-        });
 
         config(['scramble.api_path' => 'api']);
 
         try {
             $generator = app(Generator::class);
-            return response()->json($generator());
+            $docs = $generator();
+            
+            if (!isset($docs['components']['securitySchemes'])) {
+                $docs['components']['securitySchemes'] = [];
+            }
+            $docs['components']['securitySchemes']['token'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'token',
+                'description' => 'معرف التوكن الخاص بالمستخدم (token)',
+            ];
+            $docs['components']['securitySchemes']['password'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'password',
+                'description' => 'كلمة مرور الـ API (password)',
+            ];
+            $docs['security'][] = [
+                'token' => [],
+                'password' => []
+            ];
+
+            return response()->json($docs);
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => $e->getMessage(),
@@ -58,7 +67,29 @@ class ScrambleDocsController extends Controller
 
         try {
             $generator = app(Generator::class);
-            return response()->json($generator());
+            $docs = $generator();
+            
+            if (!isset($docs['components']['securitySchemes'])) {
+                $docs['components']['securitySchemes'] = [];
+            }
+            $docs['components']['securitySchemes']['token'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'token',
+                'description' => 'معرف التوكن الخاص بالمستخدم (token)',
+            ];
+            $docs['components']['securitySchemes']['password'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'password',
+                'description' => 'كلمة مرور الـ API (password)',
+            ];
+            $docs['security'][] = [
+                'token' => [],
+                'password' => []
+            ];
+
+            return response()->json($docs);
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => $e->getMessage(),
@@ -88,7 +119,29 @@ class ScrambleDocsController extends Controller
 
         try {
             $generator = app(Generator::class);
-            return response()->json($generator());
+            $docs = $generator();
+            
+            if (!isset($docs['components']['securitySchemes'])) {
+                $docs['components']['securitySchemes'] = [];
+            }
+            $docs['components']['securitySchemes']['token'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'token',
+                'description' => 'معرف التوكن الخاص بالمستخدم (token)',
+            ];
+            $docs['components']['securitySchemes']['password'] = [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'password',
+                'description' => 'كلمة مرور الـ API (password)',
+            ];
+            $docs['security'][] = [
+                'token' => [],
+                'password' => []
+            ];
+
+            return response()->json($docs);
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => $e->getMessage(),

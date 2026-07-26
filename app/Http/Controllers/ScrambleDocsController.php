@@ -12,34 +12,53 @@ class ScrambleDocsController extends Controller
     /**
      * Generate API docs JSON for api.php routes
      */
-    public function apiJson(Generator $generator)
+    public function apiJson()
     {
         Scramble::routes(function (Route $route) {
             return Str::startsWith($route->uri, 'api/') || Str::startsWith($route->uri, 'api');
         });
 
-        return $generator();
+        config(['scramble.api_path' => 'api']);
+
+        try {
+            $generator = app(Generator::class);
+            return response()->json($generator());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
      * Generate API docs JSON for admin.php routes
      */
-    public function adminJson(Generator $generator)
+    public function adminJson()
     {
         Scramble::routes(function (Route $route) {
             return Str::startsWith($route->uri, 'admin/');
         });
 
-        // Override config for this request so paths are trimmed correctly
         config(['scramble.api_path' => 'admin']);
 
-        return $generator();
+        try {
+            $generator = app(Generator::class);
+            return response()->json($generator());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
      * Generate API docs JSON for web.php routes
      */
-    public function webJson(Generator $generator)
+    public function webJson()
     {
         Scramble::routes(function (Route $route) {
             return !Str::startsWith($route->uri, 'api/')
@@ -54,6 +73,15 @@ class ScrambleDocsController extends Controller
 
         config(['scramble.api_path' => '']);
 
-        return $generator();
+        try {
+            $generator = app(Generator::class);
+            return response()->json($generator());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 }

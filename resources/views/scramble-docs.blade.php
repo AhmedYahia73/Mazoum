@@ -13,7 +13,6 @@
     apiDescriptionUrl="{{ $specUrl }}"
     router="hash"
     layout="sidebar"
-    hideTryIt="false"
 />
 </body>
 </html>

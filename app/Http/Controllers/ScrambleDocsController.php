@@ -18,6 +18,19 @@ class ScrambleDocsController extends Controller
             return Str::startsWith($route->uri, 'api/') || Str::startsWith($route->uri, 'api');
         });
 
+        Scramble::extendOpenApi(function (\Dedoc\Scramble\Support\Generator\OpenApi $openApi) {
+            $openApi->components->securitySchemes['token'] = \Dedoc\Scramble\Support\Generator\SecurityScheme::apiKey('header', 'token')
+                ->setDescription('معرف التوكن الخاص بالمستخدم (token)');
+            
+            $openApi->components->securitySchemes['password'] = \Dedoc\Scramble\Support\Generator\SecurityScheme::apiKey('header', 'password')
+                ->setDescription('كلمة مرور الـ API (password)');
+
+            $openApi->security[] = [
+                'token' => [],
+                'password' => []
+            ];
+        });
+
         config(['scramble.api_path' => 'api']);
 
         try {

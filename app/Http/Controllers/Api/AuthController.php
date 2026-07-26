@@ -52,12 +52,6 @@ class AuthController extends Controller
 
         try {
 
-            $validated_arr = [
-                'name'      => 'required|max:200',
-                'mobile'      => 'required|numeric|unique:admin|unique:users,mobile',
-                'mobile_code' => 'required',
-            ];
-
             if ($lang == 'ar') {
                 $custom_messages = [
                     'name.required' => "الاسم مطلوب",
@@ -84,7 +78,11 @@ class AuthController extends Controller
                 ];
             }
 
-            $validator = Validator::make($request->all(), $validated_arr, $custom_messages);
+            $validator = Validator::make($request->all(), [
+                'name'      => 'required|max:200',
+                'mobile'      => 'required|numeric|unique:admin|unique:users,mobile',
+                'mobile_code' => 'required',
+            ], $custom_messages);
 
             //Send failed response if request is not valid
             if ($validator->fails()) {
@@ -189,24 +187,23 @@ class AuthController extends Controller
 
       	info($request->all());
 
-        $validated_arr = [
-            'mobile' => 'required|exists:users,mobile',
-            'user_type' => 'required'
-        ];
-
-        if($request->user_type == 'employee') {
-			$validated_arr['password'] = 'required';
-        }
-
         $custom_messages =  [
             'mobile.required' => 'رقم الهاتف مطلوب',
             'mobile.exists' => 'عفوا رقم الهاتف غير موجود مسبقا',
         ];
 
         if ($lang == 'en') {
-            $validator = Validator::make($request->all(), $validated_arr);
+            $validator = Validator::make($request->all(), [
+                'mobile' => 'required|exists:users,mobile',
+                'user_type' => 'required',
+                'password' => $request->user_type == 'employee' ? 'required' : 'nullable'
+            ]);
         } else {
-            $validator = Validator::make($request->all(), $validated_arr, $custom_messages);
+            $validator = Validator::make($request->all(), [
+                'mobile' => 'required|exists:users,mobile',
+                'user_type' => 'required',
+                'password' => $request->user_type == 'employee' ? 'required' : 'nullable'
+            ], $custom_messages);
         }
 
 
@@ -335,13 +332,6 @@ class AuthController extends Controller
             }
         }
 
-        $validated_arr = [
-            'name'      => 'required|max:200',
-            'mobile'      => 'required|numeric|unique:admin|unique:users,mobile,' . $user->id,
-            'mobile_code' => 'required',
-            'password' => "min:8"
-        ];
-
         if ($lang == 'ar') {
             $custom_messages = [
                 'name.required' => "الاسم مطلوب",
@@ -370,7 +360,12 @@ class AuthController extends Controller
             ];
         }
 
-        $validator = Validator::make($request->all(), $validated_arr, $custom_messages);
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|max:200',
+            'mobile'      => 'required|numeric|unique:admin|unique:users,mobile,' . ($user->id ?? ''),
+            'mobile_code' => 'required',
+            'password' => "min:8"
+        ], $custom_messages);
 
         //Send failed response if request is not valid
         if ($validator->fails()) {
@@ -743,18 +738,18 @@ class AuthController extends Controller
         $lang = $this->lang;
 
 
-        $validated_arr = [
-            'token' => 'required'
-        ];
-
         $custom_messages =  [
             'token.required' => 'معرف المستخدم مطلوب',
         ];
 
         if ($lang == 'en') {
-            $validator = Validator::make($request->all(), $validated_arr);
+            $validator = Validator::make($request->all(), [
+                'token' => 'required'
+            ]);
         } else {
-            $validator = Validator::make($request->all(), $validated_arr, $custom_messages);
+            $validator = Validator::make($request->all(), [
+                'token' => 'required'
+            ], $custom_messages);
         }
 
         //Send failed response if request is not valid

@@ -74,13 +74,11 @@ class ApiEventFamilyController extends Controller
 
         $lang = $this->lang;
 
-        $validated_arr = [
+        $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',
             'event_users.*.name' => 'required',
             'event_users.*.mobile' => 'nullable|numeric',
-        ];
-
-        $validator = Validator::make($request->all(), $validated_arr);
+        ]);
 
         //Send failed response if request is not valid
         if ($validator->fails()) {
@@ -129,13 +127,11 @@ class ApiEventFamilyController extends Controller
 
         $lang = $this->lang;
 
-        $validated_arr = [
+        $validator = Validator::make($request->all(), [
             'old_event_users.*.name' => 'required',
             'old_event_users.*.mobile' => 'nullable|numeric',
             'old_event_users.*.id' => 'required|exists:event_family,id',
-        ];
-
-        $validator = Validator::make($request->all(), $validated_arr);
+        ]);
 
         //Send failed response if request is not valid
         if ($validator->fails()) {

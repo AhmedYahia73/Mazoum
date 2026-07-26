@@ -58,6 +58,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     });
  
     Route::get('/custom_event_report/{id}', 'Api\CustomEvent\CustomEventController@custom_event_report');
+    Route::get('/data_pdf', 'Api\CustomEvent\CustomEventController@data_pdf');
+    Route::get('/users_pdf/{id}', 'Api\CustomEvent\CustomEventController@users_pdf');
     Route::get('/all_event_users/{id}', 'Api\CustomEvent\CustomEventController@all_event_users');
     Route::get('/scan_users/{id}', 'Api\CustomEvent\CustomEventController@scan_users');
     Route::get('/congratulation_msg/{id}', 'Api\CustomEvent\CustomEventController@congratulation_msg');

@@ -37,6 +37,31 @@ class CustomEventController extends Controller
         ]); 
     }
 
+    public function data_pdf(Request $request)
+    {
+        $Item = Model::
+        where("user_id", auth()->user()->id)      
+        ->orWhereHas("sub_user", function($query){
+            $query->where("users.id", auth()->user()->id);
+        })
+        ->get(); // عدد العناصر في الصفحة
+
+        return response()->json([
+            'Items' => $Item,
+        ]); 
+    }
+
+    public function users_pdf(Request $request, $id)
+    {
+        $Item = CustomEventUsers::
+        where("custom_event_id", $id)
+        ->get(); // عدد العناصر في الصفحة
+
+        return response()->json([
+            'Items' => $Item,
+        ]); 
+    }
+
     public function template($id){
         $custom_event_user = CustomEventUsers::where("id", $id)
         ->firstOrFail();

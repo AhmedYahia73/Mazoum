@@ -19,6 +19,25 @@ use App\Http\Controllers\HomeController;
 Route::get('/testt', function () {
     return view("PDF.customPDF");
 });
+
+// ====== Scramble API Documentation Routes ======
+// API docs (api.php routes) → /docs/api
+Route::get('docs/api.json', 'ScrambleDocsController@apiJson')->name('scramble.api.json');
+Route::get('docs/api', function () {
+    return view('scramble-docs', ['specUrl' => route('scramble.api.json')]);
+})->name('scramble.api.docs');
+
+// Admin docs (admin.php routes) → /docs/admin
+Route::get('docs/admin.json', 'ScrambleDocsController@adminJson')->name('scramble.admin.json');
+Route::get('docs/admin', function () {
+    return view('scramble-docs', ['specUrl' => route('scramble.admin.json')]);
+})->name('scramble.admin.docs');
+
+// Web docs (web.php routes) → /docs/web
+Route::get('docs/web.json', 'ScrambleDocsController@webJson')->name('scramble.web.json');
+Route::get('docs/web', function () {
+    return view('scramble-docs', ['specUrl' => route('scramble.web.json')]);
+})->name('scramble.web.docs');
 Route::get('test/{event_user_id}', function ($event_user_id) {
     return view("welcome", compact('event_user_id'));
 });

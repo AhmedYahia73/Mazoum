@@ -1543,6 +1543,10 @@ class EventUersController extends Controller
 
                             $param_1   = $user_name;
                             $param_2   = $event->title;
+                            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                            $param_4   = $event->address;
+                            $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
+							$param_6   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
                             
                             $user_event->update([
@@ -1554,7 +1558,13 @@ class EventUersController extends Controller
                             $token          = 'EABIy7zT1dfYBO304MlaYIQZBalGto0d1oPSCKHXEosSCsaLIdxE6QgftNNSLuhG37zirzBTMpK8HprkTRtlLyQZB1evrzBItZBW8y8LgZAYQ1pd6y64GtnMmKUZCjlY0QAZBhvu0VErD7fPzO8iz0cg0OrZBC8ovZA1F5ZCLzWa85nwaL1jWP8WYaa8yI1Ffkmvsy0QHjRrU5bSMJLS8b9bt7ZA2c0Ys8WYvlTMufprZCQ5ZCiAGTqGfzO9LcVY8S9CdpuY1PZBD1phEneQZDZD';
                           	*/
  
-                            $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type);
+                            if($header_type == 'image'){
+                                $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+                            }
+                            else{
+                                $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type);
+                            }
+ 
 
                             // if($event->country_code == 'kw') {
 

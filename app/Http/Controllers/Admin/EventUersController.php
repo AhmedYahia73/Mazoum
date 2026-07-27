@@ -3259,7 +3259,7 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
-                            $param_1 = Carbon::parse($user_event?->event?->date . " " . $user_event?->event?->time)->format("h:i A");
+                            $param_1 = now()->format("h:i A");
                             if($request->sending_type == 'old_send') {
   
                                 $customerPhone = $user_event?->mobile;
@@ -3673,7 +3673,7 @@ class EventUersController extends Controller
             "count" => $request->users_count
         ]);
 
-        $param_1 = Carbon::parse($Item?->event?->date . " " . $Item?->event?->time)->format("h:i A");
+        $param_1 = now()->format("h:i A");
         $customerPhone = $Item?->mobile;
         
         $customerPhone = str_replace("+","",$customerPhone);

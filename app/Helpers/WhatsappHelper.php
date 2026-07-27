@@ -228,7 +228,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
                         'parameters' => [
                             [
                                 'type' => 'payload',
-                                'payload' => 'location'
+                                'payload' => 'event_details'
                             ]
                         ],
                     ]

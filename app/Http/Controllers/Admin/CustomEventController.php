@@ -2474,8 +2474,7 @@ class CustomEventController extends Controller
         $referenceId="SDK";
         $nocache=true;
 
-
-        $param_1 = Carbon::parse($Item?->event?->date . " " . $Item?->event?->time)->format("h:i A");
+        $param_1 = now()->format("h:i A");
         $caption = "حياكـم الله ،، اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
         " وقت الحضور " . $param_1;
         $customerPhone = $Item->mobile;

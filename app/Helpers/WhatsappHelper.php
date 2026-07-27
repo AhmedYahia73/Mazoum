@@ -141,88 +141,98 @@ if (! function_exists('SendCustomMessageTemplate')) {
     }
 }
 
+
+
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-    function SendWeddingDataV1ArTemplate($to, $template_name, $language, $param_1, $param_2, $image_url, $phone_numer_id, $token, $header_type = "image")
+    function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
-        $components = [];
-
-        // 1. إضافة الهيدر فقط في حال وجود رابط صورة أو ميديا
-        if (!empty($image_url)) {
-            $components[] = [
-                'type' => 'header',
-                'parameters' => [
-                    [
-                        'type' => $header_type,
-                        $header_type => [
-                            'link' => $image_url,
-                        ],
-                    ]
-                ],
-            ];
-        }
-
-        // 2. إضافة نص الرسالة (Body)
-        $components[] = [
-            'type' => 'body',
-            'parameters' => [
-                [
-                    'type' => 'text',
-                    'text' => (string) $param_1
-                ],
-                [
-                    'type' => 'text',
-                    'text' => (string) $param_2
-                ], 
-            ],
-        ];
-
-        // 3. إضافة أزرار الرد السريع (تم تصحيح 'payload' للزر الأول)
-        $buttons = [
-            ['index' => '0', 'payload' => 'attend'],
-            ['index' => '1', 'payload' => 'not-attend'],
-            ['index' => '2', 'payload' => 'event_details'],
-        ];
-
-        foreach ($buttons as $btn) {
-            $components[] = [
-                'type' => 'button',
-                'sub_type' => 'quick_reply',
-                'index' => $btn['index'],
-                'parameters' => [
-                    [
-                        'type' => 'payload', // تم التعديل من PAYLOAD إلى payload
-                        'payload' => $btn['payload']
-                    ]
-                ],
-            ];
-        }
 
         $arr = [
-            'messaging_product' => 'whatsapp',
-            'recipient_type' => 'individual',
-            'to' => $to,
-            'type' => 'template',
-            'template' => [
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $to,
+          'type' => 'template',
+          'template' => [
                 'name' => $template_name,
                 'language' => [
                     'code' => $language
                 ],
-                'components' => $components
-            ],
+                'components' => [
+                    [
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => $header_type,
+                                $header_type => [
+                                    'link' => $image_url,
+                                ],
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $param_1
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_2
+                            ], 
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'not-attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'event_details'
+                            ]
+                        ],
+                    ]
+                ]
+           ],
         ];
 
-        $fullUrl = 'https://graph.facebook.com/v18.0/' . $phone_numer_id . '/messages';
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
 
         $client = new Client();
 
-        return $client->post($fullUrl, [
+        $response = $client->post($fullUrl, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'Content-Type'  => 'application/json',
+                'Authorization' => 'Bearer '.$token,
             ],
             'json' => $arr,
         ]);
+
+        return $response;
+
     }
 }
 

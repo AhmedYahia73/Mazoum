@@ -457,15 +457,15 @@ class AttendanceController extends Controller
 
         // تحضير الـ location
         $location = $request->location;  
-        $lat = (float) $request->lat;
-        $lng = (float) $request->lng; 
+        $lat = (float) str_replace(',', '.', $request->lat);
+        $lng = (float) str_replace(',', '.', $request->lng); 
 
         $clientIp = $request->ip();
 
         // يكفي مكتب واحد يطابق الشرطين
         foreach ($allOffices as $office) {
 
-            $ipOk = !$office->router_ip || $clientIp === $office->router_ip;
+            $ipOk = !$office->router_ip || $clientIp === trim($office->router_ip);
 
             $locationOk = empty($office->locations) || count($office->locations) < 3
                 || $this->isInsidePolygon($lat, $lng, $office->locations);
@@ -475,7 +475,8 @@ class AttendanceController extends Controller
             }
         }
 
-        return 'أنت خارج نطاق العمل المسموح به أو غير متصل بشبكة أي مكتب';
+        // Return client IP in the error to help debugging
+        return 'أنت خارج نطاق العمل المسموح به أو غير متصل بشبكة أي مكتب. الـ IP الخاص بك هو: ' . $clientIp;
     }
 
     /**

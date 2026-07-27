@@ -112,7 +112,7 @@ if (! function_exists('SendCustomMessageTemplate')) {
                         'index' => '0',
                         'parameters' => [
                             [
-                                'type' => 'PAYLOAD',
+                                'type' => 'payload',
                                 'payload' => 'attend'
                             ]
                         ],

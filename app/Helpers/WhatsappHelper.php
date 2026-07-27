@@ -106,6 +106,39 @@ if (! function_exists('SendCustomMessageTemplate')) {
                             ]
                         ],
                     ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'PAYLOAD',
+                                'payload' => 'attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '1',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'not-attend'
+                            ]
+                        ],
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'quick_reply',
+                        'index' => '2',
+                        'parameters' => [
+                            [
+                                'type' => 'payload',
+                                'payload' => 'event_details'
+                            ]
+                        ],
+                    ]
                   	/*
                     [
                         'type' => 'button',

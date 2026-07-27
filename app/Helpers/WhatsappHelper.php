@@ -189,7 +189,7 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
                         'index' => '0',
                         'parameters' => [
                             [
-                                'type' => 'PAYLOAD',
+                                'type' => 'payload',
                                 'payload' => 'attend'
                             ]
                         ],

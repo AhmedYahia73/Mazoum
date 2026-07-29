@@ -90,6 +90,7 @@ class CustomEventController extends Controller
             'event_users.*.name' => 'required',
           	'event_users.*.users_count' => 'required|numeric|min:1',
           	'event_users.*.mobile' => 'sometimes',
+          	'event_users.*.suit_num' => 'sometimes',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -123,7 +124,8 @@ class CustomEventController extends Controller
                         'name' => $arr['name'],
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
-                        'uu_id' => $uu_id
+                        'uu_id' => $uu_id,
+                        "suit_num" => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
                     $this->update_qr($row,$uu_id);
@@ -154,6 +156,7 @@ class CustomEventController extends Controller
             'event_users.*.name' => 'required',
           	'event_users.*.users_count' => 'required|numeric|min:1',
           	'event_users.*.mobile' => 'sometimes',
+          	'event_users.*.suit_num' => 'sometimes',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -179,7 +182,8 @@ class CustomEventController extends Controller
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
                         'uu_id' => $uu_id,
-                        "user_id" => $user_id
+                        "user_id" => $user_id,
+                        "suit_num" => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
                     $this->update_qr($row,$uu_id);
@@ -208,6 +212,7 @@ class CustomEventController extends Controller
             'event_users.*.name' => 'required',
             'event_users.*.users_count' => 'required|numeric|min:0',
             'event_users.*.mobile' => 'nullable|numeric',
+            'event_users.*.suit_num' => 'nullable|numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -234,7 +239,8 @@ class CustomEventController extends Controller
                         'name' => $arr['name'],
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
-                        'uu_id' => $uu_id
+                        'uu_id' => $uu_id,
+                        "suit_num" => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
                     $this->update_qr($row,$uu_id);

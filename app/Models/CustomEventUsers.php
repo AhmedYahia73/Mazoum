@@ -32,7 +32,8 @@ class CustomEventUsers extends Model
         'user_id',
         "resend_qr",
         "confirm_count",
-        "apologize_count",
+        "apologize_count",.
+        "suit_num",
     ];
 
     public function enter()

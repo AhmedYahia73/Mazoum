@@ -3566,7 +3566,7 @@ class EventUersController extends Controller
             // ==========================================
             $rr = 600;
             $qr_size        = 450; // حجم الباركود
-            $y_title        = 200 + $rr; // الارتفاع الخاص باسم المناسبة 
+            $y_title        = 600; // الارتفاع الخاص باسم المناسبة 
             $y_tickets      = 460 + $rr; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 320 + $rr; // العرض الخاص برقم المقعد 
             $x_right_ticket = 700 + $rr; // العرض الخاص بعدد الدعوات 
@@ -3603,8 +3603,8 @@ class EventUersController extends Controller
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
-                    $font->size(60);
-                    $font->color('#0000'); 
+                    $font->size(90);
+                    $font->color('#fff'); 
                     $font->align('center');
                     $font->valign('middle');
                 });

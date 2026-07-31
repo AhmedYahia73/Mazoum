@@ -3581,7 +3581,6 @@ class EventUersController extends Controller
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
                 ->backgroundColor(255, 255, 255) // خلفية بيضاء
-                ->margin(1)
                 ->generate($link, $qr_tmp_path);
 
             // ==========================================

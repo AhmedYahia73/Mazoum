@@ -29,14 +29,14 @@ class Attendance extends Model
     public function getImageUrlAttribute()
     {
         if(isset($this->attributes['image'])){
-            return url("storage/" . $this->attributes['image']);
+            return public_path("images/" . $this->attributes['image']);
         }
     } 
     
     public function getSecondImageUrlAttribute()
     {
         if(isset($this->attributes['image'])){
-            return url("storage/" . $this->attributes['image']);
+            return public_path("images/" . $this->attributes['image']);
         }
     } 
     

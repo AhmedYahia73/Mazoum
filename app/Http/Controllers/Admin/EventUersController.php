@@ -3566,9 +3566,9 @@ class EventUersController extends Controller
             // ==========================================
             $rr = 600;
             $qr_size        = 450; // حجم الباركود
-            $y_title        = 600; // الارتفاع الخاص باسم المناسبة 
-            $y_tickets      = 460 + $rr; // الارتفاع الخاص برقم المقعد وعدد الدعوات
-            $x_left_ticket  = 320 + $rr; // العرض الخاص برقم المقعد 
+            $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
+            $y_tickets      = 860 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
+            $x_left_ticket  = 1100; // العرض الخاص برقم المقعد 
             $x_right_ticket = 700 + $rr; // العرض الخاص بعدد الدعوات 
             $y_mobile       = 1180; // الارتفاع الخاص برقم الموبايل
             $y_datetime     = 1230; // الارتفاع الخاص بالتاريخ والوقت
@@ -3614,7 +3614,7 @@ class EventUersController extends Controller
             if (isset($user_event->suit_num) && $user_event->suit_num != 0) {
                 $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
                     $font->file($number_font);
-                    $font->size(55); 
+                    $font->size(90); 
                     $font->color('#000000');
                     $font->align('center');
                     $font->valign('middle');
@@ -3625,7 +3625,7 @@ class EventUersController extends Controller
             if (isset($user_event->accept_count)) {
                 $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
                     $font->file($number_font);
-                    $font->size(55);
+                    $font->size(90);
                     $font->color('#000000');
                     $font->align('center');
                     $font->valign('middle');
@@ -3636,7 +3636,7 @@ class EventUersController extends Controller
             if (isset($user_event->mobile)) {
                 $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
                     $font->file($number_font);
-                    $font->size(40);
+                    $font->size(90);
                     $font->color('#333333');
                     $font->align('center');
                     $font->valign('middle');
@@ -3648,7 +3648,7 @@ class EventUersController extends Controller
                 $datetime = $event->date . ' ' . $event->time;
                 $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
                     $font->file($number_font);
-                    $font->size(22);
+                    $font->size(50);
                     $font->color('#000000');
                     $font->align('center');
                     $font->valign('middle');

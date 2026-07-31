@@ -21,7 +21,7 @@ class CustomEvent extends Model
         'address' , 'date' , 'time', "send_type",
         "name_qr", "number_qr", "qr_height",
         "qr_width", "qr_x", "qr_y", "lat", "lng",
-        'scan_assistant_id', "resend_qr", 
+        'scan_assistant_id', "resend_qr", "name",
         'image_height', 'image_width', 'text_color',
         "video", "pdf", "show_data_pdf", "pdf_bottom"
     ];

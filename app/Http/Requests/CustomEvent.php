@@ -34,6 +34,7 @@ class CustomEvent extends FormRequest
 
                     "pdf_bottom" => ["required", "numeric"],
                     'image'   => 'sometimes',
+                    'name' => ["sometimes"], 
                     'color' => ["sometimes"], 
                     "name_qr" => ["required", "boolean"],
                     "number_qr" => ["required", "boolean"],
@@ -65,6 +66,7 @@ class CustomEvent extends FormRequest
 
                     'image'   => 'nullable',
                     
+                    'name' => ["sometimes"], 
                     'color' => ["sometimes"], 
                     "name_qr" => ["boolean"],
                     "number_qr" => ["boolean"],

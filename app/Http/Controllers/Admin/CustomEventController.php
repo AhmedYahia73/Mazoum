@@ -842,7 +842,7 @@ class CustomEventController extends Controller
         $input = $request->only([
             'title', 'user_id', 'color' , 'assistant_id' , 'language' ,
             'address' , 'date' , 'time', 'scan_assistant_id',
-            "name_qr", "number_qr", "qr_height", "send_type",
+            "name_qr", "number_qr", "qr_height", "send_type", "name",
             "qr_width", "qr_x", "qr_y", "lat", "lng", "pdf_bottom",
             'image_height', 'image_width', 'text_color', "show_data_pdf",
         ]);

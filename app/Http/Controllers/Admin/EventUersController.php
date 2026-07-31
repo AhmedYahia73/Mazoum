@@ -3541,36 +3541,132 @@ class EventUersController extends Controller
                 unlink($qr_tmp_path);
             }
 
-        } else {
-
-            $bg           = 'qr-image-v9.jpg';
+        } 
+        else {
+            // ==========================================
+            // 1. إعدادات المسارات
+            // ==========================================
+            $bg           = public_path('images/qr-image-v9.jpg'); // تأكد من اسم صورة الخلفية الفارغة
             $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
+            $qr_tmp_name  = 'tmp_qr_' . time() . '.png';
+            $qr_tmp_path  = public_path('qr_code/' . $qr_tmp_name);
+            $final_path   = public_path('qr_code/' . $image_name);
 
+            // ==========================================
+            // 2. إعدادات الخطوط
+            // ==========================================
+            // خط العناوين العربية
+            $arabic_font = public_path('font/Amiri.ttf'); 
+            
+            // الخط الجديد للأرقام والإنجليزية (Times New Roman)
+            $number_font = public_path('font/timr45w.ttf'); 
+
+            // ==========================================
+            // 3. إعدادات الأبعاد والإحداثيات
+            // ==========================================
+            $qr_size        = 220; // حجم الباركود
+            $y_title        = 250; // الارتفاع الخاص باسم المناسبة 
+            $y_tickets      = 460; // الارتفاع الخاص برقم المقعد وعدد الدعوات
+            $x_left_ticket  = 320; // العرض الخاص برقم المقعد 
+            $x_right_ticket = 700; // العرض الخاص بعدد الدعوات 
+            $y_mobile       = 580; // الارتفاع الخاص برقم الموبايل
+            $y_datetime     = 630; // الارتفاع الخاص بالتاريخ والوقت
+            $y_qr           = 670; // الارتفاع الخاص بمكان الباركود
+
+            // ==========================================
+            // 4. إنشاء الباركود
+            // ==========================================
             QrCode::format('png')
-            ->size(450)
-            ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(255, 255, 255) // تم التعديل هنا للون الأبيض ليطابق خلفية الكارت
-            ->generate($link, $qr_code_path);
-            
-            // يمكنك الاستغناء عن دالة الشفافية اليدوية إذا لم تعد بحاجة لها
-            // make_qr_transparent(public_path($qr_code_path)); 
-            
-            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(255, 255, 255) // خلفية بيضاء
+                ->margin(1)
+                ->generate($link, $qr_tmp_path);
 
-            $destination = public_path($qr_code_path);
-            $new_img     = Image::make($destination);
+            // ==========================================
+            // 5. دمج البيانات على الصورة
+            // ==========================================
+            $img = Image::make($bg);
+            $center_x = intval($img->width() / 2);
 
-            if ($user_event->accept_count > 1) {
-                $new_img->text($user_event->accept_count, 115, 412, function ($font) {
-                    $font->file(public_path('font/OpenSans-Italic.ttf'));
-                    $font->size(25);
-                    $font->color('#000');
+            // أ- إضافة عنوان المناسبة (Event Title)
+            if (isset($event->title)) {
+                $title_text = $event->title;
+                if (isset($event->language) && $event->language == 'ar') {
+                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                    $title_text = $Arabic->utf8Glyphs($title_text);
+                } else {
+                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                    $title_text = $Arabic->utf8Glyphs($title_text);
+                }
+
+                $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
+                    $font->file($arabic_font);
+                    $font->size(38);
+                    $font->color('#FFFFFF'); 
+                    $font->align('center');
+                    $font->valign('middle');
                 });
             }
 
-            $new_img->save($destination);
-            return $destination;
+            // ب- إضافة رقم المقعد (في حالة أنه لا يساوي 0)
+            if (isset($user_event->suit_num) && $user_event->suit_num != 0) {
+                $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(55); 
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // ج- إضافة عدد الدعوات
+            if (isset($user_event->accept_count)) {
+                $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(55);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // د- إضافة رقم الموبايل
+            if (isset($user_event->mobile)) {
+                $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(40);
+                    $font->color('#333333');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // هـ- إضافة التاريخ والوقت
+            if (isset($event->date) && isset($event->time)) {
+                $datetime = $event->date . ' ' . $event->time;
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(22);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // و- إضافة صورة الباركود في المنتصف
+            $img->insert($qr_tmp_path, 'top', 0, $y_qr);
+
+            // ==========================================
+            // 6. حفظ الصورة النهائية وتنظيف الملفات المؤقتة
+            // ==========================================
+            $img->save($final_path, 100);
+
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
+
+            return $final_path;
         }
     }
 

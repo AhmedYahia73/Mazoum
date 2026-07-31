@@ -2536,20 +2536,19 @@ class CustomEventController extends Controller
             where("id", $Item?->event?->user_id)
             ->first();
         }
-        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
-        if($request->users_count >= $available){
+        $unpaid_orders_exist = \App\Models\Orders::where('user_id', $user_data->id)->where('is_paid', 'not_paid')->exists();
+        if ($unpaid_orders_exist) {
             return response()->json([
-                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+                'errors' => 'عفوا، يوجد لديك طلبات غير مدفوعة',
             ], 400);
         }
+
         if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
            return response()->json([
                 'errors' => 'عفوا هذا QR غير متاح', 
             ],400);
 
-        } 
-        $user_data->send_custom_invetaion += $request->users_count;
-        $user_data->save();
+        }
         EnterUserCustomEvent::create([
             "custom_user_id" => $Item->id,
             "count" => $request->users_count

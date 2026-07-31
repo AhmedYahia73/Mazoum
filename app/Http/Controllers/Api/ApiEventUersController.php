@@ -237,7 +237,13 @@ class ApiEventUersController extends Controller
         $time = $user_event?->event?->time;
         $date   = Carbon::parse($user_event?->event?->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
         $users_count = $user_event->users_count;
-        $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
+                $param_1 = $user_event->name;
+                $param_2 = $event->title;
+                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                $param_4 = $event->address;
+                $param_5 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
+                $param_6 = $user_event->users_count;
+                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image");
       	//dd($response);
 
         if ($response != null && $response->getStatusCode() == 200) {
@@ -640,7 +646,7 @@ class ApiEventUersController extends Controller
 
                                 if($event->sending_type == 'old_send') {
 
-                                    $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
+                                    $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image"); 
 
                                     // if($event->country_code == 'kw') {
 
@@ -894,6 +900,7 @@ class ApiEventUersController extends Controller
                         $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                         $param_4   = $event->address;
                         $param_5   = $event->time != null ? $event->time : '07:00 مساءً';
+						$param_6   = $users_count > 10 ? 10 : $users_count;
 
                         //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
                         $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
@@ -906,7 +913,9 @@ class ApiEventUersController extends Controller
                         $time = $user_event?->event?->time;
                         $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                         $users_count = $user_event->users_count;
-                        $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$user_name,$title,$date,$address,$time,$users_count,$image_url,$phone_numer_id,$token);
+                        $phone_number = $this->get_phone_number($request->phone_setting_id);
+                        $header_type = "image";
+                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image"); 
                         if ($response != null && $response->getStatusCode() == 200) {
 
                             // $user->update([

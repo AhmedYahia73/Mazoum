@@ -206,21 +206,27 @@ class EventUersController extends Controller
           	foreach($request->users as $arr) {
 
               if(isset($arr['id'])) {
-
-                if(isset($arr['users_count']) && $arr['users_count']) {
-                	$total_qty = $total_qty + $arr['users_count'];
-                } else {
-
-                  $row = Model::withTrashed()->where('id',$arr['id'])->first();
-
-                  if($row != null) {
-                  	 $total_qty = $total_qty + $row->users_count;
-                  } else {
-                     $total_qty = $total_qty + 1;
-                  }
+                $row = Model::withTrashed()->where('id',$arr['id'])->first();
+                if ($row == null || $row->is_sent != 'yes') {
+                    if(isset($arr['users_count']) && $arr['users_count']) {
+                        $total_qty = $total_qty + $arr['users_count'];
+                    } else {
+                        if($row != null) {
+                             $total_qty = $total_qty + $row->users_count;
+                        } else {
+                           $total_qty = $total_qty + 1;
+                        }
+                    }
                 }
               }
 
+            }
+
+            $available = $user->custom_invetaion - $user->send_custom_invetaion;
+            if($total_qty > $available){
+                return response()->json([
+                    "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+                ], 400);
             }
 
           	//dd($total_qty);
@@ -236,6 +242,7 @@ class EventUersController extends Controller
               if(isset($arr['id'])) {
 
                 $row = Model::withTrashed()->where('id',$arr['id'])->first();
+                $was_sent = $row != null && $row->is_sent == 'yes';
 
                 if($row != null && $row->event != null) {
                     $row->update([
@@ -303,9 +310,13 @@ class EventUersController extends Controller
                         'is_delivered' => "yes", 
                     ]);
 
-                    $user->update([
+                    $update_data = [
                       'balance' => $user->balance - $row->users_count,
-                    ]);
+                    ];
+                    if (!$was_sent) {
+                        $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $row->users_count;
+                    }
+                    $user->update($update_data);
 
                   } else {
                     // dd('not ok',$api);
@@ -1416,17 +1427,32 @@ class EventUersController extends Controller
 
         $event = Events::where('id', $event_id)->firstOrFail();
 
-        $colum_qty = array_column($request->users, 'users_count');
-        $total_qty = array_sum($colum_qty);
-
         $user = $event->user;
 
-      	/*
-        if($user->balance < $total_qty) {
-            $msg = ' عفوا رصيدك غير كافي برجاء شحن رصيدك برصيد ' . $total_qty;
-            return redirect()->back()->with('error',$msg);
+        $total_qty = 0;
+        foreach ($request->users as $arr) {
+            if (isset($arr['id'])) {
+                $row = Model::withTrashed()->find($arr['id']);
+                if ($row == null || $row->is_sent != 'yes') {
+                    if (isset($arr['users_count'])) {
+                        $total_qty += $arr['users_count'];
+                    } else {
+                        if ($row != null) {
+                            $total_qty += $row->users_count;
+                        } else {
+                            $total_qty += 1;
+                        }
+                    }
+                }
+            }
         }
-        */
+        
+        $available = $user->custom_invetaion - $user->send_custom_invetaion;
+        if($total_qty > $available){
+            return response()->json([
+                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+            ], 400);
+        }
 
         try {
 
@@ -1441,6 +1467,7 @@ class EventUersController extends Controller
                         $user_event = Model::withTrashed()->find($arr['id']);
 
                         if($user_event != null) {
+                            $was_sent = $user_event->is_sent == 'yes';
 
                           	if(array_key_exists('users_count', $arr)) {
                                 $users_count = $arr['users_count'];
@@ -1562,7 +1589,7 @@ class EventUersController extends Controller
                                 $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
                             }
                             else{
-                                $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type);
+                                $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type); 
                             }
  
 
@@ -1595,10 +1622,13 @@ class EventUersController extends Controller
                                     "event_id" => $event->id,
                                     "phone_numer_id" => $phone_numer_id,
                                 ]);
-                                $user->update([
+                                $update_data = [
                                     'balance' => $user->balance - $users_count
-                                ]);
-
+                                ];
+                                if (!$was_sent) {
+                                    $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $users_count;
+                                }
+                                $user->update($update_data);
                                 // $body = $response->getBody();
                                 // $data = json_decode($body, true);
 
@@ -3747,19 +3777,18 @@ class EventUersController extends Controller
             where("id", $Item?->event?->user_id)
             ->first();
         }  
-        $available = $user_data->custom_invetaion - $user_data->send_custom_invetaion;
-        if($request->users_count >= $available){
+        $unpaid_orders_exist = \App\Models\Orders::where('user_id', $user_data->id)->where('is_paid', 'not_paid')->exists();
+        if ($unpaid_orders_exist) {
             return response()->json([
-                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
+                'errors' => 'عفوا، يوجد لديك طلبات غير مدفوعة',
             ], 400);
         }
+
         if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
             return response()->json([
                 'errors' => 'عفوا هذا QR غير متاح', 
             ],400); 
         }
-        $user_data->send_custom_invetaion += $request->users_count;
-        $user_data->save();
         EnterUserEvent::create([
             "event_user_id" => $Item->id,
             "count" => $request->users_count

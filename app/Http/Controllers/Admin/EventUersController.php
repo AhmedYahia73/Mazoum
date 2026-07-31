@@ -3564,15 +3564,15 @@ class EventUersController extends Controller
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
             // ==========================================
-            $rr = 580;
+            $rr = 600;
             $qr_size        = 450; // حجم الباركود
             $y_title        = 200 + $rr; // الارتفاع الخاص باسم المناسبة 
             $y_tickets      = 460 + $rr; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 320 + $rr; // العرض الخاص برقم المقعد 
             $x_right_ticket = 700 + $rr; // العرض الخاص بعدد الدعوات 
-            $y_mobile       = 580 + $rr; // الارتفاع الخاص برقم الموبايل
-            $y_datetime     = 630 + $rr; // الارتفاع الخاص بالتاريخ والوقت
-            $y_qr           = 670 + $rr; // الارتفاع الخاص بمكان الباركود
+            $y_mobile       = 1180; // الارتفاع الخاص برقم الموبايل
+            $y_datetime     = 1230; // الارتفاع الخاص بالتاريخ والوقت
+            $y_qr           = 1270; // الارتفاع الخاص بمكان الباركود
 
             // ==========================================
             // 4. إنشاء الباركود
@@ -3603,8 +3603,8 @@ class EventUersController extends Controller
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
-                    $font->size(38);
-                    $font->color('#FFFFFF'); 
+                    $font->size(60);
+                    $font->color('#0000'); 
                     $font->align('center');
                     $font->valign('middle');
                 });

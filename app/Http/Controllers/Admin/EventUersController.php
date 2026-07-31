@@ -3546,7 +3546,7 @@ class EventUersController extends Controller
             // ==========================================
             // 1. إعدادات المسارات
             // ==========================================
-            $bg           = public_path('images/qr-image-v9.jpg'); // تأكد من اسم صورة الخلفية الفارغة
+            $bg           = public_path('qr-image-v10'); // تأكد من اسم صورة الخلفية الفارغة
             $link         = asset('scan-qr/' . $uu_id);
             $qr_tmp_name  = 'tmp_qr_' . time() . '.png';
             $qr_tmp_path  = public_path('qr_code/' . $qr_tmp_name);

@@ -1725,7 +1725,7 @@ class ApiEventUersController extends Controller
             $x_left_ticket  = 600; 
             $x_right_ticket = 1430; 
             $y_mobile       = 1120; 
-            $y_datetime     = 1230; 
+            $y_datetime     = 1300; 
             $y_qr           = 1270; 
 
             // ==========================================
@@ -1734,7 +1734,7 @@ class ApiEventUersController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(255, 255, 255)
+                ->backgroundColor(255, 255, 255, 0)
                 ->margin(1)
                 ->generate($link, $qr_tmp_path);
 
@@ -1745,8 +1745,8 @@ class ApiEventUersController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->title)) {
-                $title_text = $event->title;
+            if (isset($event->name)) {
+                $title_text = $event->name;
                 
                 // تصحيح: تطبيق التعديل العربي فقط إذا كانت اللغة عربية
                 if (isset($event->language) && $event->language == 'ar') {

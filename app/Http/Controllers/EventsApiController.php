@@ -743,7 +743,7 @@ class EventsApiController extends Controller
             $x_left_ticket  = 600;  // العرض الخاص برقم المقعد 
             $x_right_ticket = 1430; // العرض الخاص بعدد الدعوات 
             $y_mobile       = 1120; // الارتفاع الخاص برقم الموبايل
-            $y_datetime     = 1230; // الارتفاع الخاص بالتاريخ والوقت
+            $y_datetime     = 1300; // الارتفاع الخاص بالتاريخ والوقت
             $y_qr           = 1270; // الارتفاع الخاص بمكان الباركود
 
             // ==========================================
@@ -752,7 +752,7 @@ class EventsApiController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(255, 255, 255) // خلفية بيضاء
+                ->backgroundColor(255, 255, 255, 0) // خلفية بيضاء
                 ->margin(1)
                 ->generate($link, $qr_tmp_path);
 
@@ -763,8 +763,8 @@ class EventsApiController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->title)) {
-                $title_text = $event->title;
+            if (isset($event->name)) {
+                $title_text = $event->name;
                 
                 // تم إصلاح المنطق هنا: تطبيق ArPHP فقط إذا كانت اللغة عربية
                 if (isset($event->language) && $event->language == 'ar') {

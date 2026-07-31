@@ -480,7 +480,7 @@ class CustomEventController extends Controller
             $x_left_ticket  = 600; 
             $x_right_ticket = 1430; 
             $y_mobile       = 1120; 
-            $y_datetime     = 1230; 
+            $y_datetime     = 1300; 
             $y_qr           = 1270; 
 
             // ==========================================
@@ -489,7 +489,7 @@ class CustomEventController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(255, 255, 255) 
+                ->backgroundColor(255, 255, 255, 0) 
                 ->margin(1)
                 ->generate($link, $qr_tmp_path);
 
@@ -499,8 +499,8 @@ class CustomEventController extends Controller
             $img = Image::make($bg);
             $center_x = intval($img->width() / 2);
 
-            if (isset($event->title)) {
-                $title_text = $event->title;
+            if (isset($event->name)) {
+                $title_text = $event->name;
                 if (isset($event->language) && $event->language == 'ar') {
                     $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                     $title_text = $Arabic->utf8Glyphs($title_text);

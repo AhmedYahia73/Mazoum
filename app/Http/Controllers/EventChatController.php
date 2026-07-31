@@ -549,36 +549,127 @@ class EventChatController extends Controller
                 unlink($qr_tmp_path);
             }
 
-        } else {
-
-
-            $bg           = 'qr-image-v9.jpg';
+        }
+        else {
+            // ==========================================
+            // 1. إعدادات المسارات
+            // ==========================================
+            $bg           = public_path('qr-image-v10.jpg');
             $link         = asset('scan-qr/' . $uu_id);
-            $qr_code_path = 'qr_code/' . $image_name;
+            $qr_tmp_name  = 'tmp_qr_' . time() . '.png';
+            $qr_tmp_path  = public_path('qr_code/' . $qr_tmp_name);
+            $final_path   = public_path('qr_code/' . $image_name);
 
+            // ==========================================
+            // 2. إعدادات الخطوط
+            // ==========================================
+            $arabic_font = public_path('font/Amiri.ttf'); 
+            $number_font = public_path('font/timr45w.ttf'); 
+
+            // ==========================================
+            // 3. إعدادات الأبعاد والإحداثيات
+            // ==========================================
+            $rr = 600;
+            $qr_size        = 450;
+            $y_title        = 580; 
+            $y_tickets      = 900; 
+            $x_left_ticket  = 600; 
+            $x_right_ticket = 1430; 
+            $y_mobile       = 1120;
+            $y_datetime     = 1230; 
+            $y_qr           = 1270; 
+
+            // ==========================================
+            // 4. إنشاء الباركود
+            // ==========================================
+            // إضافة fallback أمني لمصفوفة الألوان لتجنب أخطاء Missing Index
             QrCode::format('png')
-            ->size(450)
-            ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(255, 255, 255) // تم التعديل هنا للون الأبيض ليطابق خلفية الكارت
-            ->generate($link, $qr_code_path);
-            
-            // يمكنك الاستغناء عن دالة الشفافية اليدوية إذا لم تعد بحاجة لها
-            // make_qr_transparent(public_path($qr_code_path)); 
-            
-            Image::make($bg)->insert($qr_code_path, 'left', 320, 0)->widen(450)->save($qr_code_path, 100);
+                ->size($qr_size)
+                ->color($color[0] ?? 0, $color[1] ?? 0, $color[2] ?? 0)
+                ->backgroundColor(255, 255, 255)
+                ->margin(1)
+                ->generate($link, $qr_tmp_path);
 
-            $destination = public_path($qr_code_path);
-            $new_img     = Image::make($destination);
+            // ==========================================
+            // 5. دمج البيانات على الصورة
+            // ==========================================
+            $img = Image::make($bg);
+            $center_x = intval($img->width() / 2);
 
-            if ($user_event->accept_count > 1) {
-                $new_img->text($user_event->accept_count, 115, 412, function ($font) {
-                    $font->file(public_path('font/OpenSans-Italic.ttf'));
-                    $font->size(25);
-                    $font->color('#000');
+            // أ- إضافة عنوان المناسبة (Event Title)
+            if (!empty($event->title)) {
+                $title_text = $event->title;
+                // تهيئة كائن واحد فقط
+                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                $title_text = $Arabic->utf8Glyphs($title_text);
+
+                $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
+                    $font->file($arabic_font);
+                    $font->size(90);
+                    $font->color('#ffffff'); 
+                    $font->align('center');
+                    $font->valign('middle');
                 });
             }
 
-            $new_img->save($destination); 
+            // ب- إضافة رقم المقعد (في حالة أنه لا يساوي 0)
+            if (!empty($user_event->suit_num) && $user_event->suit_num != 0) {
+                $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90); 
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // ج- إضافة عدد الدعوات
+            if (isset($user_event->accept_count)) {
+                $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // د- إضافة رقم الموبايل
+            if (!empty($user_event->mobile)) {
+                $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // هـ- إضافة التاريخ والوقت
+            if (!empty($event->date) && !empty($event->time)) {
+                $datetime = $event->date . ' ' . $event->time;
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(50);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // و- إضافة صورة الباركود في المنتصف
+            $img->insert($qr_tmp_path, 'top', 0, $y_qr);
+
+            // ==========================================
+            // 6. حفظ الصورة النهائية وتنظيف الملفات المؤقتة
+            // ==========================================
+            $img->save($final_path, 100);
+
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
+
+            return $final_path;
         }
     }
 

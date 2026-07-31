@@ -1453,19 +1453,15 @@ class HomeController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            // خط العناوين العربية
             $arabic_font = public_path('font/Amiri.ttf'); 
-            
-            // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
             // ==========================================
-            $rr = 600;
             $qr_size        = 450; // حجم الباركود
             $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
-            $y_tickets      = 900 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
+            $y_tickets      = 900; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 600; // العرض الخاص برقم المقعد 
             $x_right_ticket = 1430; // العرض الخاص بعدد الدعوات 
             $y_mobile       = 1120; // الارتفاع الخاص برقم الموبايل
@@ -1491,10 +1487,9 @@ class HomeController extends Controller
             // أ- إضافة عنوان المناسبة (Event Title)
             if (isset($event->title)) {
                 $title_text = $event->title;
+                
+                // [إصلاح]: تمت إزالة التكرار الخاطئ الذي كان يطبق المعالجة العربية على اللغات الأخرى
                 if (isset($event->language) && $event->language == 'ar') {
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                } else {
                     $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                     $title_text = $Arabic->utf8Glyphs($title_text);
                 }

@@ -346,6 +346,8 @@ class AttendanceController extends Controller
                     'late_minutes'        => 0,
                     'early_leave_minutes' => 0,
                     'overtime_minutes'    => 0,
+                    "image"               => null,
+                    "second_image"        => null,
                 ];
                 continue;
             }
@@ -360,6 +362,8 @@ class AttendanceController extends Controller
                     'late_minutes'        => 0,
                     'early_leave_minutes' => 0,
                     'overtime_minutes'    => 0,
+                    "image"               => null,
+                    "second_image"        => null,
                 ];
                 continue;
             }

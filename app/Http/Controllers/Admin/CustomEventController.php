@@ -480,7 +480,7 @@ class CustomEventController extends Controller
             $x_left_ticket  = 600; 
             $x_right_ticket = 1430; 
             $y_mobile       = 1120; 
-            $y_datetime     = 1180; 
+            $y_datetime     = 1200; 
             $y_qr           = 1270; 
 
             // ==========================================

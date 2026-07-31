@@ -3560,7 +3560,17 @@ class EventUersController extends Controller
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
+if (!file_exists($bg)) {
+    dd('خطأ: صورة الخلفية غير موجودة في هذا المسار: ' . $bg);
+}
 
+if (!file_exists($number_font)) {
+    dd('خطأ: خط الأرقام غير موجود في هذا المسار: ' . $number_font);
+}
+
+if (!file_exists($arabic_font)) {
+    dd('خطأ: الخط العربي غير موجود في هذا المسار: ' . $arabic_font);
+}
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
             // ==========================================

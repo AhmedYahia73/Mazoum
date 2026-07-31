@@ -279,10 +279,6 @@ class AttendanceController extends Controller
         return response()->json(['success' => 'You add data success', 'item' => $item->load('user:id,name,mobile')]);
     }
 
-    /**
-     * التحقق من أن الموقع داخل الحدود والـ IP صح
-     * returns true if valid, or error string if not
-     */
     public function attendance_report(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -422,6 +418,8 @@ class AttendanceController extends Controller
                 'late_minutes'        => $dayLate,
                 'early_leave_minutes' => $dayEarlyLeave,
                 'overtime_minutes'    => $dayOvertime,
+                "image"               => $dayRecords->image,
+                "second_image"        => $dayRecords->second_image,
             ];
         }
 

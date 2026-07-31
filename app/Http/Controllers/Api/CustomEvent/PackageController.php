@@ -550,7 +550,7 @@ class PackageController extends Controller
                         "user_id" => auth()->user()->id,
                     ]);
 
-                    $this->update_qr($row,$uu_id); 
+                $this->update_qr($row->event,$row->uu_id, $row, $row->event?->image);
                 }
             }
 
@@ -733,7 +733,10 @@ class PackageController extends Controller
 
               if(isset($item)) {
 
-                $row = CustomEventUsers::where('id',$item)->first();
+                $row = CustomEventUsers::
+                where('id',$item)
+                ->with("event")
+                ->first();
                 // __________________________________________________________________________________
                 if(!$event->resend_qr && $row->send_qr || $event->resend_qr && $row->resend_qr){
                     continue;
@@ -746,7 +749,7 @@ class PackageController extends Controller
                 $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
             
                 // __________________________________________________________________________________
-                $this->update_qr($row,$row->uu_id);
+                $this->update_qr($row->event,$row->uu_id, $row, $row->event?->image);
               
                 // __________________________________________________________________________________
                 if($row != null && $row->mobile != null && $event != null) {
@@ -854,6 +857,7 @@ class PackageController extends Controller
  
         $event_user = CustomEventUsers::
         where('id',$request->custom_event_user_id)
+        ->with("event")
         ->first();
         if($event_user->send_qr ){
             $event_user->resend_qr = true;
@@ -863,7 +867,7 @@ class PackageController extends Controller
         $available = auth()->user()->custom_invetaion - auth()->user()->send_custom_invetaion;
        
         // __________________________________________________________________________________
-        $this->update_qr($event_user,$event_user->uu_id);
+        $this->update_qr($event_user->event,$event_user->uu_id, $event_user, $event_user->event?->image);
         // __________________________________________________________________________________
      
         // __________________________________________________________________________________
@@ -1005,67 +1009,58 @@ class PackageController extends Controller
         ]); 
     }
 
-    private function update_qr($row, $uu_id) {
-        $event = $row->event;
-        $bg = public_path('images/' . $event->getRawOriginal('image'));
+    private function update_qr($event,$uu_id,$user_event,$image_name, $status = false) {
 
-        // تأكد من وجود المجلد
-        $directory = public_path('custom_event_qr_code');
-        if (!file_exists($directory)) {
-            mkdir($directory, 0777, true);
-        }
-        $event_element = $row->event;
-        $name_qr      = $row->event?->name_qr; 
-        $number_qr    = $row->event?->number_qr; 
-        $qr_height    = $row->event?->qr_height; 
-        $qr_width     = $row->event?->qr_width; 
-        $qr_x         = $row->event?->qr_x; 
-        $qr_y         = $row->event?->qr_y; 
-        $image_height = $row->event?->image_height;
-        $image_width  = $row->event?->image_width;
-        $text_color   = $row->event?->text_color ?: '#000';
-        $user_name = $row->name;
-        $users_count = $row->users_count;
-        $image_name = $uu_id . '-custom-event-qr.png';
-        $link = asset('scan-custom-event-qr/' . $uu_id);
-        $qr_temp_path = public_path('custom_event_qr_code/temp_qr_' . $image_name);
+        $color = $this->hexToRgb($event->color);
 
-        // إنشاء QR بخلفية شفافة
-        $color = $this->hexToRgb($event_element->color);
-        
-        QrCode::format('png')
-            ->size($qr_width > 0 ? $qr_width : 140) // كقيمة مبدئية لعرض الـ QR
-            ->color($color[0], $color[1], $color[2])
-            ->backgroundColor(0, 0, 0, 0)
-            ->generate($link, $qr_temp_path);
+        $name_qr      = $event->name_qr;
+        $number_qr    = $event->number_qr;
+        $qr_height    = $event->qr_height;
+        $qr_width     = $event->qr_width;
+        $qr_x         = $event->qr_x;
+        $qr_y         = $event->qr_y;
+        $image_height = $event->image_height;
+        $image_width  = $event->image_width;
+        $text_color   = $event->text_color ?: '#000';
 
-        // افتح الخلفية
-        $background = Image::make($bg);
+        if (!$status && $event->getRawOriginal('image') != null && file_exists(public_path('images/' . $event->getRawOriginal('image')))) {
 
-        if ($image_width > 0 && $image_height > 0) {
-            $background->resize($image_width, $image_height);
-        }
-        
-        // افتح QR
-        $qr = Image::make($qr_temp_path);
+            $image_name  = $uu_id . '-test-qr.png';
+            $link        = asset('scan-qr/' . $uu_id);
+            $qr_tmp_path = public_path('qr_code/tmp_' . $image_name);
+            $final_path  = public_path('qr_code/' . $image_name);
 
-        // // تعديل أبعاد الـ QR بناءً على الطول والعرض من الداتابيز
-        // if ($qr_width > 0 && $qr_height > 0) {
-        //     $qr->resize($qr_width, $qr_height);
-        // }
+            $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
-        // // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
-        // if ($qr_x > 0 || $qr_y > 0) {
-        //     $x = $background->width()  - $qr->width()  - $qr_x;
-        //     $y = $background->height() - $qr->height() - $qr_y;
-        // } else {
-        //     $x = intval(($background->width()  - $qr->width())  / 2);
-        //     $y = intval(($background->height() - $qr->height()) / 2);
-        // }
+            QrCode::format('png')
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(0, 0, 0, 0)
+                ->generate($link, $qr_tmp_path);
 
-        // // أدرج QR مرة واحدة بس!
-        // $background->insert($qr, 'top-left', $x, $y);
-        
+            $background = Image::make(public_path('images/' . $event->getRawOriginal('image')));
+
+            if ($image_width > 0 && $image_height > 0) {
+                $background->resize($image_width, $image_height);
+            }
+
+            $qr = Image::make($qr_tmp_path);
+
+            // if ($qr_width > 0 && $qr_height > 0) {
+            //     $qr->resize($qr_width, $qr_height);
+            // }
+
+            // // origin: bottom-right — qr_x/qr_y = pixels from bottom-right corner
+            // if ($qr_x > 0 || $qr_y > 0) {
+            //     $x = $background->width()  - $qr->width()  - $qr_x;
+            //     $y = $background->height() - $qr->height() - $qr_y;
+            // } else {
+            //     $x = intval(($background->width()  - $qr->width())  / 2);
+            //     $y = intval(($background->height() - $qr->height()) / 2);
+            // }
+
+            // $background->insert($qr, 'top-left', $x, $y);
+            
             if ($qr_width > 0 && $qr_height > 0) {
                 $qr->resize($qr_width, $qr_height);
             }
@@ -1081,96 +1076,192 @@ class PackageController extends Controller
 
             $background->insert($qr, 'top-left', $x, $y);
 
-        // إعداد النصوص
-        if ($event->language == 'ar') {
-            $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-            $name = $Arabic->utf8Glyphs($row->name);
-            
-            $user_count_label = 'عدد الضيوف ' . $row->users_count;
-            $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
-            $name2 = $Arabic2->utf8Glyphs($user_count_label);
-            if($row->suit_num && $row->suit_num != 0){
-                $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
-                $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $row->suit_num);
+            $center_x = intval($background->width() / 2);
+            $text_y   = $y + $qr->height() + 15;
+
+            if ($event->language == 'ar') {
+                $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
+                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $name      = $Arabic->utf8Glyphs($user_event->name);
+                $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
+                $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
+                if($user_event->suit_num && $user_event->suit_num != 0){
+                    $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
+                    $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
+                }
+            } else {
+                $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+                $name      = $user_event->name;
+                $name2     = 'Entered Users ' . $user_event->users_count;
+                if($user_event->suit_num && $user_event->suit_num != 0){
+                    $name3     = "Suit Num " . $user_event->suit_num;
+                }
             }
-            
-            $font_path = public_path('font/DroidArabicKufiRegular.ttf');
-        } else {
-            $name = $row->name;
-            $name2 = 'Entered Users ' . $row->users_count;
-            $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-            if($row->suit_num && $row->suit_num != 0){
-                $name3     = "Suit Num " . $row->suit_num;
+
+            if ($name_qr) {
+                $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += 25;
             }
-        }
 
-        // مركز الصورة للنص
-        $center_x = intval($background->width() / 2);
-        $text_y = $y + $qr->height() + 15;
+            if ($number_qr && $user_event->users_count > 1) {
+                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += 25;
+            }
 
-        // إضافة اسم الشخص (مربوط بالـ Boolean)
-        if ($name_qr) {
-            $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            });
-            
-            // لو الاسم انطبع، ننزل السطر اللي بعده مسافة عشان العدد (لو موجود)
-            $text_y += 25; 
-        }
+            if (isset($name3)) {
+                $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
+                    $font->file($font_path);
+                    $font->size(20);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                }); 
+            }
 
-        // إضافة عدد المستخدمين (مربوط بالـ Boolean)
-        if ($number_qr && $row->users_count > 1) {
-            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            });
-            $text_y += 25;
-        }
+            $background->save($final_path, 100);
 
-        if (isset($name3)) {
-            $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            }); 
-        }
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
 
-        // حفظ الصورة النهائية
-        $final_path = public_path('custom_event_qr_code/' . $image_name);
-        
-        try {
-        
-            $background = Image::canvas($background->width(), $background->height())
-                        ->insert($background);
-            // ⭐ الحل السحري: encode قبل save
-            $encoded = $background->encode('png', 100);
-            // حفظ الصورة المشفرة
-            file_put_contents($final_path, $encoded);
+        } 
+        else {
+            // ==========================================
+            // 1. إعدادات المسارات
+            // ==========================================
+            $bg           = public_path('qr-image-v10.jpg'); // تأكد من اسم صورة الخلفية الفارغة
+            $link         = asset('scan-qr/' . $uu_id);
+            $qr_tmp_name  = 'tmp_qr_' . time() . '.png';
+            $qr_tmp_path  = public_path('qr_code/' . $qr_tmp_name);
+            $final_path   = public_path('qr_code/' . $image_name);
+
+            // ==========================================
+            // 2. إعدادات الخطوط
+            // ==========================================
+            // خط العناوين العربية
+            $arabic_font = public_path('font/Amiri.ttf'); 
             
-            // تحديث قاعدة البيانات
-            $row->update([
-                'qr' => $image_name
-            ]);
-            
-            // حذف QR المؤقت
-            @unlink($qr_temp_path);
-            
-            // تدمير الصورة من الذاكرة
-            $background->destroy();
-            
-            return true;
-        } catch (\Exception $e) {
-            Log::error("فشل حفظ QR: " . $e->getMessage());
-            return false;
+            // الخط الجديد للأرقام والإنجليزية (Times New Roman)
+            $number_font = public_path('font/timr45w.ttf'); 
+ 
+            // ==========================================
+            // 3. إعدادات الأبعاد والإحداثيات
+            // ==========================================
+            $qr_size        = 450; // حجم الباركود
+            $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
+            $y_tickets      = 900 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
+            $x_left_ticket  = 600; // العرض الخاص برقم المقعد 
+            $x_right_ticket = 1430; // العرض الخاص بعدد الدعوات 
+            $y_mobile       = 1120; // الارتفاع الخاص برقم الموبايل
+            $y_datetime     = 1230; // الارتفاع الخاص بالتاريخ والوقت
+            $y_qr           = 1270; // الارتفاع الخاص بمكان الباركود
+
+            // ==========================================
+            // 4. إنشاء الباركود
+            // ==========================================
+            QrCode::format('png')
+                ->size($qr_size)
+                ->color($color[0], $color[1], $color[2])
+                ->backgroundColor(255, 255, 255) // خلفية بيضاء
+                ->margin(1)
+                ->generate($link, $qr_tmp_path);
+
+            // ==========================================
+            // 5. دمج البيانات على الصورة
+            // ==========================================
+            $img = Image::make($bg);
+            $center_x = intval($img->width() / 2);
+
+            // أ- إضافة عنوان المناسبة (Event Title)
+            if (isset($event->title)) {
+                $title_text = $event->title;
+                if (isset($event->language) && $event->language == 'ar') {
+                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                    $title_text = $Arabic->utf8Glyphs($title_text);
+                } else {
+                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                    $title_text = $Arabic->utf8Glyphs($title_text);
+                }
+
+                $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
+                    $font->file($arabic_font);
+                    $font->size(90);
+                    $font->color('#fff'); 
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // ب- إضافة رقم المقعد (في حالة أنه لا يساوي 0)
+            if (isset($user_event->suit_num) && $user_event->suit_num != 0) {
+                $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90); 
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // ج- إضافة عدد الدعوات
+            if (isset($user_event->accept_count)) {
+                $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // د- إضافة رقم الموبايل
+            if (isset($user_event->mobile)) {
+                $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90);
+                    $font->color('#000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // هـ- إضافة التاريخ والوقت
+            if (isset($event->date) && isset($event->time)) {
+                $datetime = $event->date . ' ' . $event->time;
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(50);
+                    $font->color('#000000');
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // و- إضافة صورة الباركود في المنتصف
+            $img->insert($qr_tmp_path, 'top', 0, $y_qr);
+
+            // ==========================================
+            // 6. حفظ الصورة النهائية وتنظيف الملفات المؤقتة
+            // ==========================================
+            $img->save($final_path, 100);
+
+            if (file_exists($qr_tmp_path)) {
+                unlink($qr_tmp_path);
+            }
+
+            return $final_path;
         }
     }
 

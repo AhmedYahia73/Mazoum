@@ -451,7 +451,8 @@ class CustomEventController extends Controller
                 unlink($qr_tmp_path);
             }
 
-        }else {
+        }
+        else {
             // إنشاء اسم للصورة لتجنب حفظها كـ (null) إذا كانت $event->image فارغة
             $image_name   = $uu_id . '-default-qr.png';
 

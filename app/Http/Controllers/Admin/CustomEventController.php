@@ -2571,7 +2571,8 @@ class CustomEventController extends Controller
         $nocache=true;
 
         $param_1 = now()->format("h:i A");
-        $caption = "حياكـم الله ،، اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . PHP_EOL .
+        $caption = "حياكـم الله ،،" . PHP_EOL .
+        " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL .
         " وقت الحضور " . $param_1;
         $customerPhone = $Item->mobile;
         $customerPhone = str_replace("+","",$customerPhone);

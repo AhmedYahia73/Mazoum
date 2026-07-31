@@ -423,8 +423,8 @@ class AttendanceController extends Controller
                 'late_minutes'        => $dayLate,
                 'early_leave_minutes' => $dayEarlyLeave,
                 'overtime_minutes'    => $dayOvertime,
-                "image"               => $firstRecord->image,
-                "second_image"        => $lastRecord->second_image,
+                "image"               => $firstRecord->image_url,
+                "second_image"        => $lastRecord->second_image_url,
             ];
         }
 

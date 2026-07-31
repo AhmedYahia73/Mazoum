@@ -269,8 +269,7 @@ class AttendanceController extends Controller
             $second_image = $name;
         }
 
-        $item = Attendance::create([
-            'user_id'      => $request->user()->id,
+        $item->update([
             'to'           => $to, 
             'second_image' => $second_image,
             'by_admin'     => false,
@@ -424,8 +423,8 @@ class AttendanceController extends Controller
                 'late_minutes'        => $dayLate,
                 'early_leave_minutes' => $dayEarlyLeave,
                 'overtime_minutes'    => $dayOvertime,
-                "image"               => $dayRecords->image,
-                "second_image"        => $dayRecords->second_image,
+                "image"               => $firstRecord->image,
+                "second_image"        => $lastRecord->second_image,
             ];
         }
 

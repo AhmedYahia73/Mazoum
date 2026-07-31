@@ -3569,8 +3569,8 @@ class EventUersController extends Controller
             $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
             $y_tickets      = 900 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 600; // العرض الخاص برقم المقعد 
-            $x_right_ticket = 1000; // العرض الخاص بعدد الدعوات 
-            $y_mobile       = 1080; // الارتفاع الخاص برقم الموبايل
+            $x_right_ticket = 300; // العرض الخاص بعدد الدعوات 
+            $y_mobile       = 1120; // الارتفاع الخاص برقم الموبايل
             $y_datetime     = 1230; // الارتفاع الخاص بالتاريخ والوقت
             $y_qr           = 1270; // الارتفاع الخاص بمكان الباركود
 
@@ -3637,7 +3637,7 @@ class EventUersController extends Controller
                 $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
                     $font->file($number_font);
                     $font->size(90);
-                    $font->color('#333333');
+                    $font->color('#000');
                     $font->align('center');
                     $font->valign('middle');
                 });

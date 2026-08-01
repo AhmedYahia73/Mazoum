@@ -1970,7 +1970,7 @@ class CustomEventController extends Controller
                   if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
                     // dd('ok');
-                    // $row->update(['is_new_sent' => 1]);
+                    $row->update(['is_new_sent' => 1, "status" => "sent"]);
 
                   } else {
 

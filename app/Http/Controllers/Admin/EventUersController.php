@@ -242,7 +242,7 @@ class EventUersController extends Controller
               if(isset($arr['id'])) {
 
                 $row = Model::withTrashed()->where('id',$arr['id'])->first();
-                $was_sent = $row != null && $row->is_sent == 'yes';
+                $was_sent = $row != null && ($row->is_sent == 'yes' || $row->is_new_sent == 1);
 
                 if($row != null && $row->event != null) {
                     $row->update([
@@ -306,7 +306,7 @@ class EventUersController extends Controller
                     // dd('ok');
                     $row->update([
                         'is_new_sent' => 1, 
-                        'is_sent' => "yes", 
+                        'status' => "sent", 
                         'is_delivered' => "yes", 
                     ]);
 

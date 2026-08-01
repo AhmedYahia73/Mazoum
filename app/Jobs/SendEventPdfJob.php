@@ -232,6 +232,29 @@ class SendEventPdfJob implements ShouldQueue
         $api = $client->sendDocumentMessage($to, $event->title . '.pdf', $pdf_url, $caption, $priority, $referenceId, $nocache);
         Log::info('PDF Job - WhatsApp API response: ' . json_encode($api));
         
+        if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+
+        // dd('ok');
+        $row->update([
+            'is_new_sent' => 1, 
+            'status' => "sent", 
+            'is_delivered' => "yes", 
+        ]);
+        $user = $event->user;
+
+        $update_data = [
+            'balance' => $user->balance - $row->users_count,
+        ];
+        $was_sent = $row != null && ($row->is_sent == 'yes' || $row->is_new_sent == 1);
+        if (!$was_sent) {
+            $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $row->users_count;
+        }
+        $user->update($update_data);
+
+        } else {
+        // dd('not ok',$api);
+        $row->update(['is_new_sent' => 0]);
+        }
         Log::info('PDF Job - Sleeping 5 seconds before clean up...');
         sleep(5);
 

@@ -1970,11 +1970,8 @@ class CustomEventController extends Controller
                   if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
                     // dd('ok');
-                    $row->update(['is_new_sent' => 1, "status" => "sent"]);
-                    
-                return response()->json([
-                    'success' =>  'تم ارسال الرسائل بنجاحdfdfd', 
-                ]);  
+                    // $row->update(['is_new_sent' => 1]);
+
                   } else {
 
                     $error_count = $error_count + 1;
@@ -1991,7 +1988,7 @@ class CustomEventController extends Controller
 
             if($error_count == 0) {
                 return response()->json([
-                    'success' =>  'تم ارسال الرسائل بنجاحdfdfd', 
+                    'success' =>  'تم ارسال الرسائل بنجاح', 
                 ]);  
             } else {
                 return response()->json([

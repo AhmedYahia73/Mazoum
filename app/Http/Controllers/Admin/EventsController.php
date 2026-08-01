@@ -1151,7 +1151,7 @@ class EventsController extends Controller
             'country_id', 'scan_assistant_id',
             'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
             'image_height', 'image_width', 'text_color', 'pdf', 'pdf_bottom', 
-            'show_data_pdf', 'phone_setting_id', "name"
+            'show_data_pdf', 'phone_setting_id', "name", "scan_gender",
         ]);
 
         if(! isset($modelClass)) {

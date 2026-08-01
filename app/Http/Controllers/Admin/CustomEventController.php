@@ -845,6 +845,7 @@ class CustomEventController extends Controller
             "name_qr", "number_qr", "qr_height", "send_type", "name",
             "qr_width", "qr_x", "qr_y", "lat", "lng", "pdf_bottom",
             'image_height', 'image_width', 'text_color', "show_data_pdf",
+            "scan_gender",
         ]);
 
         $path = 'images';

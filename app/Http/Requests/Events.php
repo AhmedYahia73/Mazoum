@@ -52,6 +52,7 @@ class Events extends FormRequest
                 'pdf_bottom' => ['numeric'],
                 'show_data_pdf' => ['boolean'],
                 'phone_setting_id' => ['required', 'exists:new_settings,id'],
+                "scan_gender" => "sometimes|in:male,female",
             ];
         }
 
@@ -86,6 +87,7 @@ class Events extends FormRequest
                 'pdf_bottom' => ['numeric'],
                 'show_data_pdf' => ['boolean'],
                 'phone_setting_id' => ['required', 'exists:new_settings,id'],
+                "scan_gender" => "sometimes|in:male,female",
             ];
         }
 

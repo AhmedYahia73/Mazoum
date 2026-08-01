@@ -14,7 +14,7 @@ class AddColumnssToCustomEvent extends Migration
     public function up()
     {
         Schema::table('custom_event', function (Blueprint $table) {
-            $table->enum('scan_gender', ['male', 'female'])->after('phone_setting_id')->default('male');
+            $table->enum('scan_gender', ['male', 'female'])->default('male');
         });
     }
 

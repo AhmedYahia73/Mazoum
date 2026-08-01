@@ -1971,7 +1971,10 @@ class CustomEventController extends Controller
 
                     // dd('ok');
                     $row->update(['is_new_sent' => 1, "status" => "sent"]);
-
+                    
+                return response()->json([
+                    'success' =>  'تم ارسال الرسائل بنجاحdfdfd', 
+                ]);  
                   } else {
 
                     $error_count = $error_count + 1;
@@ -1988,7 +1991,7 @@ class CustomEventController extends Controller
 
             if($error_count == 0) {
                 return response()->json([
-                    'success' =>  'تم ارسال الرسائل بنجاح', 
+                    'success' =>  'تم ارسال الرسائل بنجاحdfdfd', 
                 ]);  
             } else {
                 return response()->json([

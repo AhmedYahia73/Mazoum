@@ -1185,8 +1185,7 @@ class PackageController extends Controller
             QrCode::format('png')
                 ->size($qr_size)
                 ->color($color[0], $color[1], $color[2])
-                ->backgroundColor(255, 255, 255, 0) // خلفية بيضاء
-                ->margin(1)
+                ->backgroundColor(0, 0, 0, 0)
                 ->generate($link, $qr_tmp_path);
 
             // ==========================================
@@ -1316,17 +1315,8 @@ class PackageController extends Controller
             // 2. الحصول على المسار المؤقت للصورة المرفوعة
             $imagePath = $request->file('image')->getRealPath();
 
-            // 3. إعداد خيارات القراءة
-            $options = new QROptions([
-                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
-            ]);
-
-            // 4. فك تشفير الصورة وقراءة الـ QR Code
-            $qrcode = new QRCodeRead($options);
-            $result = $qrcode->readFromFile($imagePath);
-
-            // 5. استخراج النص أو الرابط من نتيجة القراءة
-            $decodedText = (string) $result;
+            // 3. قراءة الـ QR Code مع معالجة الصورة تلقائياً
+            $decodedText = $this->decodeQrFromImage($imagePath);
 
             if (empty($decodedText)) {
                 return response()->json([
@@ -1385,17 +1375,8 @@ class PackageController extends Controller
             // 2. الحصول على المسار المؤقت للصورة المرفوعة
             $imagePath = $request->file('image')->getRealPath();
 
-            // 3. إعداد خيارات القراءة
-            $options = new QROptions([
-                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
-            ]);
-
-            // 4. فك تشفير الصورة وقراءة الـ QR Code
-            $qrcode = new QRCodeRead($options);
-            $result = $qrcode->readFromFile($imagePath);
-
-            // 5. استخراج النص أو الرابط من نتيجة القراءة
-            $decodedText = (string) $result;
+            // 3. قراءة الـ QR Code مع معالجة الصورة تلقائياً
+            $decodedText = $this->decodeQrFromImage($imagePath);
 
             if (empty($decodedText)) {
                 return response()->json([
@@ -1447,17 +1428,8 @@ class PackageController extends Controller
             // 2. الحصول على المسار المؤقت للصورة المرفوعة
             $imagePath = $request->file('image')->getRealPath();
 
-            // 3. إعداد خيارات القراءة
-            $options = new QROptions([
-                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
-            ]);
-
-            // 4. فك تشفير الصورة وقراءة الـ QR Code
-            $qrcode = new QRCodeRead($options);
-            $result = $qrcode->readFromFile($imagePath);
-
-            // 5. استخراج النص أو الرابط من نتيجة القراءة
-            $decodedText = (string) $result;
+            // 3. قراءة الـ QR Code مع معالجة الصورة تلقائياً
+            $decodedText = $this->decodeQrFromImage($imagePath);
 
             if (empty($decodedText)) {
                 return response()->json([
@@ -1520,17 +1492,8 @@ class PackageController extends Controller
             // 2. الحصول على المسار المؤقت للصورة المرفوعة
             $imagePath = $request->file('image')->getRealPath();
 
-            // 3. إعداد خيارات القراءة
-            $options = new QROptions([
-                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
-            ]);
-
-            // 4. فك تشفير الصورة وقراءة الـ QR Code
-            $qrcode = new QRCodeRead($options);
-            $result = $qrcode->readFromFile($imagePath);
-
-            // 5. استخراج النص أو الرابط من نتيجة القراءة
-            $decodedText = (string) $result;
+            // 3. قراءة الـ QR Code مع معالجة الصورة تلقائياً
+            $decodedText = $this->decodeQrFromImage($imagePath);
 
             if (empty($decodedText)) {
                 return response()->json([
@@ -1572,6 +1535,230 @@ class PackageController extends Controller
             ], 422);
         }
     } 
+    /**
+     * محاولة قراءة QR Code من صورة مع معالجة تلقائية للصور ذات الخلفيات المعقدة
+     * يجرب عدة استراتيجيات: القراءة المباشرة، ثم مع تدرج رمادي وزيادة التباين،
+     * ثم معالجة يدوية بالـ GD مع تحويل الصورة إلى أبيض وأسود
+     */
+    private function decodeQrFromImage(string $imagePath): string
+    {
+        // المحاولة 1: القراءة المباشرة
+        try {
+            $options = new QROptions([
+                'readerUseGd' => true,
+            ]);
+            $qrcode = new QRCodeRead($options);
+            $result = (string) $qrcode->readFromFile($imagePath);
+            if (!empty($result)) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // نكمل للمحاولة التالية
+        }
+
+        // المحاولة 2: مع تدرج رمادي وزيادة التباين (خيارات المكتبة المدمجة)
+        try {
+            $options = new QROptions([
+                'readerUseGd'            => true,
+                'readerGrayscale'        => true,
+                'readerIncreaseContrast' => true,
+            ]);
+            $qrcode = new QRCodeRead($options);
+            $result = (string) $qrcode->readFromFile($imagePath);
+            if (!empty($result)) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // نكمل للمحاولة التالية
+        }
+
+        // المحاولة 3: معالجة يدوية بالـ GD - تحويل الصورة لأبيض وأسود (Threshold)
+        try {
+            $result = $this->readQrWithGdPreprocess($imagePath);
+            if (!empty($result)) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // نكمل للمحاولة التالية
+        }
+
+        // المحاولة 4: مع عكس الألوان (للـ QR الفاتح على خلفية داكنة)
+        try {
+            $options = new QROptions([
+                'readerUseGd'            => true,
+                'readerGrayscale'        => true,
+                'readerIncreaseContrast' => true,
+                'readerInvertColors'     => true,
+            ]);
+            $qrcode = new QRCodeRead($options);
+            $result = (string) $qrcode->readFromFile($imagePath);
+            if (!empty($result)) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // فشلت كل المحاولات
+        }
+
+        throw new \Exception('لم يتم العثور على QR Code واضح في الصورة بعد كل محاولات المعالجة');
+    }
+
+    /**
+     * معالجة الصورة يدوياً باستخدام GD مع عدة استراتيجيات:
+     * يجرب عدة قيم threshold مختلفة وأحجام مختلفة
+     * لضمان قراءة الـ QR Code حتى مع الخلفيات المعقدة
+     */
+    private function readQrWithGdPreprocess(string $imagePath): string
+    {
+        // تحميل الصورة حسب النوع
+        $srcImage = $this->loadGdImage($imagePath);
+        $width  = imagesx($srcImage);
+        $height = imagesy($srcImage);
+
+        // تجربة عدة قيم threshold مختلفة وأحجام مختلفة
+        $thresholds = [100, 128, 160, 80, 60, 180];
+        $contrastValues = [-80, -100, -50];
+
+        foreach ($contrastValues as $contrast) {
+            foreach ($thresholds as $threshold) {
+                try {
+                    $result = $this->tryReadWithThreshold($imagePath, $threshold, $contrast);
+                    if (!empty($result)) {
+                        imagedestroy($srcImage);
+                        return $result;
+                    }
+                } catch (\Exception $e) {
+                    // نجرب القيمة التالية
+                }
+            }
+        }
+
+        // محاولة أخيرة: تصغير الصورة ثم المعالجة
+        $scales = [0.5, 0.75, 0.3];
+        foreach ($scales as $scale) {
+            foreach ([100, 128, 80] as $threshold) {
+                try {
+                    $result = $this->tryReadWithThreshold($imagePath, $threshold, -80, $scale);
+                    if (!empty($result)) {
+                        imagedestroy($srcImage);
+                        return $result;
+                    }
+                } catch (\Exception $e) {
+                    // نجرب القيمة التالية
+                }
+            }
+        }
+
+        imagedestroy($srcImage);
+        return '';
+    }
+
+    /**
+     * تحميل صورة GD من مسار الملف
+     */
+    private function loadGdImage(string $imagePath)
+    {
+        $imageInfo = getimagesize($imagePath);
+        if ($imageInfo === false) {
+            throw new \Exception('ملف غير صالح كصورة');
+        }
+
+        $mime = $imageInfo['mime'];
+        switch ($mime) {
+            case 'image/jpeg':
+                $srcImage = imagecreatefromjpeg($imagePath);
+                break;
+            case 'image/png':
+                $srcImage = imagecreatefrompng($imagePath);
+                break;
+            case 'image/webp':
+                $srcImage = imagecreatefromwebp($imagePath);
+                break;
+            default:
+                throw new \Exception('نوع صورة غير مدعوم: ' . $mime);
+        }
+
+        if (!$srcImage) {
+            throw new \Exception('فشل في تحميل الصورة');
+        }
+
+        return $srcImage;
+    }
+
+    /**
+     * محاولة قراءة QR Code مع threshold وcontrast محددين
+     * مع إمكانية تصغير الصورة
+     */
+    private function tryReadWithThreshold(string $imagePath, int $threshold, int $contrast, float $scale = 1.0): string
+    {
+        $srcImage = $this->loadGdImage($imagePath);
+        $width  = imagesx($srcImage);
+        $height = imagesy($srcImage);
+
+        // تصغير الصورة إذا طُلب ذلك
+        if ($scale < 1.0) {
+            $newW = intval($width * $scale);
+            $newH = intval($height * $scale);
+            $scaled = imagecreatetruecolor($newW, $newH);
+            imagecopyresampled($scaled, $srcImage, 0, 0, 0, 0, $newW, $newH, $width, $height);
+            imagedestroy($srcImage);
+            $srcImage = $scaled;
+            $width = $newW;
+            $height = $newH;
+        }
+
+        // تحويل لتدرج رمادي
+        imagefilter($srcImage, IMG_FILTER_GRAYSCALE);
+
+        // زيادة التباين
+        imagefilter($srcImage, IMG_FILTER_CONTRAST, $contrast);
+
+        // تحويل لأبيض وأسود (Threshold)
+        $bwImage = imagecreatetruecolor($width, $height);
+        $white = imagecolorallocate($bwImage, 255, 255, 255);
+        $black = imagecolorallocate($bwImage, 0, 0, 0);
+        imagefill($bwImage, 0, 0, $white);
+
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $rgb = imagecolorat($srcImage, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                if ($r < $threshold) {
+                    imagesetpixel($bwImage, $x, $y, $black);
+                } else {
+                    imagesetpixel($bwImage, $x, $y, $white);
+                }
+            }
+        }
+
+        imagedestroy($srcImage);
+
+        // إضافة هامش أبيض (Quiet Zone) حول الصورة
+        $margin = 40;
+        $newWidth  = $width  + ($margin * 2);
+        $newHeight = $height + ($margin * 2);
+        $finalImage = imagecreatetruecolor($newWidth, $newHeight);
+        $whiteMargin = imagecolorallocate($finalImage, 255, 255, 255);
+        imagefill($finalImage, 0, 0, $whiteMargin);
+        imagecopy($finalImage, $bwImage, $margin, $margin, 0, 0, $width, $height);
+        imagedestroy($bwImage);
+
+        // حفظ الصورة المعالجة في ملف مؤقت
+        $tmpPath = sys_get_temp_dir() . '/qr_processed_' . uniqid() . '.png';
+        imagepng($finalImage, $tmpPath);
+        imagedestroy($finalImage);
+
+        try {
+            $options = new QROptions([
+                'readerUseGd' => true,
+            ]);
+            $qrcode = new QRCodeRead($options);
+            $result = (string) $qrcode->readFromFile($tmpPath);
+        } finally {
+            if (file_exists($tmpPath)) {
+                unlink($tmpPath);
+            }
+        }
+
+        return $result;
+    }
 }
-
-

@@ -1542,9 +1542,27 @@ class PackageController extends Controller
      */
     private function decodeQrFromImage(string $imagePath): string
     {
+        // المحاولة 0: استخدام ZBar 
+        try {
+            // إضافة 2>&1 لالتقاط أخطاء النظام والصلاحيات
+            $command = 'zbarimg --quiet --raw ' . escapeshellarg($imagePath) . ' 2>&1';
+            $output = shell_exec($command);
+            
+            // تسجيل المخرجات في ملف laravel.log لمعرفة سبب المشكلة
+            Log::info("ZBar Output: " . (string)$output);
+
+            $result = trim((string) $output);
+            
+            // التأكد من أن النتيجة ليست رسالة خطأ من النظام
+            if (!empty($result) && !str_contains(strtolower($result), 'error') && !str_contains(strtolower($result), 'scanned 0')) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            Log::error("ZBar Exception: " . $e->getMessage());
+        }
         // المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
         try {
-    // تنفيذ أمر zbarimg لقراءة الصورة
+        // تنفيذ أمر zbarimg لقراءة الصورة
             $command = 'zbarimg --quiet --raw ' . escapeshellarg($imagePath);
             $output = shell_exec($command);
             $result = trim((string) $output);
@@ -1555,7 +1573,7 @@ class PackageController extends Controller
         } catch (\Exception $e) {
             // نكمل للمحاولة التالية
         }
-// المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
+        // المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
         try {
             $qrcode = new \Zxing\QrReader($imagePath);
             $result = $qrcode->text(['TRY_HARDER' => true]);

@@ -1544,8 +1544,31 @@ class PackageController extends Controller
     {
         // المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
         try {
+    // تنفيذ أمر zbarimg لقراءة الصورة
+            $command = 'zbarimg --quiet --raw ' . escapeshellarg($imagePath);
+            $output = shell_exec($command);
+            $result = trim((string) $output);
+            
+            if (!empty($result)) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // نكمل للمحاولة التالية
+        }
+// المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
+        try {
             $qrcode = new \Zxing\QrReader($imagePath);
             $result = $qrcode->text(['TRY_HARDER' => true]);
+            if (!empty($result) && $result !== false) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            // نكمل للمحاولة التالية
+        }
+        // المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
+        try {
+            $qrcode = new \Zxing\QrReader($imagePath);
+            $result = $qrcode->text();
             if (!empty($result) && $result !== false) {
                 return $result;
             }
@@ -1561,7 +1584,7 @@ class PackageController extends Controller
                 try {
                     $tmpPath = $this->preprocessImageForQr($imagePath, $threshold, $contrast);
                     $qrcode = new \Zxing\QrReader($tmpPath);
-                    $result = $qrcode->text(['TRY_HARDER' => true]);
+                    $result = $qrcode->text();
                     if (file_exists($tmpPath)) unlink($tmpPath);
                     if (!empty($result) && $result !== false) {
                         return $result;
@@ -1579,7 +1602,7 @@ class PackageController extends Controller
                 try {
                     $tmpPath = $this->preprocessImageForQr($imagePath, $threshold, -80, $scale);
                     $qrcode = new \Zxing\QrReader($tmpPath);
-                    $result = $qrcode->text(['TRY_HARDER' => true]);
+                    $result = $qrcode->text();
                     if (file_exists($tmpPath)) unlink($tmpPath);
                     if (!empty($result) && $result !== false) {
                         return $result;

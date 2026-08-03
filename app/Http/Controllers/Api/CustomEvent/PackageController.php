@@ -1542,21 +1542,55 @@ class PackageController extends Controller
      */
     private function decodeQrFromImage(string $imagePath): string
     {
-        // المحاولة 1: القراءة المباشرة
+        // المحاولة 1: استخدام مكتبة khanamiryan مباشرة (أقوى في الكشف)
         try {
-            $options = new QROptions([
-                'readerUseGd' => true,
-            ]);
-            $qrcode = new QRCodeRead($options);
-            $result = (string) $qrcode->readFromFile($imagePath);
-            if (!empty($result)) {
+            $qrcode = new \Zxing\QrReader($imagePath);
+            $result = $qrcode->text();
+            if (!empty($result) && $result !== false) {
                 return $result;
             }
         } catch (\Exception $e) {
             // نكمل للمحاولة التالية
         }
 
-        // المحاولة 2: مع تدرج رمادي وزيادة التباين (خيارات المكتبة المدمجة)
+        // المحاولة 2: khanamiryan مع معالجة GD (عدة قيم threshold)
+        $thresholds = [100, 128, 80, 160, 60];
+        $contrastValues = [-80, -100, -50];
+        foreach ($contrastValues as $contrast) {
+            foreach ($thresholds as $threshold) {
+                try {
+                    $tmpPath = $this->preprocessImageForQr($imagePath, $threshold, $contrast);
+                    $qrcode = new \Zxing\QrReader($tmpPath);
+                    $result = $qrcode->text();
+                    if (file_exists($tmpPath)) unlink($tmpPath);
+                    if (!empty($result) && $result !== false) {
+                        return $result;
+                    }
+                } catch (\Exception $e) {
+                    if (isset($tmpPath) && file_exists($tmpPath)) unlink($tmpPath);
+                }
+            }
+        }
+
+        // المحاولة 3: khanamiryan مع تصغير الصورة
+        $scales = [0.5, 0.75];
+        foreach ($scales as $scale) {
+            foreach ([100, 128] as $threshold) {
+                try {
+                    $tmpPath = $this->preprocessImageForQr($imagePath, $threshold, -80, $scale);
+                    $qrcode = new \Zxing\QrReader($tmpPath);
+                    $result = $qrcode->text();
+                    if (file_exists($tmpPath)) unlink($tmpPath);
+                    if (!empty($result) && $result !== false) {
+                        return $result;
+                    }
+                } catch (\Exception $e) {
+                    if (isset($tmpPath) && file_exists($tmpPath)) unlink($tmpPath);
+                }
+            }
+        }
+
+        // المحاولة 4: chillerlan مع خيارات المعالجة المدمجة
         try {
             $options = new QROptions([
                 'readerUseGd'            => true,
@@ -1569,20 +1603,10 @@ class PackageController extends Controller
                 return $result;
             }
         } catch (\Exception $e) {
-            // نكمل للمحاولة التالية
+            // نكمل
         }
 
-        // المحاولة 3: معالجة يدوية بالـ GD - تحويل الصورة لأبيض وأسود (Threshold)
-        try {
-            $result = $this->readQrWithGdPreprocess($imagePath);
-            if (!empty($result)) {
-                return $result;
-            }
-        } catch (\Exception $e) {
-            // نكمل للمحاولة التالية
-        }
-
-        // المحاولة 4: مع عكس الألوان (للـ QR الفاتح على خلفية داكنة)
+        // المحاولة 5: chillerlan مع عكس الألوان
         try {
             $options = new QROptions([
                 'readerUseGd'            => true,
@@ -1600,56 +1624,6 @@ class PackageController extends Controller
         }
 
         throw new \Exception('لم يتم العثور على QR Code واضح في الصورة بعد كل محاولات المعالجة');
-    }
-
-    /**
-     * معالجة الصورة يدوياً باستخدام GD مع عدة استراتيجيات:
-     * يجرب عدة قيم threshold مختلفة وأحجام مختلفة
-     * لضمان قراءة الـ QR Code حتى مع الخلفيات المعقدة
-     */
-    private function readQrWithGdPreprocess(string $imagePath): string
-    {
-        // تحميل الصورة حسب النوع
-        $srcImage = $this->loadGdImage($imagePath);
-        $width  = imagesx($srcImage);
-        $height = imagesy($srcImage);
-
-        // تجربة عدة قيم threshold مختلفة وأحجام مختلفة
-        $thresholds = [100, 128, 160, 80, 60, 180];
-        $contrastValues = [-80, -100, -50];
-
-        foreach ($contrastValues as $contrast) {
-            foreach ($thresholds as $threshold) {
-                try {
-                    $result = $this->tryReadWithThreshold($imagePath, $threshold, $contrast);
-                    if (!empty($result)) {
-                        imagedestroy($srcImage);
-                        return $result;
-                    }
-                } catch (\Exception $e) {
-                    // نجرب القيمة التالية
-                }
-            }
-        }
-
-        // محاولة أخيرة: تصغير الصورة ثم المعالجة
-        $scales = [0.5, 0.75, 0.3];
-        foreach ($scales as $scale) {
-            foreach ([100, 128, 80] as $threshold) {
-                try {
-                    $result = $this->tryReadWithThreshold($imagePath, $threshold, -80, $scale);
-                    if (!empty($result)) {
-                        imagedestroy($srcImage);
-                        return $result;
-                    }
-                } catch (\Exception $e) {
-                    // نجرب القيمة التالية
-                }
-            }
-        }
-
-        imagedestroy($srcImage);
-        return '';
     }
 
     /**
@@ -1685,10 +1659,15 @@ class PackageController extends Controller
     }
 
     /**
-     * محاولة قراءة QR Code مع threshold وcontrast محددين
-     * مع إمكانية تصغير الصورة
+     * معالجة الصورة بالـ GD وحفظها في ملف مؤقت
+     * 1. تصغير (اختياري)
+     * 2. تدرج رمادي
+     * 3. زيادة التباين
+     * 4. تحويل لأبيض وأسود (Threshold)
+     * 5. إضافة هامش أبيض (Quiet Zone)
+     * يرجع مسار الملف المؤقت
      */
-    private function tryReadWithThreshold(string $imagePath, int $threshold, int $contrast, float $scale = 1.0): string
+    private function preprocessImageForQr(string $imagePath, int $threshold = 128, int $contrast = -80, float $scale = 1.0): string
     {
         $srcImage = $this->loadGdImage($imagePath);
         $width  = imagesx($srcImage);
@@ -1747,18 +1726,6 @@ class PackageController extends Controller
         imagepng($finalImage, $tmpPath);
         imagedestroy($finalImage);
 
-        try {
-            $options = new QROptions([
-                'readerUseGd' => true,
-            ]);
-            $qrcode = new QRCodeRead($options);
-            $result = (string) $qrcode->readFromFile($tmpPath);
-        } finally {
-            if (file_exists($tmpPath)) {
-                unlink($tmpPath);
-            }
-        }
-
-        return $result;
+        return $tmpPath;
     }
 }

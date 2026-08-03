@@ -17,6 +17,7 @@
         "guzzlehttp/guzzle": "^7.10",
         "intervention/image": "^2.5",
         "khaled.alshamaa/ar-php": "^6.0",
+        "khanamiryan/qrcode-detector-decoder": "*",
         "laravel/framework": "^8.0",
         "laravel/sanctum": "^2.15",
         "laravel/tinker": "^2.0",

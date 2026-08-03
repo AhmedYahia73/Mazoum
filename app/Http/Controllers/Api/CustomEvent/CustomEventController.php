@@ -39,7 +39,6 @@ class CustomEventController extends Controller
         ]); 
     }
 
-
     public function data_pdf(Request $request)
     {
         $Item = Model::
@@ -64,7 +63,7 @@ class CustomEventController extends Controller
             'Items' => $Item,
         ]); 
     }
-    
+
     public function template($id){
         $custom_event_user = CustomEventUsers::where("id", $id)
         ->firstOrFail();

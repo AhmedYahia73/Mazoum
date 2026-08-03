@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Api\CustomEvent;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomChat;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
+use App\Models\CustomMemory;
 use App\Models\EnterUserCustomEvent;
 use App\Models\EnterUserEvent;
+use App\Models\EventChat;
 use App\Models\EventUsers;
+use App\Models\Memory;
 use App\Models\Negotaition;
 use App\Models\Orders;
 use App\Models\Payment;
 use App\Models\Pricing;
+use App\Models\Qr_Code;
 use App\Models\User;
 use App\Traits\imageTrait;
 use Carbon\Carbon;
+use chillerlan\QRCode\QRCode as QRCodeRead;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -1296,7 +1303,275 @@ class PackageController extends Controller
             "send" => $send,
             "available" => $available,
         ]);
-    }
+    } 
+ 
+    public function eventMemoryScanQrCode(Request $request)
+    {
+        // 1. التحقق من وجود الملف وأن تكون صورة
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        try {
+            // 2. الحصول على المسار المؤقت للصورة المرفوعة
+            $imagePath = $request->file('image')->getRealPath();
+
+            // 3. إعداد خيارات القراءة
+            $options = new QROptions([
+                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
+            ]);
+
+            // 4. فك تشفير الصورة وقراءة الـ QR Code
+            $qrcode = new QRCodeRead($options);
+            $result = $qrcode->readFromFile($imagePath);
+
+            // 5. استخراج النص أو الرابط من نتيجة القراءة
+            $decodedText = (string) $result;
+
+            if (empty($decodedText)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'لم يتم العثور على QR Code واضح في الصورة'
+                ], 422);
+            }
+
+            $uu_id = explode("/", $decodedText);
+            $uu_id = end($uu_id); 
+            $qr_code = Qr_Code::
+            where('uu_id', $uu_id)
+            ->firstOrFail();
+   
+        
+            $event = $qr_code?->event;
+            if(!$event){
+                return response()->json([
+                    "errors" => "QR is expired"
+                ], 400);
+            } 
+            $memories = Memory::
+            where("event_user_id", $qr_code->event_user_id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id, 
+                    "image_url" => $item->image_url,
+                    "date" => $item->created_at->format("Y-m-d"),
+                    "time" => $item->created_at->format("h:i:s A"),
+                ];
+            });
+
+            return response()->json([
+                "memories" => $memories,
+                "event" => $event,
+                "event_user_id" => $qr_code->event_user_id,
+            ]); 
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'تعذر قراءة الـ QR Code من الصورة: ' . $e->getMessage()
+            ], 422);
+        }
+    } 
+ 
+    public function customEventMemoryScanQrCode(Request $request)
+    {
+        // 1. التحقق من وجود الملف وأن تكون صورة
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        try {
+            // 2. الحصول على المسار المؤقت للصورة المرفوعة
+            $imagePath = $request->file('image')->getRealPath();
+
+            // 3. إعداد خيارات القراءة
+            $options = new QROptions([
+                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
+            ]);
+
+            // 4. فك تشفير الصورة وقراءة الـ QR Code
+            $qrcode = new QRCodeRead($options);
+            $result = $qrcode->readFromFile($imagePath);
+
+            // 5. استخراج النص أو الرابط من نتيجة القراءة
+            $decodedText = (string) $result;
+
+            if (empty($decodedText)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'لم يتم العثور على QR Code واضح في الصورة'
+                ], 422);
+            }
+
+            $uu_id = explode("/", $decodedText);
+            $uu_id = end($uu_id); 
+            $qr_code = CustomEventUsers::
+            where('uu_id', $uu_id)
+            ->firstOrFail();
+     
+            $memories = CustomMemory::
+            where("custom_user_id", $qr_code->id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id, 
+                    "image_url" => $item->image_url,
+                    "date" => $item->created_at->format("Y-m-d"),
+                    "time" => $item->created_at->format("h:i:s A"),
+                ];
+            });
+
+            return response()->json([
+                "memories" => $memories,
+                "event" => $qr_code->event,
+                "event_user_id" => $qr_code->event_user_id,
+            ]); 
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'تعذر قراءة الـ QR Code من الصورة: ' . $e->getMessage()
+            ], 422);
+        }
+    } 
+ 
+    public function eventChatScanQrCode(Request $request)
+    {
+        // 1. التحقق من وجود الملف وأن تكون صورة
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        try {
+            // 2. الحصول على المسار المؤقت للصورة المرفوعة
+            $imagePath = $request->file('image')->getRealPath();
+
+            // 3. إعداد خيارات القراءة
+            $options = new QROptions([
+                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
+            ]);
+
+            // 4. فك تشفير الصورة وقراءة الـ QR Code
+            $qrcode = new QRCodeRead($options);
+            $result = $qrcode->readFromFile($imagePath);
+
+            // 5. استخراج النص أو الرابط من نتيجة القراءة
+            $decodedText = (string) $result;
+
+            if (empty($decodedText)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'لم يتم العثور على QR Code واضح في الصورة'
+                ], 422);
+            }
+
+            $uu_id = explode("/", $decodedText);
+            $uu_id = end($uu_id); 
+            $qr_code = Qr_Code::
+            where('uu_id', $uu_id)
+            ->firstOrFail();
+   
+        
+            $event = $qr_code?->event;
+            if(!$event){
+                return response()->json([
+                    "errors" => "QR is expired"
+                ], 400);
+            } 
+ 
+            $chat = EventChat::
+            where("event_user_id", $qr_code->event_user_id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "msg" => $item->msg,
+                    "image" => !empty($item->image) ? url("storage/", $item->image) : null,
+                    "is_read" => $item->is_read,
+                    "user_sent" => $item->user_sent,
+                    "date" => $item->created_at->format("Y-m-d"),
+                    "time" => $item->created_at->format("h:i:s A"),
+                ];
+            });
+
+            return response()->json([
+                "chat" => $chat,
+                "event" => $event,
+                "event_user_id" => $qr_code->event_user_id,
+            ]); 
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'تعذر قراءة الـ QR Code من الصورة: ' . $e->getMessage()
+            ], 422);
+        }
+    } 
+ 
+    public function customEventChatScanQrCode(Request $request)
+    {
+        // 1. التحقق من وجود الملف وأن تكون صورة
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        try {
+            // 2. الحصول على المسار المؤقت للصورة المرفوعة
+            $imagePath = $request->file('image')->getRealPath();
+
+            // 3. إعداد خيارات القراءة
+            $options = new QROptions([
+                'readerUseGd' => true, // استخدام GD Library المتاحة افتراضياً في XAMPP
+            ]);
+
+            // 4. فك تشفير الصورة وقراءة الـ QR Code
+            $qrcode = new QRCodeRead($options);
+            $result = $qrcode->readFromFile($imagePath);
+
+            // 5. استخراج النص أو الرابط من نتيجة القراءة
+            $decodedText = (string) $result;
+
+            if (empty($decodedText)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'لم يتم العثور على QR Code واضح في الصورة'
+                ], 422);
+            }
+
+            $uu_id = explode("/", $decodedText);
+            $uu_id = end($uu_id); 
+            $qr_code = CustomEventUsers::
+            where('uu_id', $uu_id)
+            ->firstOrFail();
+             $chat = CustomChat:: 
+            where("custom_user_id", $qr_code->id)
+            ->get()
+            ->map(function($item){
+                return [
+                    "id" => $item->id,
+                    "msg" => $item->msg,
+                    "image" => !empty($item->image) ? url("storage/", $item->image) : null,
+                    "is_read" => $item->is_read,
+                    "user_sent" => $item->user_sent,
+                    "date" => $item->created_at->format("Y-m-d"),
+                    "time" => $item->created_at->format("h:i:s A"),
+                ];
+            });
+
+            return response()->json([
+                "chat" => $chat,
+                "event" => $qr_code->event,
+                "event_user_id" => $qr_code->event_user_id,
+            ]); 
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'تعذر قراءة الـ QR Code من الصورة: ' . $e->getMessage()
+            ], 422);
+        }
+    } 
 }
 
 

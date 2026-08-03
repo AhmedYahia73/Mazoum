@@ -64,6 +64,7 @@ class CustomEventController extends Controller
             'Items' => $Item,
         ]); 
     }
+    
     public function template($id){
         $custom_event_user = CustomEventUsers::where("id", $id)
         ->firstOrFail();

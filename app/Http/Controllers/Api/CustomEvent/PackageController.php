@@ -517,6 +517,8 @@ class PackageController extends Controller
             'event_users.*.name' => 'required',
           	'event_users.*.users_count' => 'required|numeric|min:1',
           	'event_users.*.mobile' => 'sometimes',
+          	'event_users.*.mobile' => 'sometimes',
+          	'event_users.*.suit_num' => 'sometimes|numeric',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -548,6 +550,7 @@ class PackageController extends Controller
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
                         'uu_id' => $uu_id,
                         "user_id" => auth()->user()->id,
+                        'suit_num' => isset($arr['suit_num']) ? (int) $arr['suit_num'] : 0,
                     ]);
 
                 $this->update_qr($row->event,$row->uu_id, $row, $row->event?->image);
@@ -638,7 +641,8 @@ class PackageController extends Controller
                         'name' => $arr['name'],
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
-                        'uu_id' => $uu_id
+                        'uu_id' => $uu_id,
+                        'suit_num' => isset($arr['suit_num']) ? (int) $arr['suit_num'] : $row->suit_num,
                     ]); 
                 }
             }

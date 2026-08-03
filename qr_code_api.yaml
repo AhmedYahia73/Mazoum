@@ -1,0 +1,162 @@
+openapi: 3.0.0
+info:
+  title: QR Code Scanning API
+  description: API endpoints for scanning QR codes for events, custom events, chats, and memories.
+  version: 1.0.0
+servers:
+  - url: /api
+    description: Main API Server
+
+paths:
+  /eventMemoryScanQrCode:
+    post:
+      summary: Scan QR Code for Event Memory
+      description: Reads uploaded image and extracts QR code for event memory.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: QR Code image (jpeg, png, jpg, webp) max 5MB.
+      responses:
+        '200':
+          description: Successful scan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        image_url: { type: string }
+                        date: { type: string }
+                        time: { type: string }
+                  event:
+                    type: object
+                  event_user_id:
+                    type: integer
+        '422':
+          description: Validation error or invalid QR code
+        '400':
+          description: QR is expired
+
+  /customEventMemoryScanQrCode:
+    post:
+      summary: Scan QR Code for Custom Event Memory
+      description: Reads uploaded image and extracts QR code for custom event memory.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: QR Code image (jpeg, png, jpg, webp) max 5MB.
+      responses:
+        '200':
+          description: Successful scan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      type: object
+                  event:
+                    type: object
+                  event_user_id:
+                    type: integer
+        '422':
+          description: Validation error or invalid QR code
+
+  /eventChatScanQrCode:
+    post:
+      summary: Scan QR Code for Event Chat
+      description: Reads uploaded image and extracts QR code for event chat.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: QR Code image (jpeg, png, jpg, webp) max 5MB.
+      responses:
+        '200':
+          description: Successful scan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chat:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        msg: { type: string }
+                        image: { type: string, nullable: true }
+                        is_read: { type: integer }
+                        user_sent: { type: integer }
+                        date: { type: string }
+                        time: { type: string }
+                  event:
+                    type: object
+                  event_user_id:
+                    type: integer
+        '422':
+          description: Validation error or invalid QR code
+        '400':
+          description: QR is expired
+
+  /customEventChatScanQrCode:
+    post:
+      summary: Scan QR Code for Custom Event Chat
+      description: Reads uploaded image and extracts QR code for custom event chat.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: QR Code image (jpeg, png, jpg, webp) max 5MB.
+      responses:
+        '200':
+          description: Successful scan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chat:
+                    type: array
+                    items:
+                      type: object
+                  event:
+                    type: object
+                  event_user_id:
+                    type: integer
+        '422':
+          description: Validation error or invalid QR code

@@ -70,10 +70,10 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
 
     Route::controller('Api\CustomEvent\PackageController')
     ->prefix("package")->group(function () {
-        Route::get('/eventMemoryScanQrCode', 'eventMemoryScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
-        Route::get('/customEventMemoryScanQrCode', 'customEventMemoryScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
-        Route::get('/eventChatScanQrCode', 'eventChatScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
-        Route::get('/customEventChatScanQrCode', 'customEventChatScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/eventMemoryScanQrCode', 'eventMemoryScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/customEventMemoryScanQrCode', 'customEventMemoryScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/eventChatScanQrCode', 'eventChatScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
+        Route::post('/customEventChatScanQrCode', 'customEventChatScanQrCode')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
         Route::get('/', 'view');
         Route::get('/my_package', 'my_package');
         Route::post('/negotaition', 'negotaition');

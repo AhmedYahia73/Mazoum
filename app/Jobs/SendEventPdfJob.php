@@ -201,7 +201,7 @@ class SendEventPdfJob implements ShouldQueue
             Log::info('PDF Job - Writing HTML content');
             $mpdf->WriteHTML($html);
 
-            $filename = $event->title . '.pdf';
+            $filename = $event->name . '.pdf';
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);

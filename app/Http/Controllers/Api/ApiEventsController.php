@@ -902,7 +902,7 @@ class ApiEventsController extends Controller
 
         $baseFields = ['id','name','mobile','users_count','scan_at','confirmed_at',
             'scan_count','accept_count','is_sent','is_accepted','is_refused',
-            'is_delivered','is_read','qr_sent','status'];
+            'is_delivered','is_read','qr_sent','status', 'suit_num'];
 
         switch ($type) {
 

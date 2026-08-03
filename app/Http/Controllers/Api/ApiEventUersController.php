@@ -314,6 +314,7 @@ class ApiEventUersController extends Controller
 
                 $custom_messages['event_users.'.$j.'.users_count.required'] = 'عدد الدعوات '.$i.' مطلوب';
                 $custom_messages['event_users.'.$j.'.users_count.numeric'] = 'عدد الدعوات  '.$i.' لابد ان يحتوي علي أرقام';
+                $custom_messages['event_users.'.$j.'.suit_num.numeric'] = 'رقم الكرسى  '.$i.' لابد ان يحتوي علي أرقام';
 
                 $i = $i + 1;
             }
@@ -366,7 +367,8 @@ class ApiEventUersController extends Controller
                               'mobile' => ltrim($arr['mobile'],"+"),
                               'users_count' => $arr['users_count'],
                               'status' => 'hold',2,
-                              "user_id" => $user->id
+                              "user_id" => $user->id,
+                              "suit_num" => isset($arr['suit_num']) ? (int) $arr['suit_num'] : 0,
                             ]);
 
                         } else {
@@ -378,7 +380,10 @@ class ApiEventUersController extends Controller
                             })->first();
 
                           	if($check_row != null) {
-                            	$check_row->update([ 'users_count' => $arr['users_count'] ]);
+                            	$check_row->update([ 
+                                    'users_count' => $arr['users_count'], 
+                                    'suit_num' => isset($arr['suit_num']) ? (int) $arr['suit_num'] : $check_row->suit_num 
+                                ]);
                             }
 
                         	$errors = $errors + 1;

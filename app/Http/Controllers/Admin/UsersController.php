@@ -232,6 +232,7 @@ class UsersController extends Controller
             'is_paid' => $request->is_paid,
             'users_count' => $request->users_count ?? $order->users_count,
             'total' => $request->total,
+            'currency_id' => $request->currency_id ?? $order->currency_id,
             'payment_method' => $request->payment_method ?? $order->payment_method,
             'payment_method_type' => $request->payment_method_type ?? $order->payment_type,
             'payment_description' => $request->payment_description ?? $order->payment_description,

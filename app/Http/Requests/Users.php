@@ -33,6 +33,7 @@ class Users extends FormRequest
                     'name'        => 'required',
                     'mobile'      => 'required|numeric|unique:users',
                     'mobile_code' => 'required',
+                    'password'    => 'required|min:6',
                 ];
 
             case 'PUT':

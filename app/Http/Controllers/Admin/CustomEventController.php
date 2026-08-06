@@ -1854,6 +1854,7 @@ class CustomEventController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
+        ->where("scan_count", ">", 0)
         ->paginate(15);
         $invetations = CustomEventUsers::
         where('custom_event_id',$Item->id)

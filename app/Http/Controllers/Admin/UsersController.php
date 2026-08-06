@@ -447,6 +447,10 @@ class UsersController extends Controller
 
         } else {
             $input['status'] = 1;
+            if ($request->password) {
+                $input['password'] = bcrypt($request->password);
+                $input['pass'] = $request->password;
+            }
         }
 
         return $input;

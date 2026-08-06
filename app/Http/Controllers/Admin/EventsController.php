@@ -1201,7 +1201,7 @@ class EventsController extends Controller
             $input['pdf'] = $pdf_name;
 
         }
-
+        // deleted_image, deleted_video, deleted_file, deleted_pdf
         if($request->deleted_image){
             $this->delete_image($modelClass->image);
             $input['image'] = null;

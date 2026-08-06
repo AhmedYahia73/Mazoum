@@ -314,6 +314,29 @@ class AttendanceController extends Controller
         $appointmentFrom  = $user->appointment_from;
         $appointmentTo    = $user->appointment_to;
 
+        $dailyExpectedMinutes = 0;
+        if ($appointmentFrom && $appointmentTo) {
+            $eIn = Carbon::parse('2000-01-01 ' . $appointmentFrom);
+            $eOut = Carbon::parse('2000-01-01 ' . $appointmentTo);
+            if ($eOut->lt($eIn)) {
+                $eOut->addDay();
+            }
+            $dailyExpectedMinutes = $eIn->diffInMinutes($eOut);
+        }
+
+        $monthTotalDays = $endOfMonth->day;
+        $monthHolidayDays = 0;
+        for ($d = 1; $d <= $monthTotalDays; $d++) {
+            $date = Carbon::create($month->year, $month->month, $d);
+            $mappedDayOfWeek = ($date->dayOfWeek + 1) % 7;
+            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
+                $monthHolidayDays++;
+            }
+        }
+        $monthWorkingDays = $monthTotalDays - $monthHolidayDays;
+        $monthExpectedMinutes = $monthWorkingDays * $dailyExpectedMinutes;
+        $minuteRate = $monthExpectedMinutes > 0 ? ($user->salary / $monthExpectedMinutes) : 0;
+
         $records = Attendance::where('user_id', $user->id)
             ->whereBetween('from', [$startOfMonth, $endOfMonth])
             ->get();
@@ -328,6 +351,7 @@ class AttendanceController extends Controller
         $lateMinutes       = 0;
         $earlyLeaveMinutes = 0;
         $overtimeMinutes   = 0;
+        $trueOvertimeMinutes = 0;
         $dailyDetails      = [];
 
         for ($day = $startOfMonth->copy(); $day->lte($endOfMonth); $day->addDay()) {
@@ -425,6 +449,10 @@ class AttendanceController extends Controller
                     $dayOvertime = $checkIn->diffInMinutes($checkOut);
                 }
                 $overtimeMinutes += $dayOvertime;
+
+                if ($dayOvertime > $dailyExpectedMinutes) {
+                    $trueOvertimeMinutes += ($dayOvertime - $dailyExpectedMinutes);
+                }
             }
 
             $dailyDetails[] = [
@@ -439,6 +467,14 @@ class AttendanceController extends Controller
                 "second_image"        => $lastRecord->second_image_url,
             ];
         }
+
+        $absenceMinutes = $absenceDays * $dailyExpectedMinutes;
+        $totalDeductionMinutes = $absenceMinutes + $lateMinutes + $earlyLeaveMinutes;
+        $totalAdditionMinutes = $trueOvertimeMinutes;
+
+        $deductionAmount = round($totalDeductionMinutes * $minuteRate, 2);
+        $additionAmount = round($totalAdditionMinutes * $minuteRate, 2);
+        $finalSalary = round($user->salary + $additionAmount - $deductionAmount, 2);
 
         return response()->json([
             'user' => [
@@ -458,6 +494,12 @@ class AttendanceController extends Controller
             'late_minutes'        => $lateMinutes,
             'early_leave_minutes' => $earlyLeaveMinutes,
             'overtime_minutes'    => $overtimeMinutes,
+
+            'basic_salary'        => $user->salary,
+            'addition_amount'     => $additionAmount,
+            'deduction_amount'    => $deductionAmount,
+            'final_salary'        => $finalSalary,
+
             'daily_details'       => $dailyDetails,
         ]);
     }

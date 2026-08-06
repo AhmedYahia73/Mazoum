@@ -398,23 +398,21 @@ class AttendanceController extends Controller
             $dayEarlyLeave = 0;
             $dayOvertime   = 0;
 
+            $requiredMinutes = 0;
+            if ($appointmentFrom && $appointmentTo) {
+                $expectedIn = Carbon::parse($dateStr . ' ' . $appointmentFrom);
+                $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
+                if ($expectedOut->lt($expectedIn)) {
+                    $expectedOut->addDay();
+                }
+                $requiredMinutes = $expectedIn->diffInMinutes($expectedOut);
+            }
+
             if ($checkIn && $appointmentFrom) {
                 $expectedIn = Carbon::parse($dateStr . ' ' . $appointmentFrom);
                 if ($checkIn->gt($expectedIn)) {
                     $dayLate = $checkIn->diffInMinutes($expectedIn);
                     $lateMinutes += $dayLate;
-                }
-            }
-
-            if ($checkOut && $appointmentTo) {
-                $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
-                if ($appointmentFrom && Carbon::parse($appointmentTo)->lt(Carbon::parse($appointmentFrom))) {
-                    $expectedOut->addDay();
-                }
-
-                if ($checkOut->lt($expectedOut)) {
-                    $dayEarlyLeave = $checkOut->diffInMinutes($expectedOut);
-                    $earlyLeaveMinutes += $dayEarlyLeave;
                 }
             }
 
@@ -425,6 +423,11 @@ class AttendanceController extends Controller
                     $dayOvertime = $checkIn->diffInMinutes($checkOut);
                 }
                 $overtimeMinutes += $dayOvertime;
+
+                if ($requiredMinutes > $dayOvertime) {
+                    $dayEarlyLeave = $requiredMinutes - $dayOvertime;
+                    $earlyLeaveMinutes += $dayEarlyLeave;
+                }
             }
 
             $dailyDetails[] = [

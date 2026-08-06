@@ -325,8 +325,19 @@ class AttendanceController extends Controller
         }
 
         $monthTotalDays = $endOfMonth->day;
-        $monthExpectedMinutes = $monthTotalDays * $dailyExpectedMinutes;
+        $monthHolidayDays = 0;
+        for ($d = 1; $d <= $monthTotalDays; $d++) {
+            $date = Carbon::create($month->year, $month->month, $d);
+            $mappedDayOfWeek = ($date->dayOfWeek + 1) % 7;
+            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
+                $monthHolidayDays++;
+            }
+        }
+        $monthWorkingDays = $monthTotalDays - $monthHolidayDays;
+        $monthExpectedMinutes = $monthWorkingDays * $dailyExpectedMinutes;
+        
         $minuteRate = $monthExpectedMinutes > 0 ? ($user->salary / $monthExpectedMinutes) : 0;
+        $dailyRate  = $user->salary / $monthTotalDays;
 
         // Find the first ever work day for this user
         $firstEverRecord = Attendance::where('user_id', $user->id)->orderBy('from', 'asc')->first();
@@ -343,7 +354,7 @@ class AttendanceController extends Controller
         $absenceDays       = 0;
         $presentDays       = 0;
         $holidayDays       = 0;
-        $paidDaysSoFar     = 0;
+        $paidHolidayDays   = 0;
         $lateMinutes       = 0;
         $earlyLeaveMinutes = 0;
         $overtimeMinutes   = 0;
@@ -361,7 +372,7 @@ class AttendanceController extends Controller
                 $holidayDays++;
                 
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay) && $day->lte($lastDayToCount)) {
-                    $paidDaysSoFar++;
+                    $paidHolidayDays++;
                 }
 
                 $dailyDetails[] = [
@@ -395,10 +406,6 @@ class AttendanceController extends Controller
             }
 
             $dayRecords = $recordsByDay->get($dateStr, collect());
-
-            if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
-                $paidDaysSoFar++;
-            }
 
             if ($dayRecords->isEmpty()) {
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
@@ -475,14 +482,11 @@ class AttendanceController extends Controller
             ];
         }
 
-        $pastExpectedMinutes = $paidDaysSoFar * $dailyExpectedMinutes;
-        $absenceMinutes = $absenceDays * $dailyExpectedMinutes;
-        
-        $totalDeductionMinutes = $absenceMinutes + $lateMinutes + $earlyLeaveMinutes;
+        $totalDeductionMinutes = $lateMinutes + $earlyLeaveMinutes;
         $totalAdditionMinutes = $trueOvertimeMinutes;
 
         // Salary calculated proportionally based on days passed so far
-        $earnedBasicAmount = round($pastExpectedMinutes * $minuteRate, 2);
+        $earnedBasicAmount = round(($presentDays + $paidHolidayDays) * $dailyRate, 2);
         $deductionAmount = round($totalDeductionMinutes * $minuteRate, 2);
         $additionAmount = round($totalAdditionMinutes * $minuteRate, 2);
         $finalSalary = round($earnedBasicAmount + $additionAmount - $deductionAmount, 2);

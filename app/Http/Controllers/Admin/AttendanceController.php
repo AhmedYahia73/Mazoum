@@ -334,8 +334,10 @@ class AttendanceController extends Controller
             $dateStr   = $day->format('Y-m-d');
             $dayOfWeek = $day->dayOfWeek;
 
+            $mappedDayOfWeek = ($dayOfWeek + 1) % 7;
+
             // يوم الإجازة
-            if (!is_null($holidayDayNumber) && $dayOfWeek == (int)$holidayDayNumber) {
+            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
                 $holidayDays++;
                 $dailyDetails[] = [
                     'date'                => $dateStr,
@@ -406,13 +408,23 @@ class AttendanceController extends Controller
 
             if ($checkOut && $appointmentTo) {
                 $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
+                if ($appointmentFrom && Carbon::parse($appointmentTo)->lt(Carbon::parse($appointmentFrom))) {
+                    $expectedOut->addDay();
+                }
+
                 if ($checkOut->lt($expectedOut)) {
                     $dayEarlyLeave = $checkOut->diffInMinutes($expectedOut);
                     $earlyLeaveMinutes += $dayEarlyLeave;
-                } elseif ($checkOut->gt($expectedOut)) {
-                    $dayOvertime = $checkOut->diffInMinutes($expectedOut);
-                    $overtimeMinutes += $dayOvertime;
                 }
+            }
+
+            if ($checkIn && $checkOut) {
+                if ($checkIn->gt($checkOut)) {
+                    $dayOvertime = $checkIn->diffInMinutes($checkOut->copy()->addDay());
+                } else {
+                    $dayOvertime = $checkIn->diffInMinutes($checkOut);
+                }
+                $overtimeMinutes += $dayOvertime;
             }
 
             $dailyDetails[] = [

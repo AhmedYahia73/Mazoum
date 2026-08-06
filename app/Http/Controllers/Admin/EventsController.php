@@ -1202,6 +1202,23 @@ class EventsController extends Controller
 
         }
 
+        if($request->deleted_image){
+            $this->delete_image($modelClass->image);
+            $input['image'] = null;
+        }
+        if($request->deleted_video){
+            $this->delete_image($modelClass->video);
+            $input['video'] = null;
+        } 
+        if($request->deleted_file){
+            $this->delete_image($modelClass->file);
+            $input['file'] = null;
+        } 
+        if($request->deleted_pdf){
+            $this->delete_image($modelClass->pdf);
+            $input['pdf'] = null;
+        } 
+
         return  $input;
     }
 

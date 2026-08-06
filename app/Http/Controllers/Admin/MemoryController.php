@@ -23,8 +23,8 @@ class MemoryController extends Controller
         $memories = Memory::
         where("event_id", $request->event_id)
         ->with("user")
-        ->get()
-        ->map(function($item){
+        ->paginate(20)
+        ->through(function($item){
             return [
                 "id" => $item->id,
                 "image" => $item->image_url,

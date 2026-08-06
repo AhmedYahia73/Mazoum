@@ -134,8 +134,8 @@ class MemoryController extends Controller
                 "image" => url("storage/" . $item->image), 
                 "user_sent" => $item->user_sent,
                 "msg" => $item->msg,
-                "date" => $item->created_at->format("Y-m-d"),
-                "time" => $item->created_at->format("H:i A"),
+                "date" => $item?->created_at?->format("Y-m-d"),
+                "time" => $item?->created_at?->format("H:i A"),
             ];
         });
 
@@ -162,8 +162,8 @@ class MemoryController extends Controller
                 "image" => url("storage/" . $item->image), 
                 "user_sent" => $item->user_sent,
                 "msg" => $item->msg,
-                "date" => $item->created_at->format("Y-m-d"),
-                "time" => $item->created_at->format("H:i A"),
+                "date" => $item?->created_at?->format("Y-m-d"),
+                "time" => $item?->created_at?->format("H:i A"),
             ];
         });
 

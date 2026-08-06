@@ -18,6 +18,9 @@ Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
 
+Route::post('event_user_chat', 'MemoryController@event_user_chat');
+Route::post('custom_event_chat', 'MemoryController@custom_event_chat');
+
 Route::post('event_memory', 'MemoryController@event_memory');
 Route::post('event_user_memory', 'MemoryController@event_user_memory');
 Route::post('custom_event_memory', 'MemoryController@custom_event_memory');

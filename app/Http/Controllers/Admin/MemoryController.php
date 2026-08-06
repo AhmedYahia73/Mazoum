@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\Memory;
 use App\Models\CustomMemory;
+use App\Models\CustomChat;
+use App\Models\EventChat;
 
 class MemoryController extends Controller
 {
@@ -111,6 +113,62 @@ class MemoryController extends Controller
 
         return response()->json([
             "memories" => $memories
+        ]);
+    }
+    
+    public function event_user_chat(Request $request){
+        $validator = Validator::make($request->all(), [
+            'event_user_id' => 'required|exists:event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $messages = EventChat::
+        where("event_user_id", $request->event_user_id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "image" => url("storage/" . $item->image), 
+                "user_sent" => $item->user_sent,
+                "msg" => $item->msg,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    }
+    
+    public function custom_event_chat(Request $request){
+        $validator = Validator::make($request->all(), [
+            'custom_user_id' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $messages = CustomChat::
+        where("custom_user_id", $request->custom_user_id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "image" => url("storage/" . $item->image), 
+                "user_sent" => $item->user_sent,
+                "msg" => $item->msg,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("H:i A"),
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
         ]);
     }
 }

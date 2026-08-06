@@ -340,7 +340,7 @@ class AttendanceController extends Controller
         $dailyRate  = $user->salary / $monthTotalDays;
 
         // Find the first ever work day for this user
-        $firstEverRecord = Attendance::where('user_id', $user->id)->orderBy('from', 'asc')->first();
+        $firstEverRecord = Attendance::where('user_id', $user->id)->whereNotNull('from')->orderBy('from', 'asc')->first();
         $firstEverWorkDay = $firstEverRecord ? Carbon::parse($firstEverRecord->from)->startOfDay() : null;
 
         $records = Attendance::where('user_id', $user->id)

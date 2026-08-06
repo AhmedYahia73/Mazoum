@@ -468,13 +468,17 @@ class AttendanceController extends Controller
             ];
         }
 
+        $pastExpectedMinutes = ($presentDays + $absenceDays) * $dailyExpectedMinutes;
         $absenceMinutes = $absenceDays * $dailyExpectedMinutes;
+        
         $totalDeductionMinutes = $absenceMinutes + $lateMinutes + $earlyLeaveMinutes;
         $totalAdditionMinutes = $trueOvertimeMinutes;
 
+        // Salary calculated proportionally based on days passed so far
+        $earnedBasicAmount = round($pastExpectedMinutes * $minuteRate, 2);
         $deductionAmount = round($totalDeductionMinutes * $minuteRate, 2);
         $additionAmount = round($totalAdditionMinutes * $minuteRate, 2);
-        $finalSalary = round($user->salary + $additionAmount - $deductionAmount, 2);
+        $finalSalary = round($earnedBasicAmount + $additionAmount - $deductionAmount, 2);
 
         return response()->json([
             'user' => [
@@ -496,6 +500,7 @@ class AttendanceController extends Controller
             'overtime_minutes'    => $overtimeMinutes,
 
             'basic_salary'        => $user->salary,
+            'earned_salary_so_far'=> $earnedBasicAmount,
             'addition_amount'     => $additionAmount,
             'deduction_amount'    => $deductionAmount,
             'final_salary'        => $finalSalary,

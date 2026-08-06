@@ -325,17 +325,12 @@ class AttendanceController extends Controller
         }
 
         $monthTotalDays = $endOfMonth->day;
-        $monthHolidayDays = 0;
-        for ($d = 1; $d <= $monthTotalDays; $d++) {
-            $date = Carbon::create($month->year, $month->month, $d);
-            $mappedDayOfWeek = ($date->dayOfWeek + 1) % 7;
-            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
-                $monthHolidayDays++;
-            }
-        }
-        $monthWorkingDays = $monthTotalDays - $monthHolidayDays;
-        $monthExpectedMinutes = $monthWorkingDays * $dailyExpectedMinutes;
+        $monthExpectedMinutes = $monthTotalDays * $dailyExpectedMinutes;
         $minuteRate = $monthExpectedMinutes > 0 ? ($user->salary / $monthExpectedMinutes) : 0;
+
+        // Find the first ever work day for this user
+        $firstEverRecord = Attendance::where('user_id', $user->id)->orderBy('from', 'asc')->first();
+        $firstEverWorkDay = $firstEverRecord ? Carbon::parse($firstEverRecord->from)->startOfDay() : null;
 
         $records = Attendance::where('user_id', $user->id)
             ->whereBetween('from', [$startOfMonth, $endOfMonth])
@@ -348,6 +343,7 @@ class AttendanceController extends Controller
         $absenceDays       = 0;
         $presentDays       = 0;
         $holidayDays       = 0;
+        $paidDaysSoFar     = 0;
         $lateMinutes       = 0;
         $earlyLeaveMinutes = 0;
         $overtimeMinutes   = 0;
@@ -363,6 +359,11 @@ class AttendanceController extends Controller
             // يوم الإجازة
             if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
                 $holidayDays++;
+                
+                if ($firstEverWorkDay && $day->gte($firstEverWorkDay) && $day->lte($lastDayToCount)) {
+                    $paidDaysSoFar++;
+                }
+
                 $dailyDetails[] = [
                     'date'                => $dateStr,
                     'status'              => 'holiday',
@@ -395,8 +396,14 @@ class AttendanceController extends Controller
 
             $dayRecords = $recordsByDay->get($dateStr, collect());
 
+            if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
+                $paidDaysSoFar++;
+            }
+
             if ($dayRecords->isEmpty()) {
-                $absenceDays++;
+                if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
+                    $absenceDays++;
+                }
                 $dailyDetails[] = [
                     'date'                => $dateStr,
                     'status'              => 'absent',
@@ -468,7 +475,7 @@ class AttendanceController extends Controller
             ];
         }
 
-        $pastExpectedMinutes = ($presentDays + $absenceDays) * $dailyExpectedMinutes;
+        $pastExpectedMinutes = $paidDaysSoFar * $dailyExpectedMinutes;
         $absenceMinutes = $absenceDays * $dailyExpectedMinutes;
         
         $totalDeductionMinutes = $absenceMinutes + $lateMinutes + $earlyLeaveMinutes;

@@ -328,8 +328,20 @@ class AttendanceController extends Controller
         $monthHolidayDays = 0;
         for ($d = 1; $d <= $monthTotalDays; $d++) {
             $date = Carbon::create($month->year, $month->month, $d);
-            $mappedDayOfWeek = ($date->dayOfWeek + 1) % 7;
-            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
+            $isHoliday = false;
+            if (!is_null($holidayDayNumber)) {
+                if (is_numeric($holidayDayNumber)) {
+                    $mappedDayOfWeek = ($date->dayOfWeek + 1) % 7;
+                    if ($mappedDayOfWeek == (int)$holidayDayNumber) {
+                        $isHoliday = true;
+                    }
+                } else {
+                    if (strtolower($date->format('l')) === strtolower(trim($holidayDayNumber))) {
+                        $isHoliday = true;
+                    }
+                }
+            }
+            if ($isHoliday) {
                 $monthHolidayDays++;
             }
         }
@@ -363,12 +375,23 @@ class AttendanceController extends Controller
 
         for ($day = $startOfMonth->copy(); $day->lte($endOfMonth); $day->addDay()) {
             $dateStr   = $day->format('Y-m-d');
-            $dayOfWeek = $day->dayOfWeek;
-
-            $mappedDayOfWeek = ($dayOfWeek + 1) % 7;
+            
+            $isHoliday = false;
+            if (!is_null($holidayDayNumber)) {
+                if (is_numeric($holidayDayNumber)) {
+                    $mappedDayOfWeek = ($day->dayOfWeek + 1) % 7;
+                    if ($mappedDayOfWeek == (int)$holidayDayNumber) {
+                        $isHoliday = true;
+                    }
+                } else {
+                    if (strtolower($day->format('l')) === strtolower(trim($holidayDayNumber))) {
+                        $isHoliday = true;
+                    }
+                }
+            }
 
             // يوم الإجازة
-            if (!is_null($holidayDayNumber) && $mappedDayOfWeek == (int)$holidayDayNumber) {
+            if ($isHoliday) {
                 $holidayDays++;
                 
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay) && $day->lte($lastDayToCount)) {

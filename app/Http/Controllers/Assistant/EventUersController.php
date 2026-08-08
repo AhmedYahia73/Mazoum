@@ -1,5 +1,4 @@
-﻿<?php
-
+<?php
 namespace App\Http\Controllers\Assistant;
 
 use App\Http\Controllers\Controller;

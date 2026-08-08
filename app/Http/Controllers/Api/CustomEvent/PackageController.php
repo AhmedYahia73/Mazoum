@@ -1,5 +1,4 @@
-﻿<?php
-
+<?php
 namespace App\Http\Controllers\Api\CustomEvent;
 
 use App\Http\Controllers\Controller;

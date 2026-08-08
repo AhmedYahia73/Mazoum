@@ -1,52 +1,58 @@
 <?php
-require 'vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 
-// اختبار كل مسارات الخطوط المحتملة
-$font_paths = [
-    base_path('resources/fonts/DroidArabicKufiRegular.ttf'),
-    base_path('resources/fonts/arabic_font/DroidArabicKufiRegular.ttf'),
-    public_path('font/DroidArabicKufiRegular.ttf'),
-];
+$app = require_once __DIR__.'/bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
-echo "=== Font Check ===\n";
-foreach ($font_paths as $p) {
-    echo $p . " => " . (file_exists($p) ? "EXISTS (" . filesize($p) . " bytes)" : "NOT FOUND") . "\n";
-}
+use Intervention\Image\ImageManagerStatic as Image;
 
-// اختبار الصورة مع الخط الموجود
-$Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-$text = "حفل زفاف عائلة البلاعي";
-$text_glyphs = $Arabic->utf8Glyphs($text);
-
-echo "\n=== Text ===\n";
-echo "Original: " . $text . "\n";
-echo "After utf8Glyphs length: " . strlen($text_glyphs) . "\n";
-
-// اختبر إنشاء صورة بالخط الموجود
-$found_font = null;
-foreach ($font_paths as $p) {
-    if (file_exists($p)) {
-        $found_font = $p;
-        break;
+try {
+    $bg = public_path('qr-image-v10.jpg');
+    if (!file_exists($bg)) {
+        die("Background image not found: $bg");
     }
-}
 
-if ($found_font) {
-    echo "\n=== Image Test with font: $found_font ===\n";
-    $bg = imagecreatetruecolor(800, 200);
-    $white = imagecolorallocate($bg, 255, 255, 255);
-    $black = imagecolorallocate($bg, 0, 0, 0);
-    imagefilledrectangle($bg, 0, 0, 800, 200, $white);
+    $img = Image::make($bg);
     
-    $bbox = imagettftext($bg, 40, 0, 50, 100, $black, $found_font, $text_glyphs);
-    if ($bbox === false) {
-        echo "imagettftext FAILED!\n";
-    } else {
-        echo "imagettftext SUCCESS!\n";
-        imagepng($bg, public_path('test_arabic_result.png'));
-        echo "Saved to public/test_arabic_result.png\n";
+    $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
+    if (!file_exists($arabic_font)) {
+        die("Font not found: $arabic_font");
     }
-    imagedestroy($bg);
-} else {
-    echo "\nNO FONT FOUND!\n";
+
+    $text = "حفل زفاف عائلة البلاعي";
+
+    // Test 1: Normal text
+    $img->text($text, 200, 100, function ($font) use ($arabic_font) {
+        $font->file($arabic_font);
+        $font->size(50);
+        $font->color('#000');
+    });
+
+    // Test 2: utf8Glyphs
+    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+    $text2 = $Arabic->utf8Glyphs($text);
+    $img->text($text2, 200, 200, function ($font) use ($arabic_font) {
+        $font->file($arabic_font);
+        $font->size(50);
+        $font->color('#000');
+    });
+
+    // Test 3: Reversed words + utf8Glyphs
+    $words = explode(' ', trim($text));
+    $words_rev = array_reverse($words);
+    $reversed_name = implode(' ', $words_rev);
+    $text3 = $Arabic->utf8Glyphs($reversed_name);
+    $img->text($text3, 200, 300, function ($font) use ($arabic_font) {
+        $font->file($arabic_font);
+        $font->size(50);
+        $font->color('#000');
+    });
+
+    $path = public_path('test_text_render.jpg');
+    $img->save($path);
+    echo "Saved to: $path";
+
+} catch (\Exception $e) {
+    echo "Error: " . $e->getMessage();
 }

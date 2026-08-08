@@ -1498,6 +1498,7 @@ class HomeController extends Controller
                 $reversed_name = implode(' ', $words_rev);
                 $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                 $title_text = $Arabic->utf8Glyphs($reversed_name);
+                \Illuminate\Support\Facades\Log::info("update_qr rendering text", ["original" => $event->name, "title_text" => $title_text, "font" => $arabic_font]);
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

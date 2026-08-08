@@ -805,7 +805,7 @@ class EventUserActionsController extends Controller
 
             if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
-                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
@@ -875,7 +875,7 @@ class EventUserActionsController extends Controller
             // 2. إعدادات الخطوط
             // ==========================================
             // خط العناوين العربية
-            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
+            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
@@ -1006,6 +1006,7 @@ class EventUserActionsController extends Controller
         return [$r, $g, $b];
     }
 }
+
 
 
 

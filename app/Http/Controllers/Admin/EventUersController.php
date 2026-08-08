@@ -3503,7 +3503,7 @@ class EventUersController extends Controller
 
             if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
-                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
@@ -3572,8 +3572,8 @@ class EventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            // خط العناوين العربية (يجب أن يدعم Presentation Forms-B ليعمل مع مكتبة ArPHP بشكل صحيح)
-            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
+            // نستخدم الخط من resources/fonts/ لأنه موجود هناك بالفعل بدلاً من public/font/
+            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
@@ -3657,10 +3657,8 @@ class EventUersController extends Controller
             // هـ- إضافة التاريخ والوقت
             if (isset($event->date) && isset($event->time)) {
                 $datetime = $event->date . ' ' . $event->time;
-                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                $datetime = $Arabic->utf8Glyphs($datetime);
-                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($arabic_font) {
-                    $font->file($arabic_font);
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
+                    $font->file($number_font);
                     $font->size(50);
                     $font->color('#000000');
                     $font->align('center');
@@ -4663,5 +4661,6 @@ class EventUersController extends Controller
         return $data->phone_number;
     }
 }
+
 
 

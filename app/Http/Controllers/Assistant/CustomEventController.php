@@ -268,7 +268,7 @@ class CustomEventController extends Controller
                 $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $row->suit_num);
             }
-            $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+            $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
         } else {
             $name = $row->name;
             $name2 = 'Entered Users ' . $row->users_count;
@@ -405,7 +405,7 @@ class CustomEventController extends Controller
 
         // أضف النص في وسط الصورة أفقيًا وأسفل QR
         $background->text($name, $center_x, $text_y, function ($font) {
-            $font->file(public_path('font/DroidArabicKufiRegular.ttf'));
+            $font->file(base_path('resources/fonts/DroidArabicKufiRegular.ttf'));
             $font->size(26);
             $font->color('#000');
             $font->align('center');
@@ -423,7 +423,7 @@ class CustomEventController extends Controller
 
         // أضف النص في وسط الصورة أفقيًا وأسفل QR
         $background->text($name2, $center_x, $text_y2, function ($font) {
-            $font->file(public_path('font/DroidArabicKufiRegular.ttf'));
+            $font->file(base_path('resources/fonts/DroidArabicKufiRegular.ttf'));
             $font->size(26);
             $font->color('#000');
             $font->align('center');
@@ -684,5 +684,6 @@ class CustomEventController extends Controller
 
 
 }
+
 
 

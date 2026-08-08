@@ -1678,7 +1678,7 @@ class ApiEventUersController extends Controller
 
             if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
-                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->users_count);
@@ -1748,7 +1748,7 @@ class ApiEventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
+            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
@@ -1896,4 +1896,5 @@ class ApiEventUersController extends Controller
         return $data->phone_number;
     }
 }
+
 

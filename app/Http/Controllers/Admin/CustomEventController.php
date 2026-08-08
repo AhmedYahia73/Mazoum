@@ -396,7 +396,7 @@ class CustomEventController extends Controller
 
             if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
-                $font_path = public_path('font/DroidArabicKufiRegular.ttf');
+                $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
                 $Arabic2   = new \ArPHP\I18N\Arabic('Glyphs');
                 $name2     = $Arabic2->utf8Glyphs('عدد الضيوف ' . $user_event->confirm_count);    
@@ -468,7 +468,7 @@ class CustomEventController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
+            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
@@ -631,7 +631,7 @@ class CustomEventController extends Controller
 
         // أضف النص في وسط الصورة أفقيًا وأسفل QR
         $background->text($name, $center_x, $text_y, function ($font) {
-            $font->file(public_path('font/DroidArabicKufiRegular.ttf'));
+            $font->file(base_path('resources/fonts/DroidArabicKufiRegular.ttf'));
             $font->size(26);
             $font->color('#000');
             $font->align('center');
@@ -649,7 +649,7 @@ class CustomEventController extends Controller
 
         // أضف النص في وسط الصورة أفقيًا وأسفل QR
         $background->text($name2, $center_x, $text_y2, function ($font) {
-            $font->file(public_path('font/DroidArabicKufiRegular.ttf'));
+            $font->file(base_path('resources/fonts/DroidArabicKufiRegular.ttf'));
             $font->size(26);
             $font->color('#000');
             $font->align('center');
@@ -2990,3 +2990,4 @@ class CustomEventController extends Controller
 
     }
 }
+

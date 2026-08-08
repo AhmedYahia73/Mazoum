@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -567,7 +567,10 @@ class EventChatController extends Controller
             if (!file_exists($arabic_font)) {
                 $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
             }
-            $number_font = public_path('font/timr45w.ttf'); 
+            $number_font = public_path('font/timr45w.ttf');
+            if (!file_exists($number_font)) {
+                $number_font = $arabic_font;
+            }
 
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
@@ -600,11 +603,10 @@ class EventChatController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (!empty($event->name)) {
-                $title_text = $event->name;
-                // تهيئة كائن واحد فقط
-                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                $title_text = $Arabic->utf8Glyphs($title_text);
+            // نعكس ترتيب الكلمات فقط - FreeType يربط الحروف تلقائياً
+            if (!empty(trim($event->name ?? ''))) {
+                $words = explode(' ', trim($event->name));
+                $title_text = implode(' ', array_reverse($words));
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

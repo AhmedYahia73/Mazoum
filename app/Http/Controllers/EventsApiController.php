@@ -731,7 +731,7 @@ class EventsApiController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = public_path('font/Amiri.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
@@ -862,5 +862,6 @@ class EventsApiController extends Controller
 
 
 }
+
 
 

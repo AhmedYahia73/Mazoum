@@ -3606,9 +3606,9 @@ class EventUersController extends Controller
             $img = Image::make($bg);
             $center_x = intval($img->width() / 2);
 
-            // أ- إضافة اسم المدعو (Guest Name)
-            if (isset($user_event->name)) {
-                $title_text = $user_event->name;
+            // أ- إضافة عنوان المناسبة (Event Title)
+            if (isset($event->name)) {
+                $title_text = $event->name;
                 $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                 $title_text = $Arabic->utf8Glyphs($title_text);
 

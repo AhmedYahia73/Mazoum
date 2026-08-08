@@ -1748,7 +1748,7 @@ class ApiEventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = public_path('font/Amiri.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
@@ -1896,3 +1896,4 @@ class ApiEventUersController extends Controller
         return $data->phone_number;
     }
 }
+

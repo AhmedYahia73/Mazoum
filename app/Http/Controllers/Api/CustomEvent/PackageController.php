@@ -1162,7 +1162,7 @@ class PackageController extends Controller
             // 2. إعدادات الخطوط
             // ==========================================
             // خط العناوين العربية
-            $arabic_font = public_path('font/Amiri.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
@@ -1770,3 +1770,4 @@ class PackageController extends Controller
         return $tmpPath;
     }
 }
+

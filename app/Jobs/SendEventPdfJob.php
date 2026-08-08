@@ -159,6 +159,11 @@ class SendEventPdfJob implements ShouldQueue
         }
 
         try {
+            $tempDir = storage_path('app/mpdf');
+            if (!file_exists($tempDir)) {
+                @mkdir($tempDir, 0777, true);
+            }
+
             $config = [
                 'margin_left'   => 0,
                 'margin_right'  => 0,
@@ -170,6 +175,7 @@ class SendEventPdfJob implements ShouldQueue
                 'mode'          => 'utf-8',
                 'autoScriptToLang' => true,
                 'autoLangToFont' => true,
+                'tempDir'       => $tempDir,
             ];
             Log::info('PDF Job - Initializing mPDF');
 
@@ -201,10 +207,10 @@ class SendEventPdfJob implements ShouldQueue
             Log::info('PDF Job - Writing HTML content');
             $mpdf->WriteHTML($html);
 
-            $filename = $event->name . '.pdf';
+            $filename = 'invitation_' . $event->id . '_' . $row->id . '_' . uniqid() . '.pdf';
             $directory = public_path('temp_pdfs');
             if (!file_exists($directory)) {
-                mkdir($directory, 0777, true);
+                @mkdir($directory, 0777, true);
             }
 
             $pdf_path = $directory . '/' . $filename;

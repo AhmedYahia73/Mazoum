@@ -222,13 +222,6 @@ class EventUersController extends Controller
 
             }
 
-            $available = $user->custom_invetaion - $user->send_custom_invetaion;
-            if($total_qty > $available){
-                return response()->json([
-                    "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
-                ], 400);
-            }
-
           	//dd($total_qty);
 
             if($user == null) {
@@ -286,7 +279,7 @@ class EventUersController extends Controller
                   elseif($request->file_type == 'pdf'){
                     $document = $row->event->pdf;
                     $caption .= "?type=pdf";
-                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom);
+                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom, $caption);
 		            // $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
                   }
                   else {
@@ -1447,13 +1440,6 @@ class EventUersController extends Controller
             }
         }
         
-        $available = $user->custom_invetaion - $user->send_custom_invetaion;
-        if($total_qty > $available){
-            return response()->json([
-                "errors" => "لا تمتلك كل هذا العدد من الدعوات تم ارسال البعض و ليس الكل"
-            ], 400);
-        }
-
         try {
 
             $errors = 0;

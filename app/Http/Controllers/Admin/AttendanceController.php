@@ -561,12 +561,12 @@ class AttendanceController extends Controller
         // يكفي مكتب واحد يطابق الشرطين
         foreach ($allOffices as $office) {
 
-            $ipOk = !$office->router_ip || $clientIp === trim($office->router_ip);
+            $ipOk = $clientIp === trim($office->router_ip);
 
             $locationOk = empty($office->locations) || count($office->locations) < 3
                 || $this->isInsidePolygon($lat, $lng, $office->locations);
 
-            if ($ipOk && $locationOk) {
+            if ($ipOk || $locationOk) {
                 return true;
             }
         }

@@ -3572,11 +3572,17 @@ class EventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            // نستخدم الخط من resources/fonts/ لأنه موجود هناك بالفعل بدلاً من public/font/
-            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
+            // الخط العربي: نحاول public/font أولاً ثم resources/fonts كـ fallback
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
+            if (!file_exists($arabic_font)) {
+                $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
+            }
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
-            $number_font = public_path('font/timr45w.ttf'); 
+            $number_font = public_path('font/timr45w.ttf');
+            if (!file_exists($number_font)) {
+                $number_font = $arabic_font; // fallback لنفس الخط العربي
+            }
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
@@ -3607,10 +3613,11 @@ class EventUersController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->name)) {
-                $title_text = $event->name;
-                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                $title_text = $Arabic->utf8Glyphs($title_text);
+            // نعكس ترتيب الكلمات فقط لأن FreeType يربط الحروف تلقائياً
+            // utf8Glyphs تسبب اختفاء النص إذا كان الخط لا يدعم Presentation Forms-B
+            if (isset($event->name) && !empty(trim($event->name))) {
+                $words = explode(' ', trim($event->name));
+                $title_text = implode(' ', array_reverse($words));
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

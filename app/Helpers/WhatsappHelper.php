@@ -75,6 +75,55 @@ if (! function_exists('SendCarMsgTemplate')) {
     }
 }
 
+if (! function_exists('SendCarMsgTemplateV5')) {
+
+    function SendCarMsgTemplateV5($to, $template_name, $language, $param1, $phone_numer_id, $token)
+    {
+        // تجهيز المتغيرات بناءً على القالب الذي يحتوي على متغير واحد {{1}}
+        $parameters = [];
+
+        if ($param1 !== null && $param1 !== '') {
+            $parameters[] = [
+                'type' => 'text',
+                'text' => (string) $param1
+            ];
+        }
+
+        $arr = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type'    => 'individual',
+            'to'                => $to,
+            'type'              => 'template',
+            'template'          => [
+                'name'     => $template_name,
+                'language' => [
+                    'code' => $language
+                ],
+                'components' => [ 
+                    [
+                        'type'       => 'body',
+                        'parameters' => $parameters
+                    ],
+                ]
+            ],
+        ];
+
+        $fullUrl = 'https://graph.facebook.com/v18.0/' . $phone_numer_id . '/messages';
+
+        $client = new \GuzzleHttp\Client();
+
+        $response = $client->post($fullUrl, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => 'application/json',
+            ],
+            'json' => $arr,
+        ]);
+
+        return $response;
+    }
+}
+
 
 
 if (! function_exists('SendCustomMessageTemplate')) {

@@ -4584,32 +4584,64 @@ class EventUersController extends Controller
             // $param_1 هنا يمثل اسم المدعو
             $guestName = $item->name; 
 
-            $response = SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $access_token, $customerPhone);
-            // 3. التعامل مع الرد والتنقيح (Debugging)
-            if ($response->successful()) {
-                $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+                if($user->send_type == "link"){
+                                
+                    $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+                    $instance_id="instance109805"; // Ultramsg.com instance id
+                    $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
 
-                $message = WattsChatModel::create([
-                    'phone'         => $customerPhone,
-                    'name'          => 'Admin', 
-                    'message'       => "wedding___details",
-                    'is_sent_by_me' => true,    
-                    'message_id'    => $messageId,
-                    "from"          => $from,
-                    "event_user_id" => $item->id,
-                    "event_id"      => $item->event_id,
-                ]);
+                    $priority=0;
+                    $referenceId="SDK";
+                    $nocache=true;
+                    $caption = "📍 مكان المناسبة " . $param_1  . PHP_EOL . PHP_EOL .
 
-                WattsChatEvent::dispatch($message);
-                $savedMessages[] = $message;
-            } else {
-                // 🔴 ارجاع تفاصيل الخطأ القادم من ميتا مباشرة لمعرفة السبب
-                return response()->json([
-                    'status' => 'error_from_meta',
-                    'meta_response' => $response->json(),
-                    'http_code' => $response->status()
-                ], 400);
-            }
+                    "📅 تاريخ المناسبة : " . $param_2  . PHP_EOL .
+                    "اليـــوم  : " . $param_3  . PHP_EOL .
+                    "⏰ الوقـت : " . $param_4  . PHP_EOL . 
+                    "الموقع : " . $mapUrl  . PHP_EOL . PHP_EOL .
+
+                    "خدمة المدعويين 96597378181". PHP_EOL . PHP_EOL .
+                    "تفاصيل المناسبة بواسطة الدعم" ;
+                    $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
+                    
+                        $message = WattsChatModel::create([
+                            'phone'         => $customerPhone,
+                            'name'          => 'Admin', 
+                            'message'       => "wedding___details",
+                            'is_sent_by_me' => true,    
+                            "from"          => $from,
+                            "event_user_id" => $item->id,
+                            "event_id"      => $item->event_id,
+                        ]);
+                }
+                else{ 
+                    $response = SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $access_token, $customerPhone);
+                    // 3. التعامل مع الرد والتنقيح (Debugging)
+                    if ($response->successful()) {
+                        $messageId = $response->json()['messages'][0]['id'] ?? 'sent_' . uniqid();
+
+                        $message = WattsChatModel::create([
+                            'phone'         => $customerPhone,
+                            'name'          => 'Admin', 
+                            'message'       => "wedding___details",
+                            'is_sent_by_me' => true,    
+                            'message_id'    => $messageId,
+                            "from"          => $from,
+                            "event_user_id" => $item->id,
+                            "event_id"      => $item->event_id,
+                        ]);
+
+                        WattsChatEvent::dispatch($message);
+                        $savedMessages[] = $message;
+                    } else {
+                        // 🔴 ارجاع تفاصيل الخطأ القادم من ميتا مباشرة لمعرفة السبب
+                        return response()->json([
+                            'status' => 'error_from_meta',
+                            'meta_response' => $response->json(),
+                            'http_code' => $response->status()
+                        ], 400);
+                    }
+                }
         }
         return response()->json([
             'success' => 'You send message success',

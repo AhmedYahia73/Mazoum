@@ -3572,8 +3572,8 @@ class EventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            // خط العناوين العربية
-            $arabic_font = public_path('font/Amiri.ttf'); 
+            // خط العناوين العربية (يجب أن يدعم Presentation Forms-B ليعمل مع مكتبة ArPHP بشكل صحيح)
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf'); 
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
             $number_font = public_path('font/timr45w.ttf'); 
@@ -3582,7 +3582,7 @@ class EventUersController extends Controller
             // 3. إعدادات الأبعاد والإحداثيات
             // ==========================================
             $qr_size        = 450; // حجم الباركود
-            $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
+            $y_title        = 580; // الارتفاع الخاص باسم المناسبة / المدعو 
             $y_tickets      = 900 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 600; // العرض الخاص برقم المقعد 
             $x_right_ticket = 1430; // العرض الخاص بعدد الدعوات 
@@ -3606,16 +3606,11 @@ class EventUersController extends Controller
             $img = Image::make($bg);
             $center_x = intval($img->width() / 2);
 
-            // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->name)) {
-                $title_text = $event->name;
-                if (isset($event->language) && $event->language == 'ar') {
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                } else {
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                }
+            // أ- إضافة اسم المدعو (Guest Name)
+            if (isset($user_event->name)) {
+                $title_text = $user_event->name;
+                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                $title_text = $Arabic->utf8Glyphs($title_text);
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
@@ -3662,8 +3657,10 @@ class EventUersController extends Controller
             // هـ- إضافة التاريخ والوقت
             if (isset($event->date) && isset($event->time)) {
                 $datetime = $event->date . ' ' . $event->time;
-                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
-                    $font->file($number_font);
+                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                $datetime = $Arabic->utf8Glyphs($datetime);
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($arabic_font) {
+                    $font->file($arabic_font);
                     $font->size(50);
                     $font->color('#000000');
                     $font->align('center');

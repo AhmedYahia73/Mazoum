@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -3623,7 +3623,10 @@ class EventUersController extends Controller
             // أ- إضافة عنوان المناسبة (Event Title)
             if (isset($event->name) && !empty(trim($event->name))) {
                 $words = explode(' ', trim($event->name));
-                $title_text = implode(' ', array_reverse($words));
+                $words_rev = array_reverse($words);
+                $reversed_name = implode(' ', $words_rev);
+                $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                $title_text = $Arabic->utf8Glyphs($reversed_name);
 
                 try {
                     $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {

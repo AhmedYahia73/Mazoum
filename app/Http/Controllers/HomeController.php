@@ -1453,8 +1453,14 @@ class HomeController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
-            $number_font = public_path('font/timr45w.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
+            if (!file_exists($arabic_font)) {
+                $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
+            }
+            $number_font = public_path('font/timr45w.ttf');
+            if (!file_exists($number_font)) {
+                $number_font = $arabic_font;
+            }
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
@@ -1485,14 +1491,11 @@ class HomeController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->name)) {
-                $title_text = $event->name;
-                
-                // [إصلاح]: تمت إزالة التكرار الخاطئ الذي كان يطبق المعالجة العربية على اللغات الأخرى
-                if (isset($event->language) && $event->language == 'ar') {
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                }
+            // نعكس ترتيب الكلمات فقط - FreeType يربط الحروف تلقائياً
+            // utf8Glyphs تخفي النص إذا كان الخط لا يدعم Presentation Forms-B
+            if (!empty(trim($event->name ?? ''))) {
+                $words = explode(' ', trim($event->name));
+                $title_text = implode(' ', array_reverse($words));
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

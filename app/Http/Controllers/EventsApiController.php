@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -731,7 +731,10 @@ class EventsApiController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
+            if (!file_exists($arabic_font)) {
+                $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
+            }
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
@@ -763,14 +766,10 @@ class EventsApiController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            if (isset($event->name)) {
-                $title_text = $event->name;
-                
-                // تم إصلاح المنطق هنا: تطبيق ArPHP فقط إذا كانت اللغة عربية
-                if (isset($event->language) && $event->language == 'ar') {
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                }
+            // نعكس ترتيب الكلمات فقط - FreeType يربط الحروف تلقائياً
+            if (!empty(trim($event->name ?? ''))) {
+                $words = explode(' ', trim($event->name));
+                $title_text = implode(' ', array_reverse($words));
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

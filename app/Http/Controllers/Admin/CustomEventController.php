@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -468,7 +468,10 @@ class CustomEventController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf'); 
+            $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
+            if (!file_exists($arabic_font)) {
+                $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
+            }
             $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================

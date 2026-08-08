@@ -4584,7 +4584,7 @@ class EventUersController extends Controller
             // $param_1 هنا يمثل اسم المدعو
             $guestName = $item->name; 
 
-                if($user->send_type == "link"){
+                if($item->send_type == "link"){
                                 
                     $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
                     $instance_id="instance109805"; // Ultramsg.com instance id

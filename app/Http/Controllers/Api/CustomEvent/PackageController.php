@@ -1197,30 +1197,16 @@ class PackageController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            // نعكس ترتيب الكلمات فقط - FreeType يربط الحروف تلقائياً
             if (!empty(trim($event->name ?? ''))) {
-                $words = explode(' ', trim($event->name));
-                $words_rev = array_reverse($words);
-                $reversed_name = implode(' ', $words_rev);
+                $title_text = trim($event->name);
                 $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                $title_text = $Arabic->utf8Glyphs($reversed_name);
+                $title_text = $Arabic->utf8Glyphs($title_text);
                 \Illuminate\Support\Facades\Log::info("update_qr rendering text", ["original" => $event->name, "title_text" => $title_text, "font" => $arabic_font]);
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
                     $font->size(90);
                     $font->color('#fff'); 
-                    $font->align('center');
-                    $font->valign('middle');
-                });
-            }
-
-            // ب- إضافة رقم المقعد (في حالة أنه لا يساوي 0)
-            if (isset($user_event->suit_num) && $user_event->suit_num != 0) {
-                $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
-                    $font->file($number_font);
-                    $font->size(90); 
-                    $font->color('#000000');
                     $font->align('center');
                     $font->valign('middle');
                 });

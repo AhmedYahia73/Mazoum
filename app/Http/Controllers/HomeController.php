@@ -1490,15 +1490,11 @@ class HomeController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            // نعكس ترتيب الكلمات فقط - FreeType يربط الحروف تلقائياً
-            // utf8Glyphs تخفي النص إذا كان الخط لا يدعم Presentation Forms-B
+            // أ- إضافة عنوان المناسبة (Event Title)
             if (!empty(trim($event->name ?? ''))) {
-                $words = explode(' ', trim($event->name));
-                $words_rev = array_reverse($words);
-                $reversed_name = implode(' ', $words_rev);
+                $title_text = trim($event->name);
                 $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                $title_text = $Arabic->utf8Glyphs($reversed_name);
-                \Illuminate\Support\Facades\Log::info("update_qr rendering text", ["original" => $event->name, "title_text" => $title_text, "font" => $arabic_font]);
+                $title_text = $Arabic->utf8Glyphs($title_text);
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);

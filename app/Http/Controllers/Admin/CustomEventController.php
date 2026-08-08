@@ -1956,7 +1956,7 @@ class CustomEventController extends Controller
                     "📍مكان الحفـل " . $event->address ;
 
                 if($request->type == "pdf"){
-                    \App\Jobs\SendCustomEventPdfJob::dispatch($row->id, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom);
+                    \App\Jobs\SendCustomEventPdfJob::dispatch($row->id, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom, $caption);
                     // Mock API response since it's processed in background
                     $api = ['sent' => 'true', 'message' => 'ok'];
                 }

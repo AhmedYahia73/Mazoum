@@ -3583,6 +3583,14 @@ class EventUersController extends Controller
             if (!file_exists($number_font)) {
                 $number_font = $arabic_font; // fallback لنفس الخط العربي
             }
+
+            \Log::info('update_qr FONTS', [
+                'arabic_font'        => $arabic_font,
+                'arabic_font_exists' => file_exists($arabic_font),
+                'number_font_exists' => file_exists($number_font),
+                'event_name'         => $event->name ?? 'NULL',
+                'bg_exists'          => file_exists(public_path('qr-image-v10.jpg')),
+            ]);
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
@@ -3613,19 +3621,24 @@ class EventUersController extends Controller
             $center_x = intval($img->width() / 2);
 
             // أ- إضافة عنوان المناسبة (Event Title)
-            // نعكس ترتيب الكلمات فقط لأن FreeType يربط الحروف تلقائياً
-            // utf8Glyphs تسبب اختفاء النص إذا كان الخط لا يدعم Presentation Forms-B
             if (isset($event->name) && !empty(trim($event->name))) {
                 $words = explode(' ', trim($event->name));
                 $title_text = implode(' ', array_reverse($words));
 
-                $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
-                    $font->file($arabic_font);
-                    $font->size(90);
-                    $font->color('#fff'); 
-                    $font->align('center');
-                    $font->valign('middle');
-                });
+                try {
+                    $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
+                        $font->file($arabic_font);
+                        $font->size(90);
+                        $font->color('#fff'); 
+                        $font->align('center');
+                        $font->valign('middle');
+                    });
+                    \Log::info('update_qr: title drawn OK', ['title' => $title_text]);
+                } catch (\Throwable $e) {
+                    \Log::error('update_qr: title FAILED', ['msg' => $e->getMessage()]);
+                }
+            } else {
+                \Log::warning('update_qr: event name empty/null', ['name' => $event->name ?? 'NULL']);
             }
 
             // ب- إضافة رقم المقعد (في حالة أنه لا يساوي 0)

@@ -235,7 +235,7 @@ class SendEventPdfJob implements ShouldQueue
         $nocache = true;
         
         Log::info('PDF Job - Sending document via WhatsApp to: ' . $to);
-        $api = $client->sendDocumentMessage($to, $event->title . '.pdf', $pdf_url, $caption, $priority, $referenceId, $nocache);
+        $api = $client->sendDocumentMessage($to, $event->name . '.pdf', $pdf_url, $caption, $priority, $referenceId, $nocache);
         Log::info('PDF Job - WhatsApp API response: ' . json_encode($api));
         
         if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {

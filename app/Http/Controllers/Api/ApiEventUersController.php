@@ -1092,8 +1092,7 @@ class ApiEventUersController extends Controller
                     $priority=0;
                     $referenceId="SDK";
                     $nocache=true;
-                    $caption "*تهنئة* " . $message  . PHP_EOL . PHP_EOL .
-                    "الرد بواسطة صاحب المناسبة"
+                    $caption = "*تهنئة* " . $message . PHP_EOL . PHP_EOL . "الرد بواسطة صاحب المناسبة";
                     $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
                 }
                 else{ 

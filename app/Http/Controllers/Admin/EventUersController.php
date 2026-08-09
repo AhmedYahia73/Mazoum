@@ -1,10 +1,10 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Events\WattsChat as WattsChatEvent;
 use App\Http\Controllers\Controller;
 use App\Imports\EventUserImport;
 use App\Jobs\SendEventPdfJob;
-use App\Events\WattsChat as WattsChatEvent;
 use App\Models\CongratulationMessages;
 use App\Models\EnterUserEvent;
 use App\Models\EventFamily;
@@ -24,6 +24,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use Maatwebsite\Excel\Facades\Excel;
@@ -3583,7 +3584,7 @@ class EventUersController extends Controller
                 $number_font = $arabic_font; // fallback لنفس الخط العربي
             }
 
-            \Log::info('update_qr FONTS', [
+            Log::info('update_qr FONTS', [
                 'arabic_font'        => $arabic_font,
                 'arabic_font_exists' => file_exists($arabic_font),
                 'number_font_exists' => file_exists($number_font),
@@ -3628,7 +3629,7 @@ class EventUersController extends Controller
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
-                    $font->size(90);
+                    $font->size(50);
                     $font->color('#fff'); 
                     $font->align('center');
                     $font->valign('middle');

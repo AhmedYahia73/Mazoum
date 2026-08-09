@@ -1205,7 +1205,7 @@ class PackageController extends Controller
 
                 $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
                     $font->file($arabic_font);
-                    $font->size(90);
+                    $font->size(50);
                     $font->color('#fff'); 
                     $font->align('center');
                     $font->valign('middle');

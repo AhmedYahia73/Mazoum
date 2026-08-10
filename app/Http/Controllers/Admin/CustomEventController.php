@@ -2514,6 +2514,7 @@ class CustomEventController extends Controller
             "available" => $Item?->users_count - $Item?->scan_count,
             "apologize_count" => $Item?->apologize_count,
             "confirm_count" => $Item?->confirm_count,
+            "suit_num" => $Item?->suit_num,
         ]);
     }
 

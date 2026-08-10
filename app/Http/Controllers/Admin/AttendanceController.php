@@ -399,6 +399,7 @@ class AttendanceController extends Controller
                 }
 
                 $dailyDetails[] = [
+                    'id'                  => null,
                     'date'                => $dateStr,
                     'status'              => 'holiday',
                     'check_in'            => null,
@@ -415,6 +416,7 @@ class AttendanceController extends Controller
             // أيام المستقبل في الشهر الحالي — لا نحسبها
             if ($day->gt($lastDayToCount)) {
                 $dailyDetails[] = [
+                    'id'                  => null,
                     'date'                => $dateStr,
                     'status'              => 'upcoming',
                     'check_in'            => null,
@@ -435,6 +437,7 @@ class AttendanceController extends Controller
                     $absenceDays++;
                 }
                 $dailyDetails[] = [
+                    'id'                  => null,
                     'date'                => $dateStr,
                     'status'              => 'absent',
                     'check_in'            => null,
@@ -514,6 +517,7 @@ class AttendanceController extends Controller
             }
 
             $dailyDetails[] = [
+                'id'                  => $firstRecord->id ?? null,
                 'date'                => $dateStr,
                 'status'              => $status,
                 'check_in'            => $checkIn  ? $checkIn->format('H:i')  : null,
@@ -521,8 +525,8 @@ class AttendanceController extends Controller
                 'late_minutes'        => $dayLate,
                 'early_leave_minutes' => $dayEarlyLeave,
                 'overtime_minutes'    => $dayOvertime,
-                "image"               => $firstRecord->image_url,
-                "second_image"        => $lastRecord->second_image_url,
+                "image"               => $firstRecord->image_url ?? null,
+                "second_image"        => $lastRecord->second_image_url ?? null,
             ];
         }
 

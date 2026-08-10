@@ -356,11 +356,19 @@ class AttendanceController extends Controller
         $firstEverWorkDay = $firstEverRecord ? Carbon::parse($firstEverRecord->from)->startOfDay() : null;
 
         $records = Attendance::where('user_id', $user->id)
-            ->whereBetween('from', [$startOfMonth, $endOfMonth])
+            ->where(function ($q) use ($startOfMonth, $endOfMonth) {
+                $q->whereBetween('from', [$startOfMonth, $endOfMonth])
+                  ->orWhereBetween('to', [$startOfMonth, $endOfMonth]);
+            })
             ->get();
 
         $recordsByDay = $records->groupBy(function ($r) {
-            return Carbon::parse($r->from)->format('Y-m-d');
+            if ($r->from) {
+                return Carbon::parse($r->from)->format('Y-m-d');
+            } elseif ($r->to) {
+                return Carbon::parse($r->to)->format('Y-m-d');
+            }
+            return null;
         });
 
         $absenceDays       = 0;
@@ -458,18 +466,21 @@ class AttendanceController extends Controller
             $checkOut = $lastRecord->to    ? Carbon::parse($lastRecord->to)    : null;
 
             $status = 'present';
-            $isMissedCheckout = false;
+            $isMissed = false;
             
             if ($checkIn && !$checkOut && !$day->isSameDay($today)) {
                 $status = 'missed_checkout';
-                $isMissedCheckout = true;
+                $isMissed = true;
+            } elseif (!$checkIn && $checkOut) {
+                $status = 'missed_checkin';
+                $isMissed = true;
             }
 
             $dayLate       = 0;
             $dayEarlyLeave = 0;
             $dayOvertime   = 0;
 
-            if ($isMissedCheckout) {
+            if ($isMissed) {
                 // Ignore from calculations
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
                     $absenceDays++;

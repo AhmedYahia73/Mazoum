@@ -10,6 +10,7 @@ use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
 use App\Models\CustomMessage;
 use App\Models\EnterUserCustomEvent;
+use App\Models\EventVoice;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
 use App\Models\Setting;
@@ -2662,6 +2663,7 @@ class CustomEventController extends Controller
         ->with("event", "congratulation_msg", "apologize_msg")
         ->with("event")
         ->firstOrFail();
+        $EventVoice = EventVoice::where('custom_event_user_id', $user->id)->first();
 
         return response()->json([
             "id" => $user->id,
@@ -2671,6 +2673,7 @@ class CustomEventController extends Controller
             "qr" => $user->qr,
             "scan" => $user->scan,
             "users_count" => $user->users_count,
+            "event_voice" => $EventVoice?->voice_url,
             "confirm_count" => $user->confirm_count,
             "apologize_count" => $user->apologize_count,
             "map" => $user?->event?->map,

@@ -44,6 +44,8 @@ Route::get('test/{event_user_id}', function ($event_user_id) {
 Route::get('confirm_custom_event/{id}', 'Admin\CustomEventController@confirm_custom_event');
 Route::get('apologize_custom_event/{id}', 'Admin\CustomEventController@apologize_custom_event');
 Route::get('event-login/{id}', 'EventUserActionsController@event_login');
+Route::post('event_voice', 'EventUserActionsController@event_voice');
+Route::post('custom_event_voice', 'EventUserActionsController@custom_event_voice');
 
 Route::get('custom_event_login/{id}', 'Admin\CustomEventController@custom_event_login');
 Route::post('custom_event_applogize_count/{id}', 'Admin\CustomEventController@custom_event_applogize_count');

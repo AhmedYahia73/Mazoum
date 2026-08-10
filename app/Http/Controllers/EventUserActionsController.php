@@ -4,17 +4,20 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\CongratulationMessages;
+use App\Models\CustomEventUsers;
 use App\Models\EventMessages;
 use App\Models\Events;
 use App\Models\EventUserActions;
 use App\Models\EventUserLogs;
 use App\Models\EventUsers;
+use App\Models\EventVoice;
 use App\Models\Logs;
 use App\Models\Notifications;
 use App\Models\Orders;
 use App\Models\Parking; 
 use App\Models\Qr_Code;
 use App\Models\Setting;
+use App\Traits\imageTrait;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +29,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class EventUserActionsController extends Controller
 {
-
+    use imageTrait;
 
     public function event_login($code) {
 
@@ -42,6 +45,7 @@ class EventUserActionsController extends Controller
         ->where('action','accept_event')
         ->first();
         $btns_status = true;
+        $EventVoice = EventVoice::where('event_user_id', $event_user->id)->first();
 
         if($check_receive_apology && $accept_event &&
         $check_receive_apology->created_at < $accept_event->created_at ){
@@ -126,10 +130,58 @@ class EventUserActionsController extends Controller
             "apologize_messages" => $apologize_messages,
             "check_receive_apology" => !empty($check_receive_apology),
             "show_btns_status" => $btns_status,
+            "event_voice" => $EventVoice?->voice_url,
         ]);
 
     }
 
+    public function event_voice(Request $request){
+        
+       $validator = Validator::make($request->all(), [  
+            'event_user_id' => 'required',
+            'voice' => 'required|file',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $event_user = EventUsers::findOrFail($request->event_user_id);
+        $event_voice = EventVoice::create([
+            "voice" => $this->upload($request, 'voice', 'event_voices'),
+            "event_user_id" => $event_user->id,
+        ]);
+
+        return response()->json([
+            "success" => "Voice uploaded successfully",
+            "event_voice" => $event_voice,
+        ]); 
+    }
+
+    public function custom_event_voice(Request $request){
+        
+       $validator = Validator::make($request->all(), [  
+            'custom_event_user_id' => 'required',
+            'voice' => 'required|file',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $custom_event_user = CustomEventUsers::findOrFail($request->custom_event_user_id);
+        $event_voice = EventVoice::create([
+            "voice" => $this->upload($request, 'voice', 'event_voices'),
+            "custom_event_user_id" => $request->custom_event_user_id ?? null,
+        ]);
+
+        return response()->json([
+            "success" => "Voice uploaded successfully",
+            "event_voice" => $event_voice,
+        ]); 
+    }
 
     public function new_save_event_action(Request $request) {
 

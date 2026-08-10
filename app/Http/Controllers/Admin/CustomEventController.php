@@ -2509,6 +2509,7 @@ class CustomEventController extends Controller
             "user_name" => $Item?->name,
             "user_mobile" => $Item?->mobile, 
             "custom_event_name" => $Item?->event?->title,
+            "custom_event_family_name" => $Item?->event?->name,
             "scan_count" => $Item?->scan_count,
             "users_count" => $Item?->users_count,
             "available" => $Item?->users_count - $Item?->scan_count,

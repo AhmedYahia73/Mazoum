@@ -448,53 +448,74 @@ class AttendanceController extends Controller
                 continue;
             }
 
-            $presentDays++;
             $firstRecord = $dayRecords->sortBy('from')->first();
             $lastRecord  = $dayRecords->sortByDesc('to')->first();
 
             $checkIn  = $firstRecord->from ? Carbon::parse($firstRecord->from) : null;
             $checkOut = $lastRecord->to    ? Carbon::parse($lastRecord->to)    : null;
 
+            $status = 'present';
+            $isMissedCheckout = false;
+            
+            if ($checkIn && !$checkOut && !$day->isSameDay($today)) {
+                $status = 'missed_checkout';
+                $isMissedCheckout = true;
+            }
+
             $dayLate       = 0;
             $dayEarlyLeave = 0;
             $dayOvertime   = 0;
 
-            if ($checkIn && $appointmentFrom) {
-                $expectedIn = Carbon::parse($dateStr . ' ' . $appointmentFrom);
-                if ($checkIn->gt($expectedIn)) {
-                    $dayLate = $checkIn->diffInMinutes($expectedIn);
-                    $lateMinutes += $dayLate;
+            if ($isMissedCheckout) {
+                // Ignore from calculations
+                if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
+                    $absenceDays++;
                 }
-            }
+            } else {
+                $presentDays++;
 
-            if ($checkOut && $appointmentTo) {
-                $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
-                if ($appointmentFrom && Carbon::parse($appointmentTo)->lt(Carbon::parse($appointmentFrom))) {
-                    $expectedOut->addDay();
+                if ($checkIn && $appointmentFrom) {
+                    $expectedIn = Carbon::parse($dateStr . ' ' . $appointmentFrom);
+                    if ($checkIn->gt($expectedIn)) {
+                        $dayLate = $checkIn->diffInMinutes($expectedIn);
+                        $lateMinutes += $dayLate;
+                    }
                 }
 
-                if ($checkOut->lt($expectedOut)) {
-                    $dayEarlyLeave = $checkOut->diffInMinutes($expectedOut);
-                    $earlyLeaveMinutes += $dayEarlyLeave;
-                }
-            }
+                if ($checkOut && $appointmentTo) {
+                    $expectedOut = Carbon::parse($dateStr . ' ' . $appointmentTo);
+                    if ($appointmentFrom && Carbon::parse($appointmentTo)->lt(Carbon::parse($appointmentFrom))) {
+                        $expectedOut->addDay();
+                    }
 
-            if ($checkIn && $checkOut) {
-                if ($checkIn->gt($checkOut)) {
-                    $dayOvertime = $checkIn->diffInMinutes($checkOut->copy()->addDay());
-                } else {
-                    $dayOvertime = $checkIn->diffInMinutes($checkOut);
+                    if ($checkOut->lt($expectedOut)) {
+                        $dayEarlyLeave = $checkOut->diffInMinutes($expectedOut);
+                        $earlyLeaveMinutes += $dayEarlyLeave;
+                    }
                 }
-                $overtimeMinutes += $dayOvertime;
 
-                if ($dayOvertime > $dailyExpectedMinutes) {
-                    $trueOvertimeMinutes += ($dayOvertime - $dailyExpectedMinutes);
+                if ($checkIn && $checkOut) {
+                    $workedMinutes = 0;
+                    if ($checkIn->gt($checkOut)) {
+                        $workedMinutes = $checkIn->diffInMinutes($checkOut->copy()->addDay());
+                    } else {
+                        $workedMinutes = $checkIn->diffInMinutes($checkOut);
+                    }
+
+                    if ($dailyExpectedMinutes > 0 && $workedMinutes > $dailyExpectedMinutes) {
+                        $dayOvertime = $workedMinutes - $dailyExpectedMinutes;
+                    } elseif ($dailyExpectedMinutes == 0) {
+                        $dayOvertime = $workedMinutes; 
+                    }
+
+                    $overtimeMinutes += $dayOvertime;
+                    $trueOvertimeMinutes += $dayOvertime;
                 }
             }
 
             $dailyDetails[] = [
                 'date'                => $dateStr,
-                'status'              => 'present',
+                'status'              => $status,
                 'check_in'            => $checkIn  ? $checkIn->format('H:i')  : null,
                 'check_out'           => $checkOut ? $checkOut->format('H:i') : null,
                 'late_minutes'        => $dayLate,

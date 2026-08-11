@@ -264,8 +264,7 @@ class ChatController extends Controller
         ->firstOrFail();
         $event = $event_user?->event;
         $chat = EventChat::
-        where("event_user_id", $event_user->id)
-        ->where("event_user_id", $id)
+        where("event_user_id", $event_user->id) 
         ->get()
         ->map(function($item){
             return [

@@ -72,6 +72,30 @@ class MemoryController extends Controller
             "event_user_id" => $qr_code->event_user_id,
         ]);
     }
+
+    public function event_code_memory($id){
+        $event_user = EventUsers::
+        with("event")
+        ->where("code", $id)
+        ->firstOrFail();
+        $memories = Memory::
+        where("event_user_id", $event_user->id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id, 
+                "image_url" => $item->image_url,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("h:i:s A"),
+            ];
+        });
+
+        return response()->json([
+            "memories" => $memories,
+            "event" => $event_user->event,
+            "event_user_id" => $event_user->id,
+        ]);
+    }
     
     public function send_custom_memories(Request $request){
         $validator = Validator::make($request->all(), [

@@ -9,6 +9,7 @@ use App\Events\ChatEvent;
 use App\Events\CustomChatEvent;
 use App\Traits\imageTrait;
 
+use App\Models\Qr_Code;
 use App\Models\CustomEventUsers;
 use App\Models\CustomChat;
 use App\Models\EventUsers;
@@ -253,6 +254,36 @@ class ChatController extends Controller
             "chat" => $chat,
             "event" => $event,
             "event_user" => $event_user,
+        ]);
+    }
+
+    public function event_code_msgs(Request $request, $id){
+        $event_user = EventUsers::
+        with("event")
+        ->where("code", $id)
+        ->firstOrFail();
+        $event = $event_user?->event;
+        $chat = EventChat::
+        where("event_user_id", $event_user->id)
+        ->where("event_user_id", $id)
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "image" => !empty($item->image) ? url("storage/", $item->image) : null,
+                "is_read" => $item->is_read,
+                "user_sent" => $item->user_sent,
+                "date" => $item->created_at->format("Y-m-d"),
+                "time" => $item->created_at->format("h:i:s A"),
+            ];
+        });
+
+        return response()->json([
+            "chat" => $chat,
+            "event" => $event,
+            "event_user" => $event_user,
+            "event_user_id" => $event_user->id,
         ]);
     }
 

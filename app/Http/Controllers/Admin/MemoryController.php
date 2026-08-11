@@ -13,6 +13,7 @@ use App\Models\EventChat;
 
 class MemoryController extends Controller
 {
+    
     public function event_memory(Request $request){
         $validator = Validator::make($request->all(), [
             'event_id' => 'required|exists:events,id',

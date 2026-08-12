@@ -927,7 +927,7 @@ class ApiEventsController extends Controller
 
             case 'confirmed_invitatios_users':
                 $query = EventUsers::where('event_id', $Item->id)
-                    ->where('is_accepted', 'yes')->where(function($q) use($user){
+                    ->where(function($q) use($user){
                         $q->where("user_id", $user->id)
                         ->orWhereNull("user_id");
                     });
@@ -1142,8 +1142,7 @@ class ApiEventsController extends Controller
             ->whereNull('is_sent')
             ->sum('users_count');
         $confirmed_invitatios_users = EventUsers::
-            where('event_id', $Item->id) 
-            ->where('is_accepted', 'yes') ;
+            where('event_id', $Item->id);
             $confirmed_invitatios_users = !$user_status ? $confirmed_invitatios_users->where("user_id", $user_id)->sum('accept_count'): 
             $confirmed_invitatios_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")

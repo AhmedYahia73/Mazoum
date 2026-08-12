@@ -987,7 +987,10 @@ class ApiEventsController extends Controller
             case 'non_attendance_users':
                 $data = EventUsers::where('event_id', $Item->id)
                     ->when($search, fn($q) => $q->where('name', 'like', "%$search%")->orWhere('mobile', 'like', "%$search%"))
-                    
+                    ->where(function($q) use($user){
+                        $q->where("user_id", $user->id)
+                        ->orWhereNull("user_id");
+                    })
                     ->get($baseFields)
                     ->map(function ($item) {
                         $attendance = $item->accept_count - $item->scan_count;
@@ -996,10 +999,6 @@ class ApiEventsController extends Controller
                         return $item;
                     })
                     ->where('available', '>', 0)
-                    ->where(function($q) use($user){
-                        $q->where("user_id", $user->id)
-                        ->orWhereNull("user_id");
-                    })
                     ->values();
 
                 $page    = $request->page ?? 1;

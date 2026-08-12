@@ -257,7 +257,7 @@ class EventUersController extends Controller
 
                   $day_name   = Carbon::parse($row->event->date)->locale('ar')->translatedFormat('l');
 
-                  $time = $row?->event?->time ? \Carbon\Carbon::parse($row->event->time)->locale('ar')->translatedFormat('g:i A') : '';
+                  $time = date('g:i', strtotime($row->event->time)) . (date('a', strtotime($row->event->time)) === 'am' ? ' صباحاً' : ' مساءً');
                   $caption = $row->name . PHP_EOL . PHP_EOL .
                         $row->event->title . PHP_EOL . PHP_EOL .
                         " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .

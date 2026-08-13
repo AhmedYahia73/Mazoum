@@ -1247,8 +1247,38 @@ class ApiEventsController extends Controller
 
     public function apologize_msgs(Request $request, $id){
          
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+        $Item = Model::where('id', $id)
+        ->where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)   
+            ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+            });
+        })->first();
+ 
+        if (!$Item) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        } 
+ 
+        $user_status = $Item->user_id == $user->id;
+        $user_id = $user->id; 
+        $users_ids = EventUsers::where('event_id', $id);
+            $users_ids = !$user_status ? $users_ids->where("user_id", $user_id)->pluck('id')->toArray(): 
+            $users_ids->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            })
+            ->pluck("id")
+            ->toArray(); 
         $apologize_msgs = EventMessages::
-        where("event_id", $id)
+        whereIn("event_user_id", $users_ids)
         ->whereNull("message_id")
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;
@@ -1267,8 +1297,38 @@ class ApiEventsController extends Controller
 
     public function congratulation_msgs(Request $request, $id){
         
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+        $Item = Model::where('id', $id)
+        ->where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)   
+            ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+            });
+        })->first();
+ 
+        if (!$Item) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        } 
+ 
+        $user_status = $Item->user_id == $user->id;
+        $user_id = $user->id; 
+        $users_ids = EventUsers::where('event_id', $id);
+            $users_ids = !$user_status ? $users_ids->where("user_id", $user_id)->pluck('id')->toArray(): 
+            $users_ids->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            })
+            ->pluck("id")
+            ->toArray(); 
         $congratulation_msgs = CongratulationMessages::
-        where("event_id", $id)
+        whereIn("event_user_id", $users_ids)
         ->whereNull("message_id")
         ->when($request->search, function ($q) use ($request) {
             $search = $request->search;

@@ -1208,11 +1208,20 @@ class ApiEventsController extends Controller
         $not_scan_enterd_events = EventFamily::where('event_id', $Item->id)
         ->where('scan_qr', 'no')
         ->count();
+        
+        $users_ids = EventUsers::where('event_id', $Item->id);
+            $users_ids = !$user_status ? $users_ids->where("user_id", $user_id)->pluck('id')->toArray(): 
+            $users_ids->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            })
+            ->pluck("id")
+            ->toArray();
         $congratulation_msgs = CongratulationMessages::
-        where("event_id", $Item->id)
+        whereIn("event_user_id", $users_ids)
         ->count();
         $apologize_msgs = EventMessages::
-        where("event_id", $Item->id)
+        whereIn("event_user_id", $users_ids)
         ->count();
 
         return $this->returnData('data', [ 

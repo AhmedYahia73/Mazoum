@@ -37,6 +37,10 @@ class User extends Authenticatable
         return $this->hasMany(EventUsers::class, "user_id");
     }
 
+    public function event(){
+        return $this->hasMany(Events::class, "user_id");
+    }
+
     public function custom_users(){
         return $this->hasMany(CustomEventUsers::class, "user_id");
     }

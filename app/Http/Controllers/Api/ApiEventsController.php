@@ -1108,8 +1108,7 @@ class ApiEventsController extends Controller
                 $q->where("users.id", $user->id);
             });
         })->first();
-
- return  $Item;
+ 
         if (!$Item) {
             return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
         } 

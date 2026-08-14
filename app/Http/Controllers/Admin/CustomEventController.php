@@ -1166,7 +1166,10 @@ class CustomEventController extends Controller
         ->count();
 
         $congratulation_voice = EventVoice::
-        where('custom_event_user_id', $ids)
+        whereHas("custom_event_user", function($query) use ($id, $s) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("custom_event_id", $id) ;
+        })
         ->count();
 
         return response()->json([

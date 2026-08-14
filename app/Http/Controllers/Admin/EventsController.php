@@ -704,10 +704,7 @@ class EventsController extends Controller
 
         $mobiles = EventUsers::
         where('event_id',$id)
-        ->pluck('mobile')->toArray();
-        $ids = EventUsers::
-        where('event_id',$id)
-        ->pluck('id')->toArray();
+        ->pluck('mobile')->toArray(); 
         $mobiles_arr = [];
 
         foreach($mobiles as $phone) {
@@ -808,7 +805,10 @@ class EventsController extends Controller
         ->whereNotNull("event_user_id")
         ->count();
         $congratulation_voice = EventVoice::
-        where('event_user_id', $ids)
+        whereHas("event_user", function($query) use ($id) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("event_id", $id);
+        })
         ->count();
         
         $not_attend =  $confirm_attend - $qr;

@@ -40,6 +40,7 @@ Route::resource(
     ['names' => 'admin.attendance']
 );
 
+Route::get('event_host/voice_msgs/{id}', 'EventHostController@voice_msgs');
 Route::post('event_host/custom_users', 'EventHostController@custom_users');
 Route::get('event_host/{id}', 'EventHostController@index');
 Route::get('event_host/custom/{id}', 'EventHostController@custom_index');
@@ -176,6 +177,7 @@ Route::resource('web_desgins', 'WebDesginsController', [
 ]);
 
 // Events  
+Route::get('events/voice_msgs/{id}', 'EventsController@voice_msgs');
 Route::get('events/phones_lists', 'EventsController@phones_lists');
 Route::get('events/all_events', 'EventsController@all_events');
 Route::get('events/all_current_events', 'EventsController@all_current_events');
@@ -242,6 +244,8 @@ Route::get('events/{id}/chat-list', 'EventsController@chat_list');
 
 
 // 2222222  
+Route::get('/custom_host_voice_msgs/{id}', 'CustomEventController@custom_host_voice_msgs');
+Route::get('/custom_voice_msgs/{id}', 'CustomEventController@custom_voice_msgs');
 Route::post('/send_congratulation_messages', 'CustomEventController@send_congratulation_messages');
 Route::get('custom_events/my_package/{id}', 'CustomEventController@my_package');
 Route::post('custom_events/send_custom_message', 'CustomEventController@send_custom_message');

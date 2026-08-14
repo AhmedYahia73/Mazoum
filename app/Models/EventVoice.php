@@ -25,4 +25,14 @@ class EventVoice extends Model
     {
         return url('storage/' . $this->voice);
     }
+
+    public function event_user()
+    {
+        return $this->belongsTo('App\Models\EventUsers', 'event_user_id');
+    }
+
+    public function custom_event_user()
+    {
+        return $this->belongsTo('App\Models\CustomEventUsers', 'custom_event_user_id');
+    }
 }

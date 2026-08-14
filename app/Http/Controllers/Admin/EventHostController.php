@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CongratulationMessages;
-use App\Models\EventMessages;
-use App\Models\Events;
 use App\Models\CustomEvent;
 use App\Models\CustomEventUsers;
+use App\Models\EventMessages;
+use App\Models\Events;
 use App\Models\EventUsers;
+use App\Models\EventVoice;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -341,12 +342,24 @@ class EventHostController extends Controller
         });
         $not_confirm = $not_confirm->sum('users_count');
 
+        $ids = EventUsers::
+        where('event_id',$event_id);
+        !$user_status ? $ids->where("user_id", $user_id):
+        $ids->where(function($query) use($user_id){
+            $query->whereNull("user_id")
+            ->orWhere("user_id", $user_id);
+        });
+        $ids = $ids->pluck('id')->toArray();
+        $congratulation_voice = EventVoice::
+        where('event_user_id', $ids)
+        ->count();
         return response()->json([ 
             "invitees" => $invitees,
             "waiting" => $waiting,
             "confirm_web_users" => $confirm_web_users,
             "not_attend" => $not_attend, 
             "qr" => $qr,
+            "congratulation_voice" => $congratulation_voice,
             "confirm_attend" => $confirm_attend,
             "apologize" => $apologize,
             "not_confirm" => $not_confirm,
@@ -354,6 +367,42 @@ class EventHostController extends Controller
         ]);
     }
 
+    
+    public function voice_msgs(Request $request, $id)
+    { 
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id', 
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+        $s = $request->search;
+
+        $user_events = EventVoice::whereHas("event_user", function($query) use ($id, $request, $s) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("event_id", $id)
+            ->where("user_id", $request->user_id);
+
+            // ⭐ البحث باسم المستخدم أو الهاتفك داخل العلاقة
+            if ($s) {
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('mobile', 'like', "%{$s}%");
+                });
+            }
+        })->with('event_user:id,name,mobile');
+
+        // ⭐ الترقيم الصفحي
+        $user_events = $user_events->paginate(20);
+
+        return response()->json([
+            "status" => true,
+            "user_events" => $user_events
+        ]);
+    }
+    
     public function index(Request $request, $id)
     {
         $event = Events::

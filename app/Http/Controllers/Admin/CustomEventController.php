@@ -1133,6 +1133,9 @@ class CustomEventController extends Controller
         $visitors_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->sum('users_count');
+        $ids = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->pluck('id')->toArray();
         $qr_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
         ->where('scan','yes')
@@ -1162,6 +1165,10 @@ class CustomEventController extends Controller
         ->orWhere("id", $Item->user_id)
         ->count();
 
+        $congratulation_voice = EventVoice::
+        where('custom_event_user_id', $ids)
+        ->count();
+
         return response()->json([
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
@@ -1172,6 +1179,7 @@ class CustomEventController extends Controller
             'apologize_count' =>  $apologize_count, 
             'confirm_count' =>  $confirm_count, 
             'event_host' =>  $event_host, 
+            'congratulation_voice' =>  $congratulation_voice, 
         ]); 
     }
 
@@ -1196,6 +1204,13 @@ class CustomEventController extends Controller
                 ->orWhereNull("user_id");
             })
             ->sum('users_count');
+            $ids = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id)
+                ->orWhereNull("user_id");
+            })
+            ->pluck('id')->toArray();
             $qr_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
@@ -1233,7 +1248,10 @@ class CustomEventController extends Controller
                 $query->where("user_id", $request->user_id)
                 ->orWhereNull("user_id");
             })
-            ->sum("confirm_count"); 
+            ->sum("confirm_count");
+            $congratulation_voice = EventVoice::
+            where('custom_event_user_id', $ids)
+            ->count(); 
         }
         else{
             $visitors_count = CustomEventUsers::
@@ -1242,6 +1260,12 @@ class CustomEventController extends Controller
                 $query->where("user_id", $request->user_id);
             })
             ->sum('users_count');
+            $ids = CustomEventUsers::
+            where('custom_event_id',$Item->id)
+            ->where(function($query) use($request){ 
+                $query->where("user_id", $request->user_id);
+            })
+            ->pluck('id')->toArray();
             $qr_count = CustomEventUsers::
             where('custom_event_id',$Item->id)
             ->where(function($query) use($request){ 
@@ -1275,6 +1299,9 @@ class CustomEventController extends Controller
                 $query->where("user_id", $request->user_id);
             })
             ->sum("confirm_count"); 
+            $congratulation_voice = EventVoice::
+            where('custom_event_user_id', $ids)
+            ->count();
         }
 
         return response()->json([
@@ -1285,7 +1312,70 @@ class CustomEventController extends Controller
             'apologize_msg' =>  $apologize_msg, 
             'apologize_count' =>  $apologize_count, 
             'confirm_count' =>  $confirm_count,  
+            'congratulation_voice' =>  $congratulation_voice,  
         ]); 
+    }
+    
+    public function custom_voice_msgs(Request $request, $id)
+    {  
+        $s = $request->search;
+
+        $user_events = EventVoice::whereHas("custom_event_user", function($query) use ($id, $s) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("custom_event_id", $id) ;
+
+            // ⭐ البحث باسم المستخدم أو الهاتفك داخل العلاقة
+            if ($s) {
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('mobile', 'like', "%{$s}%");
+                });
+            }
+        })->with('event_user:id,name,mobile');
+
+        // ⭐ الترقيم الصفحي
+        $user_events = $user_events->paginate(20);
+
+        return response()->json([
+            "status" => true,
+            "user_events" => $user_events
+        ]);
+    }
+    
+    public function custom_host_voice_msgs(Request $request, $id)
+    {  
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id', 
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }
+
+        $s = $request->search;
+
+        $user_events = EventVoice::whereHas("custom_event_user", function($query) use ($id, $request, $s) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("custom_event_id", $id)
+            ->where("user_id", $request->user_id);
+
+            // ⭐ البحث باسم المستخدم أو الهاتفك داخل العلاقة
+            if ($s) {
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('mobile', 'like', "%{$s}%");
+                });
+            }
+        })->with('event_user:id,name,mobile');
+
+        // ⭐ الترقيم الصفحي
+        $user_events = $user_events->paginate(20);
+
+        return response()->json([
+            "status" => true,
+            "user_events" => $user_events
+        ]);
     }
 
     public function event_host_visitor(Request $request)

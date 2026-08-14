@@ -11,6 +11,7 @@ use App\Models\EventFamily;
 use App\Models\EventMessages;
 use App\Models\Events as Model;
 use App\Models\EventUserActions;
+use App\Models\EventVoice;
 use App\Models\EventUsers;
 use App\Models\MobileCodes;
 use App\Models\NewSetting;
@@ -704,6 +705,9 @@ class EventsController extends Controller
         $mobiles = EventUsers::
         where('event_id',$id)
         ->pluck('mobile')->toArray();
+        $ids = EventUsers::
+        where('event_id',$id)
+        ->pluck('id')->toArray();
         $mobiles_arr = [];
 
         foreach($mobiles as $phone) {
@@ -782,6 +786,7 @@ class EventsController extends Controller
          // __________________ New ________________
         $apologize_msgs = EventMessages::
         where("event_id", $id)
+        ->whereNotNull("event_user_id")
         ->count();
         $qr = EventUsers::
         where('event_id',$Item->id)
@@ -800,6 +805,10 @@ class EventsController extends Controller
         ->sum('accept_count'); 
         $congratulation_msgs = CongratulationMessages::
         where('event_id', $Item->id)
+        ->whereNotNull("event_user_id")
+        ->count();
+        $congratulation_voice = EventVoice::
+        where('event_user_id', $ids)
         ->count();
         
         $not_attend =  $confirm_attend - $qr;
@@ -859,10 +868,36 @@ class EventsController extends Controller
             "send_Qr" => $send_Qr,
             "faild_send" => $faild_send,
             "event_host" => $event_host,
-            "is_remember" => $is_remember
+            "is_remember" => $is_remember,
+            "congratulation_voice" => $congratulation_voice,
         ]);
     }
+    
+    public function voice_msgs(Request $request, $id)
+    { 
+        $s = $request->search;
 
+        $user_events = EventVoice::whereHas("event_user", function($query) use ($id, $s) {
+            // فلترة بحسب رقم الفعالية
+            $query->where("event_id", $id);
+
+            // ⭐ البحث باسم المستخدم أو الهاتفك داخل العلاقة
+            if ($s) {
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('mobile', 'like', "%{$s}%");
+                });
+            }
+        })->with('event_user:id,name,mobile');
+
+        // ⭐ الترقيم الصفحي
+        $user_events = $user_events->paginate(20);
+
+        return response()->json([
+            "status" => true,
+            "user_events" => $user_events
+        ]);
+    }
 
     public function event_users(Request $request, $id)
     {

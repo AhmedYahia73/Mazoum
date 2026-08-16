@@ -512,7 +512,8 @@ class EventHostController extends Controller
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_id" => $request->event_id ?? null,
             "password" => Hash::make($request->password),
-            "balance" => $request->custom_invetaion
+            "pass" => $request->password,
+            "balance" => $request->custom_invetaion,
         ]);
 
         return response()->json([
@@ -550,7 +551,8 @@ class EventHostController extends Controller
         User::
         where("id", $id)
         ->update([
-            "password" => Hash::make($request->password)
+            "password" => Hash::make($request->password),
+            "pass" => $request->password,
         ]);
 
         return response()->json([

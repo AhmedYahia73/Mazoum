@@ -135,6 +135,7 @@ class UserController extends Controller
             "custom_event_id" => $request->custom_event_id ?? null,
             "event_id" => $request->event_user_id ?? null,
             "password" => Hash::make($request->password),
+            "pass" => $request->password,
             "balance" => $request->custom_invetaion
         ]);
 
@@ -157,7 +158,8 @@ class UserController extends Controller
         where("id", $id)
         ->where("user_id", auth()->user()->id)
         ->update([
-            "password" => Hash::make($request->password)
+            "password" => Hash::make($request->password),
+            "pass" => $request->password,
         ]);
 
         return response()->json([

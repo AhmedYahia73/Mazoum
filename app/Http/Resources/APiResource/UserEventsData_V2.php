@@ -42,8 +42,8 @@ class UserEventsData_V2 extends JsonResource
             'apologized_invitatios' => (int)(EventUsers::where('event_id',$this->id)->where('status','not-attend')->sum('users_count')),
             'failed_invitatios' => (int)(EventUsers::where('event_id',$this->id)->where('status','failed')->sum('users_count')),
 
-            'non_attendance_user' => (int) (EventUsers::where('event_id',$this->id)->where('status','attend')->whereNull('scan')->whereNull('is_refused')->sum('users_count'))
-
+            'non_attendance_user' => (int) (EventUsers::where('event_id',$this->id)->where('status','attend')->whereNull('scan')->whereNull('is_refused')->sum('users_count')),
+            'scan_employee' => $this->scan_employee ? $this->scan_employee : null,
         ];
 
         return $data;

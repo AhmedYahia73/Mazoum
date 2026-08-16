@@ -12,6 +12,7 @@ use App\Http\Resources\APiResource\EventMessagesResource;
 use App\Models\Events as Model;
 use App\Models\EventUsers;
 use App\Models\Qr_Code;
+use App\Models\EventVoice;
 use App\Models\User;
 use App\Models\EventMessages;
 use App\Models\Memory;
@@ -1294,6 +1295,57 @@ class ApiEventsController extends Controller
 
         return response()->json([
             "apologize_msgs" => $apologize_msgs
+        ]);
+    }
+
+    public function voice_msgs(Request $request, $id){
+         
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+        $Item = Model::where('id', $id)
+        ->where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)   
+            ->orWhereHas("sub_user", function($q) use($user){
+                $q->where("users.id", $user->id);
+            });
+        })->first();
+ 
+        if (!$Item) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        } 
+ 
+        $user_status = $Item->user_id == $user->id;
+        $user_id = $user->id; 
+        $users_ids = EventUsers::where('event_id', $id);
+            $users_ids = !$user_status ? $users_ids->where("user_id", $user_id)->pluck('id')->toArray(): 
+            $users_ids->where(function($query) use($user_id){
+                $query->whereNull("user_id")
+                ->orWhere("user_id", $user_id);
+            })
+            ->pluck("id")
+            ->toArray(); 
+            
+        $voices = EventVoice::
+        whereIn("event_user_id", $users_ids)
+        ->with("event_user:id,name,mobile")
+        ->paginate(10)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "voice" => $item->voice,
+                "name" => $item?->event_user?->name,
+                "mobile" => $item?->event_user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "voices" => $voices
         ]);
     }
 

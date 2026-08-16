@@ -59,6 +59,7 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/send_memories', 'send_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });
  
+    Route::get('/custom_voice_msg/{id}', 'Api\CustomEvent\CustomEventController@custom_voice_msg');
     Route::get('/custom_event_report/{id}', 'Api\CustomEvent\CustomEventController@custom_event_report');
     Route::get('/data_pdf', 'Api\CustomEvent\CustomEventController@data_pdf');
     Route::get('/users_pdf/{id}', 'Api\CustomEvent\CustomEventController@users_pdf');
@@ -202,6 +203,7 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     //////////////////////////////////////////////////////////////// user
 
     // Events
+    Route::get('user/events/voice_msgs/{id}', 'ApiEventsController@voice_msgs');
     Route::get('user/events/best_memories_users/{id}', 'ApiEventsController@best_memories_users');
     Route::get('user/events/all_events', 'ApiEventsController@all_events');
     Route::get('user/events/apologize_msgs/{id}', 'ApiEventsController@apologize_msgs');

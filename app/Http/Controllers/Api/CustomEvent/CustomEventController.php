@@ -6,13 +6,44 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventUsers;
 use App\Models\CustomMessage;
+use App\Models\EventVoice;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+use App\Traits\GeneralTrait;
 class CustomEventController extends Controller
 {
+    use GeneralTrait;
+
+    public $token;
+    public $lang;
+
+    public function __construct()
+    {
+        if (getallheaders() != null && ! empty(getallheaders())) {
+            if (array_key_exists('language', getallheaders())) {
+                $this->lang = getallheaders()['language'];
+            } elseif (array_key_exists('Language', getallheaders())) {
+                $this->lang = getallheaders()['Language'];
+            } else {
+                $this->lang = 'ar';
+            }
+
+            if (array_key_exists('token', getallheaders())) {
+                $this->token = getallheaders()['token'];
+            } elseif (array_key_exists('Token', getallheaders())) {
+                $this->token = getallheaders()['Token'];
+            } else {
+                $this->token = null;
+            }
+
+        } else {
+            $this->lang = null;
+            $this->token = null;
+        }
+    }
     public function index(Request $request)
     {
         $query = Model::
@@ -223,12 +254,25 @@ class CustomEventController extends Controller
     
     public function custom_event_report($id)
     {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
         $Item = Model::findOrFail($id);
         $visitors_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->sum('users_count');
         $qr_count = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->where('scan','yes')
         ->sum('scan_count');
         $event_host = User::
@@ -240,16 +284,24 @@ class CustomEventController extends Controller
         $congratulation_msg = CustomMessage::
         where("custom_event_id", $Item->id)
         ->where("type", "congratulation")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->count();
         $apologize_msg = CustomMessage::
         where("custom_event_id", $Item->id)
         ->where("type", "apologize")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->count();
         $apologize_count = CustomEventUsers::
         where("custom_event_id", $Item->id) 
+        ->where("user_id", $user?->id) 
         ->sum("apologize_count");
         $confirm_count = CustomEventUsers::
         where("custom_event_id", $Item->id) 
+        ->where("user_id", $user?->id)
         ->sum("confirm_count");
 
         return response()->json([
@@ -266,6 +318,17 @@ class CustomEventController extends Controller
 
     public function all_event_users(Request $request, $id)
     {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
         $Item = Model::findOrFail($id);
         $user_events = CustomEventUsers::
         where('custom_event_id', $Item->id)
@@ -278,12 +341,15 @@ class CustomEventController extends Controller
                     ->orWhere('mobile', 'like', "%$search%");
             });
         })
+        ->where("user_id", $user?->id)
         ->get();
         $invetations = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->sum('users_count');
         $attendance = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->sum('scan_count');
 
         return response()->json([
@@ -296,10 +362,23 @@ class CustomEventController extends Controller
 
     public function scan_users(Request $request, $id)
     {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
         $Item = Model::findOrFail($id);
         $user_events = CustomEventUsers::
         where('custom_event_id', $Item->id)
         ->where("scan_count", ">", 0)
+        ->where("user_id", $user?->id)
         ->when($request->search, function ($q) use ($request) {
 
             $search = $request->search;
@@ -312,9 +391,11 @@ class CustomEventController extends Controller
         ->get();
         $invetations = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->sum('users_count');
         $attendance = CustomEventUsers::
         where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
         ->sum('scan_count');
 
         return response()->json([
@@ -326,9 +407,24 @@ class CustomEventController extends Controller
     }
     
     public function congratulation_msg($id){
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "congratulation")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->get()
         ->map(function($item){
             return [
@@ -346,9 +442,23 @@ class CustomEventController extends Controller
     
     public function apologize_msg($id){
         // status
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "apologize")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->get()
         ->map(function($item){
             return [
@@ -358,6 +468,40 @@ class CustomEventController extends Controller
                 "mobile" => $item?->user?->mobile,
             ];
         });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    } 
+    
+    public function custom_voice_msg($id){
+     // status
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        $perPage = request()->get('per_page', 10); // عدد العناصر في الصفحة (افتراضياً 10)
+
+        $messages = EventVoice::whereHas("custom_event_user", function($query) use($user, $id){
+                $query->where("user_id", $user?->id)
+                    ->where("custom_event_id", $id);
+            })
+            ->paginate($perPage)
+            ->through(function($item){
+                return [
+                    "id" => $item->id,
+                    "voice" => $item->voice,
+                    "name" => $item?->custom_event_user?->name,
+                    "mobile" => $item?->custom_event_user?->mobile,
+                ];
+            });
 
         return response()->json([
             "messages" => $messages

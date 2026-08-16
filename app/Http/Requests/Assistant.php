@@ -45,6 +45,7 @@ class Assistant extends FormRequest
                     'appointment_from' => "required|date_format:H:i",
                     'appointment_to'   => "required|date_format:H:i",
                     'holiday'          => "required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday",
+                    'employee_gender' => "required|in:male,female",
                 ];
 
             case 'PUT':
@@ -60,6 +61,7 @@ class Assistant extends FormRequest
                     'appointment_from' => "required|date_format:H:i",
                     'appointment_to'   => "required|date_format:H:i",
                     'holiday'          => "required|in:Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday",
+                    'employee_gender' => "required|in:male,female",
                 ];
 
             default:

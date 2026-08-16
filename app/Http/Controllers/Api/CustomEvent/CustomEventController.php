@@ -304,6 +304,12 @@ class CustomEventController extends Controller
         ->where("user_id", $user?->id)
         ->sum("confirm_count");
 
+        $voices = EventVoice::whereHas("custom_event_user", function($query) use($user, $id){
+            $query->where("user_id", $user?->id)
+                ->where("custom_event_id", $id);
+        })
+        ->count();
+
         return response()->json([
             'Item' =>  $Item, 
             'visitors_count' =>  $visitors_count, 
@@ -313,6 +319,7 @@ class CustomEventController extends Controller
             'apologize_msg' =>  $apologize_msg, 
             'apologize_count' =>  $apologize_count, 
             'confirm_count' =>  $confirm_count, 
+            'voices' =>  $voices, 
         ]); 
     }
 

@@ -1227,6 +1227,10 @@ class ApiEventsController extends Controller
         whereIn("event_user_id", $users_ids)
         ->count();
 
+        $voices = EventVoice::
+        whereIn("event_user_id", $users_ids)
+        ->with("event_user:id,name,mobile")
+        ->count();
         return $this->returnData('data', [ 
             'Item' => $Item,
             "all_invited_users" => intval($all_invited_users), 
@@ -1243,6 +1247,7 @@ class ApiEventsController extends Controller
             "not_scan_enterd_events" => intval($not_scan_enterd_events),
             "congratulation_msgs" => intval($congratulation_msgs),
             "apologize_msgs" => intval($apologize_msgs),
+            "voices" => intval($voices),
             "remember_users" => intval($remember_users),
         ]);
 

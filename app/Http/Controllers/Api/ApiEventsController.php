@@ -435,7 +435,9 @@ class ApiEventsController extends Controller
               ->orWhereHas("sub_user", function($query) use($user){
                 $query->where("users.id", $user->id);
               });
-        })->get(['id','title','address','file as image','date','time',
+        })
+        ->with("scan_employee:id,gender")
+        ->get(['id','title','address','file as image','date','time',
         'sending_type']);
 
         if($Item != null && $Item->count() > 0) {

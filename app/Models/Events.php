@@ -55,6 +55,11 @@ class Events extends Model
     {
         return $this->belongsTo('App\Models\User', 'user_id');
     }
+
+    public function scan_employee()
+    {
+        return $this->belongsTo('App\Models\User', 'scan_assistant_id');
+    }
     
     public function employee()
     {

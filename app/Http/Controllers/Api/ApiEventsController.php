@@ -436,7 +436,7 @@ class ApiEventsController extends Controller
                 $query->where("users.id", $user->id);
               });
         })
-        ->with("scan_employee:id,gender")
+        ->with("scan_employee:id,employee_gender")
         ->get(['id','title','address','file as image','date','time',
         'sending_type']);
 

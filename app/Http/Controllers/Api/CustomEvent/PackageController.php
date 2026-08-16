@@ -185,6 +185,7 @@ class PackageController extends Controller
                 "payment_method" => $item->payment_method,
                 "payment_type" => $item->payment_type,
                 "payment_description" => $item->payment_description,
+                "currency" => $item->currency?->name,
             ];
         });
 
@@ -216,6 +217,7 @@ class PackageController extends Controller
                 "payment_method" => $item->payment_method,
                 "payment_type" => $item->payment_type,
                 "payment_description" => $item->payment_description,
+                "currency" => $item->currency?->name,
             ];
         });
 

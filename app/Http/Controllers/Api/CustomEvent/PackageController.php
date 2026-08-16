@@ -163,13 +163,14 @@ class PackageController extends Controller
         ]);
     }
 
-    public function orders_list(){
+    public function orders_list(Request $request){
+        $locale = $request->locale;
         $orders = Orders::
         where("user_id", auth()->user()->id)
         ->with("currency")
         ->where("is_paid", "not_paid")
         ->get()
-        ->map(function($item){
+        ->map(function($item) use($locale){
             return [
                 "id" => $item->id,
                 "duration" => $item->duration,
@@ -185,7 +186,7 @@ class PackageController extends Controller
                 "payment_method" => $item->payment_method,
                 "payment_type" => $item->payment_type,
                 "payment_description" => $item->payment_description,
-                "currency" => $item->currency?->name,
+                "currency" => $locale == 'ar' ? $item->currency?->ar_name : $item->currency?->en_name,
             ];
         });
 
@@ -195,13 +196,14 @@ class PackageController extends Controller
         ]);
     }
 
-    public function orders_history(){
+    public function orders_history(Request $request){
+        $locale = $request->locale;
         $orders = Orders::
         where("user_id", auth()->user()->id)
         ->with("currency")
         ->where("is_paid", "paid")
         ->get()
-        ->map(function($item){
+        ->map(function($item) use($locale){
             return [
                 "id" => $item->id,
                 "duration" => $item->duration,
@@ -217,7 +219,7 @@ class PackageController extends Controller
                 "payment_method" => $item->payment_method,
                 "payment_type" => $item->payment_type,
                 "payment_description" => $item->payment_description,
-                "currency" => $item->currency?->name,
+                "currency" => $locale == 'ar' ? $item->currency?->ar_name : $item->currency?->en_name,
             ];
         });
 

@@ -438,7 +438,7 @@ class ApiEventsController extends Controller
         })
         ->with("scan_employee:id,employee_gender")
         ->get(['id','title','address','file as image','date','time',
-        'sending_type']);
+        'sending_type', 'scan_assistant_id']);
 
         if($Item != null && $Item->count() > 0) {
             $data = UserEventsData_V2::collection($Item);

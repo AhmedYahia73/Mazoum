@@ -97,7 +97,7 @@ class User extends Authenticatable
         }
 
         if (! array_key_exists('available', $array)) {
-            $array['available'] = $this->custom_invetaion - $this->send_custom_invetaion;
+            $array['available'] =$this->send_custom_invetaion;
         }
 
         return $array;

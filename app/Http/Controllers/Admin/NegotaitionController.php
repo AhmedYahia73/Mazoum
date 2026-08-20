@@ -314,7 +314,7 @@ class NegotaitionController extends Controller
 
     public function status_payment(Request $request, $id){
         $validator = Validator::make($request->all(), [
-            'is_paid'=> 'required|in:not_paid,paid',
+            'is_paid'=> 'required|in:approve,reject',
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
@@ -325,7 +325,7 @@ class NegotaitionController extends Controller
         Orders::
         where("id", $payment->order_id)
         ->update([
-            "is_paid" => $request->is_paid
+            "is_paid" => $request->is_paid == "approve" ? "paid" : "not_paid"
         ]);
 
         return response()->json([

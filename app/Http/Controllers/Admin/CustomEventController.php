@@ -10,6 +10,7 @@ use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
 use App\Models\CustomMessage;
 use App\Models\EnterUserCustomEvent;
+use App\Models\EventUsers;
 use App\Models\EventVoice;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
@@ -2748,6 +2749,58 @@ class CustomEventController extends Controller
         }
 
         dd('error-v2'); 
+    }
+
+    public function import_users(Request $request)
+    {
+       $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:xlsx,xls,csv',
+            'event_id' => 'required|exists:events,id',
+            'user_id' => 'required|exists:users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $file_path = $request->file('file')->store('temp');
+        $saved_path = storage_path('app') . '/' . $file_path;
+
+        // dd($saved_path);
+
+        $data = Excel::toArray([], $saved_path);
+
+        if(! empty($data)) {
+            $data = array_slice($data[0],1);
+        }
+
+        if($data != null && count($data) > 0) {
+
+            foreach ($data as $index => $row) {
+
+                $check = EventUsers::where('event_id',$request->event_id)->where('mobile',$row[1])->first();
+
+                if($check == null) {
+
+                    EventUsers::create([
+                        'event_id'    => $request->event_id,
+                        'name'        => $row[0],
+                        'mobile'      => $row[1],
+                        'users_count' => $row[2],
+                        'status' => 'hold',
+                        'user_id' => $request->user_id
+                    ]);
+                }
+            }
+        }
+
+        // dd($data);
+        // Excel::import(new EventUserImport($request->event_id), $data);
+
+        return response()->json([
+            'success' => 'imported successfully!', 
+        ]);
     }
 
     public function custom_event_login($uu_id){

@@ -846,9 +846,11 @@ class EventsController extends Controller
         ->sum('users_count');
         $user_id = $Item->user_id;
         $event_host = User::
-        where(function($query) use($user_id){
-            $query->where("id", $user_id)
-            ->orWhere("user_id", $user_id);
+        where(function($query) use($id){
+            $query->where("event_id", $id)
+            ->orWhereHas("event", function($q) use($id){
+                $q->where("events.id", $id);
+            });
         })
         ->count(); 
 

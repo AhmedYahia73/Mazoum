@@ -2815,6 +2815,7 @@ class CustomEventController extends Controller
             "id" => $user->id,
             "uu_id" => $user->uu_id,
             "name" => $user->name,
+            "suit_num" => $user->suit_num,
             "mobile" => $user->mobile,
             "custom_event_id" => $user->custom_event_id,
             "qr" => $user->qr,

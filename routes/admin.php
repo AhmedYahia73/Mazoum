@@ -141,6 +141,10 @@ Route::get('negotation/item/{id}', 'NegotaitionController@negotaition')->name('a
 Route::post('negotation/status/{id}', 'NegotaitionController@status')->name('admin.negotation.status');
 Route::delete('negotation/delete/{id}', 'NegotaitionController@delete')->name('admin.negotation.delete');
 
+Route::get('pending_payments', 'NegotaitionController@pending_payments')->name('admin.pending_payments');
+Route::get('history_payments', 'NegotaitionController@history_payments')->name('admin.history_payments');
+Route::put('status_payment', 'NegotaitionController@status_payment')->name('admin.status_payment');
+
 // Pricing
 Route::resource('pricing','PricingController',['names' => 'admin.pricing']);
 Route::get('pricing/destroy/{id}', 'PricingController@destroy');

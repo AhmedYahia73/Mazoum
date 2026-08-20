@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Negotaition;
 use App\Models\Orders;
 use App\Models\Packages;
+use App\Models\Payment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -260,6 +261,75 @@ class NegotaitionController extends Controller
 
         return response()->json([
             "success" => "You delete data success"
+        ]);
+    }
+
+    public function pending_payments(Request $request){
+        $pending_payment = Payment::
+        where("status", "pending")
+        ->with("user", "currency", "orders")
+        ->paginate(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "price" => $item->price,
+                "receipt" => url("storage/" . $item->receipt),
+                "status" => $item->status,
+                "order_total" => $item?->orders?->total,
+                "order_users_count" => $item?->orders?->users_count,
+                "user_name" => $item?->user?->name,
+                "user_mobile" => $item?->user?->mobile,
+                "currency" => $item?->currency?->en_name,
+            ];
+        });
+
+        return response()->json([
+            "pending_payment" => $pending_payment
+        ]);
+    }
+
+    public function history_payments(Request $request){
+        $history_payment = Payment::
+        where("status", "!=", "pending")
+        ->with("user", "currency", "orders")
+        ->paginate(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "price" => $item->price,
+                "receipt" => url("storage/" . $item->receipt),
+                "status" => $item->status,
+                "order_total" => $item?->orders?->total,
+                "order_users_count" => $item?->orders?->users_count,
+                "user_name" => $item?->user?->name,
+                "user_mobile" => $item?->user?->mobile,
+                "currency" => $item?->currency?->en_name,
+            ];
+        });
+
+        return response()->json([
+            "history_payment" => $history_payment
+        ]);
+    }
+
+    public function status_payment(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            'is_paid'=> 'required|in:not_paid,paid',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $payment = Payment::
+        findOrFail($id);
+        Orders::
+        where("id", $payment->order_id)
+        ->update([
+            "is_paid" => $request->is_paid
+        ]);
+
+        return response()->json([
+            "success" => "you update status success"
         ]);
     }
 }

@@ -514,6 +514,7 @@ class EventHostController extends Controller
             "password" => Hash::make($request->password),
             "pass" => $request->password,
             "balance" => $request->custom_invetaion,
+            "user_type" => "user",
         ]);
 
         return response()->json([

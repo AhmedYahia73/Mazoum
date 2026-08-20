@@ -322,6 +322,10 @@ class NegotaitionController extends Controller
 
         $payment = Payment::
         findOrFail($id);
+        $payment->update([
+            "status" => $request->is_paid
+        ]);
+        $payment->save();
         Orders::
         where("id", $payment->order_id)
         ->update([

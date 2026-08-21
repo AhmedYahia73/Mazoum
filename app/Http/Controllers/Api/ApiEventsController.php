@@ -1496,7 +1496,7 @@ class ApiEventsController extends Controller
             return $this->returnError('E100', 'المستخدم مطلوب');
         }
 
-        $ids = $this->getValidEventUserIds($user, $id);
+        $ids = $this->getValidEventUserIds($user);
         if ($ids === null) {
             return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
         }
@@ -1532,7 +1532,7 @@ class ApiEventsController extends Controller
             return $this->returnError('E100', 'المستخدم مطلوب');
         }
 
-        $ids = $this->getValidEventUserIds($user, $id);
+        $ids = $this->getValidEventUserIds($user);
         if ($ids === null) {
             return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
         }

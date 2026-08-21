@@ -13,6 +13,7 @@ use App\Models\EventMessages;
 use App\Models\Events;
 use App\Models\EventUsers as Model;
 use App\Models\EventUsers;
+use App\Models\CustomEventUsers;
 use App\Models\NewSetting;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
@@ -61,9 +62,7 @@ class ApiEventUersController extends Controller
             $this->lang = null;
             $this->token = null;
         }
-    }
-
-
+    } 
 
   	public function delete_event_messages($id,$type)
     {
@@ -78,9 +77,7 @@ class ApiEventUersController extends Controller
 
         return $this->returnSuccessMessage(trans('home.delete_msg'));
 
-    }
-
-
+    } 
 
   	public function login_user_using_qr($id) {
 
@@ -128,9 +125,7 @@ class ApiEventUersController extends Controller
         }
 
 
-    }
-
-
+    } 
 
     public function send_qr($id)
     {
@@ -255,9 +250,7 @@ class ApiEventUersController extends Controller
             return $this->returnError('E100', 'عفوا فشل أرسال QR Scan ');
         }
 
-    }
-
-
+    } 
 
     // save_event_users
     public function save_event_users(Request $request)
@@ -423,9 +416,7 @@ class ApiEventUersController extends Controller
                 return $this->returnError('404', 'عفوا هذا الحدث غير موجود مسبقا');
             }
         }
-    }
-
-
+    } 
 
   	// edit_event_user
     public function edit_event_user(Request $request,$event_user_id)
@@ -455,6 +446,8 @@ class ApiEventUersController extends Controller
         $validated_arr = [
             'name' => 'required',
           	'users_count' => 'required|numeric|min:1',
+            "suit_num" => "sometimes|numeric",
+            "mobile" => "sometimes",
         ];
 
 
@@ -473,8 +466,12 @@ class ApiEventUersController extends Controller
 
 
         if($event_user != null) {
-
-          	$event_user->update([ 'users_count' => $request->users_count,'name' => $request->name ]);
+          	$event_user->update([ 
+                'users_count' => $request->users_count,
+                'name' => $request->name ?? $event_user->name,
+                'suit_num' => $request->suit_num ?? $event_user->suit_num,
+                'mobile' => $request->mobile ?? $event_user->mobile,
+            ]);
 
           	if ($lang == 'en') {
               $msg = 'updated succesfully';
@@ -496,7 +493,45 @@ class ApiEventUersController extends Controller
         }
     }
 
+    public function chat_users($id){
+        $users = EventUsers::
+        where("event_id", $id)
+        ->whereHas("msgs")
+        ->withCount("msgs")
+        ->pagination(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile,
+                "msgs_count" => $item->msgs_count,
+            ];
+        });
 
+        return response()->json([
+            "users" => $users,
+        ]);
+    }
+
+    public function custom_chat_users($id){
+        $users = CustomEventUsers::
+        where("custom_event_id", $id)
+        ->whereHas("msgs")
+        ->withCount("msgs")
+        ->pagination(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "mobile" => $item->mobile,
+                "msgs_count" => $item->msgs_count,
+            ];
+        });
+
+        return response()->json([
+            "users" => $users,
+        ]);
+    }
 
     // send_event_users
     public function send_event_users(Request $request)

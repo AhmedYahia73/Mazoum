@@ -251,6 +251,8 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     Route::get('login-user/{id}', [EventUersController::class, 'login_user']);
 
     // User Events 
+    Route::get('user/chat_users/{id}', 'ApiEventUersController@chat_users');
+    Route::get('user/custom_chat_users/{id}', 'ApiEventUersController@custom_chat_users');
     Route::put('user/attend_event/{id}', 'ApiEventUersController@attend_event');
     Route::post('user/save-user-event', 'ApiEventUersController@save_event_users');
     Route::post('user/edit-user-event/{event_user_id}', 'ApiEventUersController@edit_event_user');

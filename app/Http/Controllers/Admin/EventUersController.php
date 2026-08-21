@@ -1459,7 +1459,7 @@ class EventUersController extends Controller
                           	if(array_key_exists('users_count', $arr)) {
                                 $users_count = $arr['users_count'];
                             } else {
-								                $users_count = $user_event->users_count;
+							    $users_count = $user_event->users_count;
                             }
 
                             $user_event->update([
@@ -3806,7 +3806,10 @@ class EventUersController extends Controller
             $language = "ar";
             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
             $access_token = Setting::first()?->access_token;
-            SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            return response()->json([
+                "response" => $response->body()
+            ]);
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => "Admin",

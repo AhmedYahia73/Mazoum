@@ -498,7 +498,7 @@ class ApiEventUersController extends Controller
         where("event_id", $id)
         ->whereHas("msgs")
         ->withCount("msgs")
-        ->pagination(15)
+        ->paginate(15)
         ->through(function($item){
             return [
                 "id" => $item->id,
@@ -518,7 +518,7 @@ class ApiEventUersController extends Controller
         where("custom_event_id", $id)
         ->whereHas("msgs")
         ->withCount("msgs")
-        ->pagination(15)
+        ->paginate(15)
         ->through(function($item){
             return [
                 "id" => $item->id,

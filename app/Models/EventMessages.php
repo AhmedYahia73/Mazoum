@@ -23,5 +23,10 @@ class EventMessages extends Model
     {
         return $this->belongsTo('App\Models\Events', 'event_id');
     }
+  
+  	public function user()
+    {
+        return $this->belongsTo('App\Models\EventUsers', 'event_user_id');
+    }
 
 }

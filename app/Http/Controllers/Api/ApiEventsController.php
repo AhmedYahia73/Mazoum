@@ -1402,6 +1402,156 @@ class ApiEventsController extends Controller
         return response()->json([
             "congratulation_msgs" => $congratulation_msgs
         ]);
+    }/**
+     * دالة مساعدة للتحقق من المستخدم وجلب معرفات المستخدمين في الأحداث
+     */
+    private function getValidEventUserIds($user, $eventId = null)
+    {
+        $eventsQuery = Model::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)   
+                  ->orWhereHas("sub_user", function($q) use ($user) {
+                      $q->where("users.id", $user->id);
+                  });
+        });
+
+        if ($eventId) {
+            $eventsQuery->where('id', $eventId);
+        }
+
+        $events = $eventsQuery->get();
+
+        if ($events->isEmpty()) {
+            return null;
+        }
+
+        $ids = [];
+        foreach ($events as $item) {
+            $isOwner = ($item->user_id == $user->id);
+            $userId = $user->id;
+
+            $usersIds = EventUsers::where('event_id', $item->id);
+
+            if (!$isOwner) {
+                $usersIds = $usersIds->where("user_id", $userId);
+            } else {
+                $usersIds = $usersIds->where(function($query) use ($userId) {
+                    $query->whereNull("user_id")
+                          ->orWhere("user_id", $userId);
+                });
+            }
+
+            $ids[] = $usersIds->pluck('id')->toArray();
+        }
+
+        return collect($ids)->flatten(1)->toArray();
+    }
+
+    /**
+     * الحصول على جميع رسائل الاعتذار
+     */
+    public function all_apologize_msgs(Request $request)
+    {
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $ids = $this->getValidEventUserIds($user);
+        if ($ids === null) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        }
+
+        $apologize_msgs = EventMessages::whereIn("event_user_id", $ids)
+            ->whereNull("message_id")
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%$search%")
+                        ->orWhere('mobile', 'like', "%$search%");
+                });
+            })
+            ->with("reply:id,name,mobile,message,type,message_id", "user:id,name,mobile")
+            ->paginate(15); 
+
+        return response()->json([
+            "apologize_msgs" => $apologize_msgs
+        ]);
+    }
+
+    /**
+     * الحصول على جميع الرسائل الصوتية لحدث معين أو لكافة الأحداث
+     */
+    public function all_voice_msgs(Request $request)
+    {
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $ids = $this->getValidEventUserIds($user, $id);
+        if ($ids === null) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        }
+
+        $voices = EventVoice::whereIn("event_user_id", $ids)
+            ->with("event_user:id,name,mobile")
+            ->paginate(10)
+            ->through(function($item) {
+                return [
+                    "id"     => $item->id,
+                    "voice"  => $item->voice,
+                    "name"   => $item?->event_user?->name,
+                    "mobile" => $item?->event_user?->mobile,
+                ];
+            });
+
+        return response()->json([
+            "voices" => $voices
+        ]);
+    }
+
+    /**
+     * الحصول على جميع رسائل التهنئة لحدث معين أو لكافة الأحداث
+     */
+    public function all_congratulation_msgs(Request $request)
+    {
+        if ($this->token == null) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $user = User::where('token', $this->token)->first();
+        if (!$user) {
+            return $this->returnError('E100', 'المستخدم مطلوب');
+        }
+
+        $ids = $this->getValidEventUserIds($user, $id);
+        if ($ids === null) {
+            return $this->returnError('404', 'عفوا هذا الحدث غير موجود');
+        }
+
+        $congratulation_msgs = CongratulationMessages::whereIn("event_user_id", $ids)
+            ->whereNull("message_id")
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%$search%")
+                        ->orWhere('mobile', 'like', "%$search%");
+                });
+            })
+            ->with("reply:id,name,mobile,message,type,message_id", "user:id,name,mobile")
+            ->paginate(15); 
+
+        return response()->json([
+            "congratulation_msgs" => $congratulation_msgs
+        ]);
     }
 
     public function all_events(Request $request)

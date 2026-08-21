@@ -203,6 +203,9 @@ Route::group(['middleware' => ['checkPassword','CheckLang'],'namespace' => 'Api'
     //////////////////////////////////////////////////////////////// user
 
     // Events
+    Route::get('user/events/all_apologize_msgs', 'ApiEventsController@all_apologize_msgs');
+    Route::get('user/events/all_congratulation_msgs', 'ApiEventsController@all_congratulation_msgs');
+    Route::get('user/events/all_voice_msgs', 'ApiEventsController@all_voice_msgs');
     Route::get('user/events/voice_msgs/{id}', 'ApiEventsController@voice_msgs');
     Route::get('user/events/best_memories_users/{id}', 'ApiEventsController@best_memories_users');
     Route::get('user/events/all_events', 'ApiEventsController@all_events');

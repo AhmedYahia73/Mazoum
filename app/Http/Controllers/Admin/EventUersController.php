@@ -3760,12 +3760,7 @@ class EventUersController extends Controller
                 'errors' => 'عفوا، يوجد لديك طلبات غير مدفوعة',
             ], 400);
         }
-
-        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
-            return response()->json([
-                'errors' => 'عفوا هذا QR غير متاح', 
-            ],400); 
-        }
+ 
         EnterUserEvent::create([
             "event_user_id" => $Item->id,
             "count" => $request->users_count

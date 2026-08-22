@@ -429,9 +429,9 @@ class CustomEventController extends Controller
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "congratulation")
-        // ->whereHas("user", function($query) use($user){
-        //     $query->where("user_id", $user?->id);
-        // })
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->get()
         ->map(function($item){
             return [
@@ -463,9 +463,9 @@ class CustomEventController extends Controller
         $messages = CustomMessage::
         where("custom_event_id", $id)
         ->where("type", "apologize")
-        // ->whereHas("user", function($query) use($user){
-        //     $query->where("user_id", $user?->id);
-        // })
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
         ->get()
         ->map(function($item){
             return [

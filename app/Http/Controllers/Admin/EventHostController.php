@@ -428,7 +428,7 @@ class EventHostController extends Controller
  
         $Item = $query->paginate(15)
         ->through(function($item){
-            $item->available = $item->custom_invetaion; 
+            $item->available = $item->available; 
             return $item;
         }); // عدد العناصر في الصفحة
 

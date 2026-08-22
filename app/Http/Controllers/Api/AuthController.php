@@ -232,11 +232,13 @@ class AuthController extends Controller
               	if($request->user_type == 'employee' || $request->user_type == 'user'
                 || $request->user_type == 'custom_user') {
 
-                    $user = User::
-                    where('mobile', $request->mobile)
-                    ->where("password", Hash::make($request->password))
-                    ->first();
-                  	if (Hash::check($request->password, $user->password)) {
+                    $users = User::where('mobile', $request->mobile)->get();
+
+                    // 2. البحث داخل النتيجة عن المستخدم الذي تتطابق كلمة مروره
+                    $user = $users->first(function ($account) use ($request) {
+                        return Hash::check($request->password, $account->password);
+                    });
+                  	if ($user) {
 
                       if ($user->status == 1) {
 

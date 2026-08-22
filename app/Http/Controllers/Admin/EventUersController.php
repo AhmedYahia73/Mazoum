@@ -3825,7 +3825,8 @@ class EventUersController extends Controller
                 "phone_numer_id" => $phone_numer_id,
             ]);
             return response()->json([
-                'response' => $response->body() 
+                'response' => $response->body() ,
+                "phone_numer_id" => $phone_numer_id
             ]);
         }
  

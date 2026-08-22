@@ -426,10 +426,7 @@ class EventHostController extends Controller
             });
         }
  
-        $Item = $query->paginate(15)
-        ->through(function($item){ 
-            return $item;
-        }); // عدد العناصر في الصفحة
+        $Item = $query->paginate(15); // عدد العناصر في الصفحة
 
         return response()->json([
             'Item' => $Item,

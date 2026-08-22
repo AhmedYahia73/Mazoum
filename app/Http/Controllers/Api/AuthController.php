@@ -236,7 +236,7 @@ class AuthController extends Controller
                     where('mobile', $request->mobile)
                     ->where("password", bcrypt($request->password))
                     ->first();
-                  	if (Hash::check($request->password, $user->password)) {
+                  	if ($user) {
 
                       if ($user->status == 1) {
 

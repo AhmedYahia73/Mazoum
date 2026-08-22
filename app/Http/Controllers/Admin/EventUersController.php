@@ -3811,7 +3811,7 @@ class EventUersController extends Controller
             $language = "ar";
             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
             $access_token = Setting::first()?->access_token;
-            SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => "Admin",
@@ -3823,6 +3823,9 @@ class EventUersController extends Controller
                 "event_user_id" => $Item->id,
                 "event_id" => $Item?->event?->id,
                 "phone_numer_id" => $phone_numer_id,
+            ]);
+            return response()->json([
+                'response' => $response->body() 
             ]);
         }
  

@@ -571,7 +571,8 @@ class EventHostController extends Controller
         ->delete();
         $user = User::where("id", $id)
         ->first();
-        $parent_user = User::where("id", $id)
+        $parent_user = User::
+        where("user_id", $id)
         ->first();
         if($parent_user){ 
             $parent_user->custom_invetaion += $user->custom_invetaion - $user->send_custom_invetaion;

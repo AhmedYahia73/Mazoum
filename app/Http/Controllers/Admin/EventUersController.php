@@ -3761,11 +3761,11 @@ class EventUersController extends Controller
             ], 400);
         }
 
-        // if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
-        //     return response()->json([
-        //         'errors' => 'عفوا هذا QR غير متاح', 
-        //     ],400); 
-        // }
+        if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+            return response()->json([
+                'errors' => 'عفوا هذا QR غير متاح', 
+            ],400); 
+        }
         EnterUserEvent::create([
             "event_user_id" => $Item->id,
             "count" => $request->users_count
@@ -3811,7 +3811,7 @@ class EventUersController extends Controller
             $language = "ar";
             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
             $access_token = Setting::first()?->access_token;
-            $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => "Admin",
@@ -3823,10 +3823,6 @@ class EventUersController extends Controller
                 "event_user_id" => $Item->id,
                 "event_id" => $Item?->event?->id,
                 "phone_numer_id" => $phone_numer_id,
-            ]);
-            return response()->json([
-                'response' => $response->body() ,
-                "phone_numer_id" => $phone_numer_id
             ]);
         }
  

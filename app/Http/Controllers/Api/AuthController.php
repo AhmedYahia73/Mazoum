@@ -232,6 +232,10 @@ class AuthController extends Controller
               	if($request->user_type == 'employee' || $request->user_type == 'user'
                 || $request->user_type == 'custom_user') {
 
+                    $user = User::
+                    where('mobile', $request->mobile)
+                    ->where("password", bcrypt($request->password))
+                    ->first();
                   	if (Hash::check($request->password, $user->password)) {
 
                       if ($user->status == 1) {

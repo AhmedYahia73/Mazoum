@@ -575,7 +575,9 @@ class EventHostController extends Controller
         where("id", $user->user_id)
         ->first(); 
         if($parent_user){ 
-            $parent_user->custom_invetaion += $user->custom_invetaion - $user->send_custom_invetaion;
+            $balance = $user->custom_invetaion - $user->send_custom_invetaion;
+            $parent_user->custom_invetaion += $balance;
+            $parent_user->balance += $balance;
             $parent_user->save();
         }
         $user->delete();

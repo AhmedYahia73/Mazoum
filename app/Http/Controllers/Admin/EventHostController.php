@@ -570,7 +570,14 @@ class EventHostController extends Controller
         where("user_id", $id)
         ->delete();
         $user = User::where("id", $id)
-        ->delete();
+        ->first();
+        $parent_user = User::where("id", $id)
+        ->first();
+        if($parent_user){ 
+            $parent_user->custom_invetaion += $user->custom_invetaion - $user->send_custom_invetaion;
+            $parent_user->save();
+        }
+        $user->delete();
 
         return response()->json([
             "success" => "You delete data success"

@@ -573,10 +573,7 @@ class EventHostController extends Controller
         ->first();
         $parent_user = User::
         where("id", $user->user_id)
-        ->first();
-        return response()->json([
-            "success" => $parent_user
-        ]);
+        ->first(); 
         if($parent_user){ 
             $parent_user->custom_invetaion += $user->custom_invetaion - $user->send_custom_invetaion;
             $parent_user->save();

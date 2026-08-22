@@ -425,7 +425,7 @@ class EventHostController extends Controller
                 ->orWhere('mobile', 'like', "%$search%");
             });
         }
- $items = $query->paginate(15)->through(function ($item) {
+ $Item = $query->paginate(15)->through(function ($item) {
     // نجعل الـ available والـ balance يأخذان قيمة الـ custom_invetaion
     $item->available = $item->custom_invetaion;
     $item->balance = $item->available; 

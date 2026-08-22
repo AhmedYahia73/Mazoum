@@ -3724,108 +3724,114 @@ class EventUersController extends Controller
             "status" => $Item?->is_refused == 'yes' ? "refused" : ($Item?->accept_count < 1 ? "not_confirmed" : "accepted"),
         ]);
     }
-public function scan_qr(Request $request){
-        $validator = Validator::make($request->all(), [
-             'qr_id' => 'required|exists:qr_code,uu_id',
-             "users_count" => 'required|numeric',
-         ]); 
-         
-         if ($validator->fails()) {
-             return response()->json([
-                 'errors' => $validator->errors(),
-             ], 400);
-         }  
-         
-         $qr_code = Qr_Code::where("uu_id",$request->qr_id)->first();
-         
-         $Item = EventUsers::where('id', $qr_code->event_user_id)
-         ->with(['event' => function($query) {
-             $query->withoutGlobalScopes(); 
-         }])->first();
-         
-         $user_data = User::where("id", $Item?->user_id)->first();
-         
-         if(!$user_data){
-             $user_data = User::where("id", $Item?->event?->user_id)->first();
-         }  
-         
-         $unpaid_orders_exist = \App\Models\Orders::where('user_id', $user_data->id)->where('is_paid', 'not_paid')->exists();
-         if ($unpaid_orders_exist) {
-             return response()->json([
-                 'errors' => 'عفوا، يوجد لديك طلبات غير مدفوعة',
-             ], 400);
-         }
- 
-         $now = Carbon::now(); 
- 
-         $Item->update([
-            'scan' => 'yes',
-            'scan_at' => $now,
-            'scan_count' => $request->users_count + $Item->scan_count
-         ]);
-         
-         // تم إزالة الكود المكرر هنا، والاحتفاظ بإنشاء السجل مرة واحدة فقط
-         EnterUserEvent::create([
-             "event_user_id" => $Item->id,
-             "count" => $request->users_count
-         ]);
- 
-         $param_1 = now()->format("h:i A");
-         $customerPhone = str_replace("+", "", $Item?->mobile);
-         
-         if($Item->send_type == "link"){
- 
-             $ultramsg_token="7ye6ifujyug0u46g"; 
-             $instance_id="instance109805"; 
-             $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
- 
-             $priority=0;
-             $referenceId="SDK";
-             $caption = "حياكـم الله ،،" . PHP_EOL . " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL . " وقت الحضور " . $param_1;
- 
-             $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
-         }
-         else{
-             $template_name = "wedding_data_v10_ar_new";
-             $language = "ar";
-             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
-             $access_token = Setting::first()?->access_token;
-             
-             $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
-             $responseData = json_decode($response->body(), true);
 
-             // التحقق مما إذا كان هناك خطأ مباشر من واجهة ميتا
-             if (isset($responseData['error'])) {
-                 return response()->json([
-                     'error' => 'فشل إرسال رسالة الواتساب',
-                     'meta_error_details' => $responseData['error']['message'] ?? 'خطأ غير معروف من ميتا',
-                     'meta_error_code' => $responseData['error']['code'] ?? null,
-                 ], 400);
-             }
-             
-             // في حال النجاح والقبول (accepted) يتم حفظ السجل
-             $message = WattsChatModel::create([
-                 'phone'        => $customerPhone,
-                 'name'         => "Admin",
-                 'message'      => $template_name,
-                 'is_sent_by_me'=> true,
-                 'message_id'   => $responseData['messages'][0]['id'] ?? 0, // تحديث لحفظ ID الرسالة الفعلي
-                 'from'         => "Admin",
-                 "template_name" => $template_name,
-                 "event_user_id" => $Item->id,
-                 "event_id" => $Item?->event?->id,
-                 "phone_numer_id" => $phone_numer_id,
-             ]);
-             
-             return response()->json([
-                 'success' => 'تم عمل QR Scan بنجاح وتم قبول إرسال الرسالة',
-                 'whatsapp_status' => $responseData 
-             ]);
-         }
-  
-         return response()->json([
-             'success' => 'تم عمل QR Scan  بنجاح', 
-         ]);
+    public function scan_qr(Request $request){
+       $validator = Validator::make($request->all(), [
+            'qr_id' => 'required|exists:qr_code,uu_id',
+            "users_count" => 'required|numeric',
+        ]); 
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }  
+        // qr_id // wedding_data_v10_ar_new
+        
+        $qr_code = Qr_Code::
+        where("uu_id",$request->qr_id)
+        ->first();
+        $Item = EventUsers::
+        where('id', $qr_code->event_user_id)
+        ->with(['event' => function($query) {
+            $query->withoutGlobalScopes(); 
+        }])
+        ->first();
+        $user_data = User::
+        where("id", $Item?->user_id)
+        ->first();
+        if(!$user_data){
+            $user_data = User::
+            where("id", $Item?->event?->user_id)
+            ->first();
+        }  
+        $unpaid_orders_exist = \App\Models\Orders::where('user_id', $user_data->id)->where('is_paid', 'not_paid')->exists();
+        if ($unpaid_orders_exist) {
+            return response()->json([
+                'errors' => 'عفوا، يوجد لديك طلبات غير مدفوعة',
+            ], 400);
+        }
+
+        // if(!$Item || $Item?->users_count < $Item?->scan_count + $request->users_count || $Item?->is_refused == 'yes' || $Item?->accept_count < 1) {
+        //     return response()->json([
+        //         'errors' => 'عفوا هذا QR غير متاح', 
+        //     ],400); 
+        // }
+        EnterUserEvent::create([
+            "event_user_id" => $Item->id,
+            "count" => $request->users_count
+        ]);
+         
+
+      	$now = Carbon::now(); 
+
+        $Item->update(['scan' => 'yes',
+        'scan_at' => $now,
+        'scan_count' => $request->users_count + $Item->scan_count]);
+        EnterUserEvent::create([
+            "event_user_id" => $Item->id,
+            "count" => $request->users_count
+        ]);
+
+        $param_1 = now()->format("h:i A");
+        $customerPhone = $Item?->mobile;
+        
+        $customerPhone = str_replace("+","",$customerPhone);
+        if($Item->send_type == "link"){
+
+            $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
+            $instance_id="instance109805"; // Ultramsg.com instance id
+            $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
+
+            $priority=0;
+            $referenceId="SDK";
+            $nocache=true;
+
+
+            $caption = "حياكـم الله ،،" . PHP_EOL .
+            " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL .
+           " وقت الحضور " . $param_1;
+
+            // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
+
+            // $api=$client->sendChatMessage($to,$body);
+            $api = $client->sendChatMessage($customerPhone,$caption,$priority,$referenceId);
+        }
+        else{
+            $template_name = "wedding_data_v10_ar_new";
+            $language = "ar";
+            $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
+            $access_token = Setting::first()?->access_token;
+            $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            $message = WattsChatModel::create([
+                'phone'        => $customerPhone,
+                'name'         => "Admin",
+                'message'      => $template_name,
+                'is_sent_by_me'=> true,
+                'message_id'   => 0,
+                'from'         => "Admin",
+                "template_name" => $template_name,
+                "event_user_id" => $Item->id,
+                "event_id" => $Item?->event?->id,
+                "phone_numer_id" => $phone_numer_id,
+            ]);
+            return response()->json([
+                'response' => $response->body() 
+            ]);
+        }
+ 
+        return response()->json([
+            'success' => 'تم عمل QR Scan  بنجاح', 
+        ]);
     }
 
     public function event_open_users(Request $request, $id){

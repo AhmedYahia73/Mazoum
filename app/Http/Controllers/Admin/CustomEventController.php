@@ -2898,6 +2898,7 @@ class CustomEventController extends Controller
         $user->update([
             "confirm_count" => $user->confirm_count + $request->confirm_count
         ]);
+        $this->update_qr($user, $user->uu_id);
         return response()->json([
             "success" => "You update data success"
         ]);

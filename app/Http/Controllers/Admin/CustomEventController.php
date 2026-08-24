@@ -464,130 +464,42 @@ class CustomEventController extends Controller
                 }
 
             } else {
-                // لا توجد صورة للحدث — استخدام الخلفية الافتراضية
-                $image_name  = $uu_id . '-default-qr.png';
+                // لا توجد صورة للحدث — توليد QR مباشرةً
+                $image_name = $uu_id . '-default-qr.png';
+                $link       = asset('scan-custom-qr/' . $uu_id);
+                $final_path = public_path('custom_event_qr_code/' . $image_name);
 
-                // ==========================================
-                // 1. إعدادات المسارات
-                // ==========================================
-                $bg          = public_path('qr-image-v10.jpg');
-                $link        = asset('scan-qr/' . $uu_id);
-                $qr_tmp_name = 'tmp_qr_' . time() . '.png';
-                $qr_tmp_path = public_path('custom_event_qr_code/' . $qr_tmp_name);
-                $final_path  = public_path('custom_event_qr_code/' . $image_name);
-
-                // ==========================================
-                // 2. إعدادات الخطوط
-                // ==========================================
-                $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
-                if (!file_exists($arabic_font)) {
-                    $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
-                }
-                $number_font = public_path('font/timr45w.ttf');
-                if (!file_exists($number_font)) {
-                    $number_font = $arabic_font;
-                }
-
-                // ==========================================
-                // 3. إعدادات الأبعاد والإحداثيات
-                // ==========================================
-                $qr_size        = 450;
-                $y_title        = 580;
-                $y_tickets      = 900;
-                $x_left_ticket  = 600;
-                $x_right_ticket = 1430;
-                $y_mobile       = 1120;
-                $y_datetime     = 1200;
-                $y_qr           = 1270;
-
-                // ==========================================
-                // 4. إنشاء الباركود
-                // ==========================================
                 // إنشاء المجلد إذا لم يكن موجوداً
                 if (!is_dir(public_path('custom_event_qr_code'))) {
                     mkdir(public_path('custom_event_qr_code'), 0755, true);
                 }
 
-                QrCode::format('png')
-                    ->size($qr_size)
-                    ->color($color[0], $color[1], $color[2])
-                    ->backgroundColor(255, 255, 255, 0)
-                    ->margin(1)
-                    ->generate($link, $qr_tmp_path);
+                $bg = public_path('qr-image-v10.jpg');
 
-                // ==========================================
-                // 5. دمج البيانات على الصورة
-                // ==========================================
-                $img      = Image::make($bg);
-                $center_x = intval($img->width() / 2);
+                if (file_exists($bg)) {
+                    // لو فيه خلفية افتراضية — استخدمها
+                    $qr_tmp_name = 'tmp_qr_' . time() . '.png';
+                    $qr_tmp_path = public_path('custom_event_qr_code/' . $qr_tmp_name);
 
-                if (!empty(trim($event->name ?? ''))) {
-                    $title_text = trim($event->name);
-                    $Arabic     = new \ArPHP\I18N\Arabic('Glyphs');
-                    $title_text = $Arabic->utf8Glyphs($title_text);
-                    Log::info("update_qr rendering text", ["original" => $event->name, "title_text" => $title_text, "font" => $arabic_font]);
+                    QrCode::format('png')->size(450)->color($color[0], $color[1], $color[2])
+                        ->backgroundColor(255, 255, 255, 0)->margin(1)
+                        ->generate($link, $qr_tmp_path);
 
-                    $img->text($title_text, $center_x, $y_title, function ($font) use ($arabic_font) {
-                        $font->file($arabic_font);
-                        $font->size(50);
-                        $font->color('#fff');
-                        $font->align('center');
-                        $font->valign('middle');
-                    });
-                }
+                    $img = Image::make($bg);
+                    $img->insert($qr_tmp_path, 'top', 0, 1270);
+                    $img->save($final_path, 100);
 
-                if (isset($user_event->suit_num) && $user_event->suit_num != 0) {
-                    $img->text($user_event->suit_num, $x_left_ticket, $y_tickets, function ($font) use ($number_font) {
-                        $font->file($number_font);
-                        $font->size(90);
-                        $font->color('#000000');
-                        $font->align('center');
-                        $font->valign('middle');
-                    });
-                }
-
-                if (isset($user_event->accept_count)) {
-                    $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
-                        $font->file($number_font);
-                        $font->size(90);
-                        $font->color('#000000');
-                        $font->align('center');
-                        $font->valign('middle');
-                    });
-                }
-
-                if (isset($user_event->mobile)) {
-                    $img->text($user_event->mobile, $center_x, $y_mobile, function ($font) use ($number_font) {
-                        $font->file($number_font);
-                        $font->size(90);
-                        $font->color('#000');
-                        $font->align('center');
-                        $font->valign('middle');
-                    });
-                }
-
-                if (isset($event->date) && isset($event->time)) {
-                    $datetime = $event->date . ' ' . $event->time;
-                    $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
-                        $font->file($number_font);
-                        $font->size(50);
-                        $font->color('#000000');
-                        $font->align('center');
-                        $font->valign('middle');
-                    });
-                }
-
-                $img->insert($qr_tmp_path, 'top', 0, $y_qr);
-
-                // ==========================================
-                // 6. حفظ الصورة النهائية وتنظيف الملفات المؤقتة
-                // ==========================================
-                $img->save($final_path, 100);
-
-                if (file_exists($qr_tmp_path)) {
-                    unlink($qr_tmp_path);
+                    if (file_exists($qr_tmp_path)) {
+                        unlink($qr_tmp_path);
+                    }
+                } else {
+                    // لا توجد خلفية — احفظ الـ QR مباشرةً كصورة نهائية
+                    QrCode::format('png')->size(450)->color($color[0], $color[1], $color[2])
+                        ->backgroundColor(255, 255, 255)->margin(2)
+                        ->generate($link, $final_path);
                 }
             }
+
         } catch (\Throwable $e) {
             Log::error("update_qr image generation failed for row id={$row->id}: " . $e->getMessage());
         }

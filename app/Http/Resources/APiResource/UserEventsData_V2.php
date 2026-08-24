@@ -32,7 +32,9 @@ class UserEventsData_V2 extends JsonResource
             'address' => $this->address,
             'date' => $this->date,
             'image' => $this->image,
-            'all_invited' => (int)(EventUsers::where('event_id',$this->id)->sum('users_count')),
+            'all_invited' => (int)(EventUsers::
+            where('event_id',$this->id)
+            ->sum('users_count')),
             'invitations_not_sent' => (int)(EventUsers::where('event_id',$this->id)->where('status','hold')->sum('users_count')),
 
             'confirmed_invitatios' => (int)(EventUsers::where('event_id',$this->id)->where('is_accepted','yes')->sum('users_count')),

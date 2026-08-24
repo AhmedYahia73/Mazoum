@@ -439,10 +439,53 @@ class ApiEventsController extends Controller
         })
         ->with("scan_employee:id,employee_gender")
         ->get(['id','title','address','file as image','date','time',
-        'sending_type', 'scan_assistant_id']);
+        'sending_type', 'scan_assistant_id'])
+        ->map(function($item) use($user) {
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'address' => $item->address,
+                'date' => $item->date,
+                'image' => $item->image,
+                'all_invited' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->sum('users_count')),
+                'invitations_not_sent' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->where('status','hold')
+                ->where("user_id", $user->id)
+                ->sum('users_count')),
+
+                'confirmed_invitatios' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->where('is_accepted','yes')
+                ->where("user_id", $user->id)
+                ->sum('users_count')),
+                //'confirmed_invitatios' => (int)(EventUsers::where('event_id',$item->id)->where('status','attend')->sum('users_count')),
+
+                'scaned_qr' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->where("user_id", $user->id)
+                ->where('scan','yes')->sum('scan_count')),
+                'apologized_invitatios' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->where("user_id", $user->id)
+                ->where('status','not-attend')->sum('users_count')),
+                'failed_invitatios' => (int)(EventUsers::
+                where('event_id',$item->id)
+                ->where("user_id", $user->id)
+                ->where('status','failed')->sum('users_count')),
+
+                'non_attendance_user' => (int) (EventUsers::
+                where('event_id',$item->id)
+                ->where("user_id", $user->id)
+                ->where('status','attend')->whereNull('scan')->whereNull('is_refused')->sum('users_count')),
+                'scan_employee' => $item->scan_employee ? $item->scan_employee : null,
+            ];
+        });
 
         if($Item != null && $Item->count() > 0) {
-            $data = UserEventsData_V2::collection($Item);
+            $data = $Item;
         } else {
             $data = null;
         }

@@ -369,6 +369,11 @@ class CustomEventController extends Controller
 
                 $qr_size = ($qr_width > 0 && $qr_height > 0) ? $qr_width : 300;
 
+                // إنشاء المجلد إذا لم يكن موجوداً
+                if (!is_dir(public_path('custom_event_qr_code'))) {
+                    mkdir(public_path('custom_event_qr_code'), 0755, true);
+                }
+
                 QrCode::format('png')
                     ->size($qr_size)
                     ->color($color[0], $color[1], $color[2])
@@ -498,6 +503,11 @@ class CustomEventController extends Controller
                 // ==========================================
                 // 4. إنشاء الباركود
                 // ==========================================
+                // إنشاء المجلد إذا لم يكن موجوداً
+                if (!is_dir(public_path('qr_code'))) {
+                    mkdir(public_path('qr_code'), 0755, true);
+                }
+
                 QrCode::format('png')
                     ->size($qr_size)
                     ->color($color[0], $color[1], $color[2])

@@ -339,7 +339,7 @@ class CustomEventController extends Controller
 
     private function update_qr($row, $uu_id) {
         $event = $row->event;
-
+dd(12);
         if (!$event) {
             Log::warning("update_qr: event not found for row id={$row->id}");
             return;

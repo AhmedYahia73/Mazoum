@@ -473,8 +473,8 @@ class CustomEventController extends Controller
                 $bg          = public_path('qr-image-v10.jpg');
                 $link        = asset('scan-qr/' . $uu_id);
                 $qr_tmp_name = 'tmp_qr_' . time() . '.png';
-                $qr_tmp_path = public_path('qr_code/' . $qr_tmp_name);
-                $final_path  = public_path('qr_code/' . $image_name);
+                $qr_tmp_path = public_path('custom_event_qr_code/' . $qr_tmp_name);
+                $final_path  = public_path('custom_event_qr_code/' . $image_name);
 
                 // ==========================================
                 // 2. إعدادات الخطوط
@@ -504,8 +504,8 @@ class CustomEventController extends Controller
                 // 4. إنشاء الباركود
                 // ==========================================
                 // إنشاء المجلد إذا لم يكن موجوداً
-                if (!is_dir(public_path('qr_code'))) {
-                    mkdir(public_path('qr_code'), 0755, true);
+                if (!is_dir(public_path('custom_event_qr_code'))) {
+                    mkdir(public_path('custom_event_qr_code'), 0755, true);
                 }
 
                 QrCode::format('png')

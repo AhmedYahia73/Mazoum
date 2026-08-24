@@ -501,8 +501,19 @@ class CustomEventController extends Controller
             }
 
         } catch (\Throwable $e) {
-            Log::error("update_qr image generation failed for row id={$row->id}: " . $e->getMessage());
+            Log::error("update_qr FAILED row={$row->id}: " . $e->getMessage() . " | file:" . $e->getFile() . " line:" . $e->getLine());
         }
+
+        // debug: log paths and file existence
+        Log::info("update_qr DONE", [
+            'row_id'       => $row->id,
+            'image_name'   => $image_name ?? null,
+            'final_path'   => isset($final_path) ? $final_path : 'not set',
+            'file_exists'  => isset($final_path) ? file_exists($final_path) : false,
+            'dir_exists'   => is_dir(public_path('custom_event_qr_code')),
+            'dir_writable' => is_writable(public_path('custom_event_qr_code')),
+            'public_path'  => public_path('custom_event_qr_code'),
+        ]);
 
         // حفظ اسم ملف QR في DB دائماً حتى لو فشل توليد الصورة
         $row->update(["qr" => $image_name]);

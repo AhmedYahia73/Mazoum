@@ -449,6 +449,7 @@ class ApiEventsController extends Controller
                 'image' => $item->image,
                 'all_invited' => (int)(EventUsers::
                 where('event_id',$item->id)
+                ->where("user_id", $user->id)
                 ->sum('users_count')),
                 'invitations_not_sent' => (int)(EventUsers::
                 where('event_id',$item->id)

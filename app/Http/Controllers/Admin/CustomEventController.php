@@ -3060,6 +3060,9 @@ class CustomEventController extends Controller
                     }
                     elseif($request->type == "video"){ 
                         $api = $client->sendVideoMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);
+                        return response()->json([
+                            "api" => $api
+                        ]);
                     }
                     else{
                         $api = $client->sendImageMessage($to,$url_image,$caption,$priority,$referenceId,$nocache);

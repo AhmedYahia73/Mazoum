@@ -1604,4 +1604,14 @@ class EventsController extends Controller
             "Items" => $Item
         ]);  
     }
+
+    public function delete_voice_msgs(Request $request, $id){
+        EventVoice::
+        where("id", $id)
+        ->delete();
+
+        return response()->json([
+            "success" => "You delete data success"
+        ]);
+    }
 }

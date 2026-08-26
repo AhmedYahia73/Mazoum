@@ -181,6 +181,7 @@ Route::resource('web_desgins', 'WebDesginsController', [
 ]);
 
 // Events  
+Route::delete('events/voice_msgs/delete/{id}', 'EventsController@delete_voice_msgs');
 Route::get('events/voice_msgs/{id}', 'EventsController@voice_msgs');
 Route::get('events/phones_lists', 'EventsController@phones_lists');
 Route::get('events/all_events', 'EventsController@all_events');

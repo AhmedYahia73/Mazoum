@@ -60,23 +60,42 @@ class EventHostController extends Controller
                 'errors' => $validator->errors(),
             ],400);
         }
-
         $event = Events::
         where("id", $request->event_id)
         ->first();
+        
         $user_status = $event->user_id == $request->user_id;
         $event_id = $request->event_id;
+        
         $event_host = User::
         where("id", $request->user_id) 
         ->first();
+        
         $user_id = $request->user_id;
+        
         $event_user = EventUsers::
         where('event_id',$event_id);
+        
         !$user_status ? $event_user->where("user_id", $user_id): 
         $event_user->where(function($query) use($user_id){
             $query->whereNull("user_id")
             ->orWhere("user_id", $user_id);
         });
+
+        // ---------------------------------------------------------
+        // إضافة كود البحث هنا (قبل الـ pagination ودون تغيير الـ logic)
+        // ---------------------------------------------------------
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $event_user->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('mobile', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('suit_num', 'like', "%{$search}%"); // يمكنك إزالة أو إضافة حقول من هنا حسب الحاجة
+            });
+        }
+        // ---------------------------------------------------------
 
         if($request->type == "all"){
             $event_user = $event_user 

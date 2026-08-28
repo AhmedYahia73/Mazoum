@@ -7,10 +7,12 @@ use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
 use App\Models\CustomEventUsers;
 use App\Models\CustomMemory;
+use App\Models\CustomMessage;
 use App\Models\EnterUserCustomEvent;
 use App\Models\EnterUserEvent;
 use App\Models\EventChat;
 use App\Models\EventUsers;
+use App\Models\EventVoice;
 use App\Models\Memory;
 use App\Models\Negotaition;
 use App\Models\Orders;
@@ -32,6 +34,33 @@ class PackageController extends Controller
 {
     use imageTrait;
 
+
+    public $token;
+    public $lang;
+    public function __construct()
+    {
+        if (getallheaders() != null && ! empty(getallheaders())) {
+            if (array_key_exists('language', getallheaders())) {
+                $this->lang = getallheaders()['language'];
+            } elseif (array_key_exists('Language', getallheaders())) {
+                $this->lang = getallheaders()['Language'];
+            } else {
+                $this->lang = 'ar';
+            }
+
+            if (array_key_exists('token', getallheaders())) {
+                $this->token = getallheaders()['token'];
+            } elseif (array_key_exists('Token', getallheaders())) {
+                $this->token = getallheaders()['Token'];
+            } else {
+                $this->token = null;
+            }
+
+        } else {
+            $this->lang = null;
+            $this->token = null;
+        }
+    }
     public function view(Request $request){
         $validator = Validator::make($request->all(), [
           'locale' => 'required|in:en,ar'
@@ -269,6 +298,17 @@ class PackageController extends Controller
  
     public function event_users(Request $request, $id)
     {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
         $Item = Model::
         where("user_id", auth()->user()->id)
         ->orWhereHas("sub_user", function($query){
@@ -381,6 +421,49 @@ class PackageController extends Controller
         $attendance_data['total_users'] = $attendance;
         $waiting_data = $waiting_list->toArray();
         $waiting_data['total_users'] = $waiting;
+
+        $visitors_count = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
+        ->sum('users_count');
+        $qr_count = CustomEventUsers::
+        where('custom_event_id',$Item->id)
+        ->where("user_id", $user?->id)
+        ->where('scan','yes')
+        ->sum('scan_count');
+        $event_host = User::
+        where("user_id", $Item->user_id)
+        ->whereHas("event_users", function($query) use($Item){
+            $query->where("event_id", $Item->id);
+        })
+        ->count();
+        $congratulation_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "congratulation")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->count();
+        $apologize_msg = CustomMessage::
+        where("custom_event_id", $Item->id)
+        ->where("type", "apologize")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->count();
+        $apologize_count = CustomEventUsers::
+        where("custom_event_id", $Item->id) 
+        ->where("user_id", $user?->id) 
+        ->sum("apologize_count");
+        $confirm_count = CustomEventUsers::
+        where("custom_event_id", $Item->id) 
+        ->where("user_id", $user?->id)
+        ->sum("confirm_count");
+        $voices = EventVoice::whereHas("custom_event_user", function($query) use($user, $id){
+            $query->where("user_id", $user?->id)
+                ->where("custom_event_id", $id);
+        })
+        ->count();
 
         return response()->json([
             'Item' =>  $Item, 

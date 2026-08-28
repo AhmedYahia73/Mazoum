@@ -20,6 +20,71 @@ class CustomEventController extends Controller
     public $token;
     public $lang;
 
+    public function is_remember(Request $request)
+    {
+       $validator = Validator::make($request->all(), [ 
+            'users' => 'required|array',
+            'users.*' => 'required|exists:custom_event_users,id',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $users = $request->users;
+        CustomEventUsers::
+        whereIn("id", $request->users)
+        ->update([
+            "remember" => 1
+        ]); 
+
+        return response()->json([
+            "success" => "You remember success", 
+        ]);
+
+    }
+
+    public function remember_users_to_event(Request $request)
+    {
+       $validator = Validator::make($request->all(), [ 
+            'message' => 'required',
+            'custom_event_id' => 'required|exists:custom_event,id',
+            'date' => 'required',
+            'time' => 'required',
+        ]); 
+        if ($validator->fails()) { // if Validate Make Error Return Message Error
+            return response()->json([
+                'errors' => $validator->errors(),
+            ],400);
+        }   
+
+        $event_id = $request->custom_event_id;
+
+        $event = Model::where('id', $event_id)->firstOrFail();
+
+        $url_image = $event->image;
+ 
+
+        /* ***************************************************************************** */
+
+        $map = 'https://www.google.com/maps?q=' .  $event->lat . ',' . $event->lng;
+ 
+ 
+        $date = $request->date;
+        $time = $request->time;
+ 
+
+        $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم ". $date ." في تمــام الساعة "  . $time . "  تشرفينــا لحضور " . $request->message . ' 🌺🌺 ';
+ 
+        return response()->json([
+            "caption" => $caption,
+            "map" => $map,
+            "url_image" => $url_image,
+        ]);
+
+    }
+
     public function __construct()
     {
         if (getallheaders() != null && ! empty(getallheaders())) {
@@ -77,7 +142,7 @@ class CustomEventController extends Controller
         ->orWhereHas("sub_user", function($query){
             $query->where("users.id", auth()->user()->id);
         })
-        ->get(); // عدد العناصر في الصفحة
+        ->get();
 
         return response()->json([
             'Items' => $Item,

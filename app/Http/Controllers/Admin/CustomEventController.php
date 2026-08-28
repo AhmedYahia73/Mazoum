@@ -2556,6 +2556,9 @@ class CustomEventController extends Controller
             foreach($request->users as $item) {
 
                 $user_event = CustomEventUsers::withTrashed()->find($item);
+                $user_event->update([
+                    "remember" => 1
+                ]);
 
                 $url_button = '?q=' . $event->lat . ',' . $event->lng;
 

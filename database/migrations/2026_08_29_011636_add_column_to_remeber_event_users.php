@@ -13,7 +13,7 @@ class AddColumnToRemeberEventUsers extends Migration
      */
     public function up()
     {
-        Schema::table('remeber_event_users', function (Blueprint $table) {
+        Schema::table('custom_event_users', function (Blueprint $table) {
             $table->boolean("remember")->default(0);
         });
     }
@@ -25,7 +25,7 @@ class AddColumnToRemeberEventUsers extends Migration
      */
     public function down()
     {
-        Schema::table('remeber_event_users', function (Blueprint $table) {
+        Schema::table('custom_event_users', function (Blueprint $table) {
             //
         });
     }

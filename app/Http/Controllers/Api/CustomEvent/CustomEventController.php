@@ -578,5 +578,143 @@ class CustomEventController extends Controller
         return response()->json([
             "messages" => $messages
         ]);
+    }  
+
+    public function all_event_users_excel(Request $request, $id)
+    {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->where("user_id", $user?->id)
+        ->get(); 
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,   
+        ]); 
+    }
+
+    public function scan_users_excel(Request $request, $id)
+    {
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        $Item = Model::findOrFail($id);
+        $user_events = CustomEventUsers::
+        where('custom_event_id', $Item->id)
+        ->where("scan_count", ">", 0)
+        ->where("user_id", $user?->id)
+        ->when($request->search, function ($q) use ($request) {
+
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%$search%")
+                    ->orWhere('mobile', 'like', "%$search%");
+            });
+        })
+        ->get(); 
+
+        return response()->json([
+            'Item' =>  $Item, 
+            'user_events' =>  $user_events,  
+        ]); 
+    }
+    
+    public function congratulation_msg_excel($id){
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "congratulation")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
     } 
+    
+    public function apologize_msg_excel($id){
+        // status
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+        $messages = CustomMessage::
+        where("custom_event_id", $id)
+        ->where("type", "apologize")
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->get()
+        ->map(function($item){
+            return [
+                "id" => $item->id,
+                "msg" => $item->msg,
+                "name" => $item?->user?->name,
+                "mobile" => $item?->user?->mobile,
+            ];
+        });
+
+        return response()->json([
+            "messages" => $messages
+        ]);
+    }  
 }

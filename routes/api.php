@@ -59,10 +59,10 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/send_memories', 'send_memories')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });
  
-    Route::get('/all_event_users_exce/{id}l', 'Api\CustomEvent\CustomEventController@all_event_users_excel');
-    Route::get('/scan_users_exce/{id}l', 'Api\CustomEvent\CustomEventController@scan_users_excel');
-    Route::get('/congratulation_msg_exce/{id}l', 'Api\CustomEvent\CustomEventController@congratulation_msg_excel');
-    Route::get('/apologize_msg_exce/{id}l', 'Api\CustomEvent\CustomEventController@apologize_msg_excel');
+    Route::get('/all_event_users_excel/{id}', 'Api\CustomEvent\CustomEventController@all_event_users_excel');
+    Route::get('/scan_users_excel/{id}', 'Api\CustomEvent\CustomEventController@scan_users_excel');
+    Route::get('/congratulation_msg_excel/{id}', 'Api\CustomEvent\CustomEventController@congratulation_msg_excel');
+    Route::get('/apologize_msg_excel/{id}', 'Api\CustomEvent\CustomEventController@apologize_msg_excel');
     Route::post('/remember_users_to_event', 'Api\CustomEvent\CustomEventController@remember_users_to_event');
     Route::post('/is_remember', 'Api\CustomEvent\CustomEventController@is_remember');
     Route::get('/custom_voice_msg/{id}', 'Api\CustomEvent\CustomEventController@custom_voice_msg');

@@ -510,7 +510,11 @@ class ApiEventsController extends Controller
 
             // إرجاع نفس الـ Keys بنفس الأسماء القديمة بالظبط
             return [
-                'item' => $item,
+                'id' => $item->id,
+                'title' => $item->title,
+                'address' => $item->address,
+                'date' => $item->date,
+                'image' => $item->image,
                 "all_invited" => intval($all_invited_users),
                 "invitations_not_sent" => intval($invitations_not_sent_users),
                 "confirmed_invitatios" => intval($confirmed_invitatios_users),

@@ -434,10 +434,7 @@ class ApiEventsController extends Controller
                     });
             })
             ->with("scan_employee:id,employee_gender")
-            ->get([
-                'id', 'title', 'address', 'file as image', 'date', 'time',
-                'sending_type', 'scan_assistant_id'
-            ]);
+            ->get();
 
         $data = $items->map(function ($item) use ($user) {
             $user_id = $user->id;

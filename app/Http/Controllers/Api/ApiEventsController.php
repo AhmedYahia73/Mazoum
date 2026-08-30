@@ -407,7 +407,7 @@ class ApiEventsController extends Controller
             "memories" => $memories,
         ]);
     }
-
+    
     public function index()
     {
         if ($this->lang == null) {
@@ -415,7 +415,6 @@ class ApiEventsController extends Controller
         }
 
         $lang = $this->lang;
-
         $user = null;
 
         if ($this->token != null) {
@@ -423,167 +422,119 @@ class ApiEventsController extends Controller
         }
 
         if ($user == null) {
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'user is required');
-            } else {
-                return $this->returnError('E100', 'المستخدم مطلوب');
-            }
+            $message = ($lang == 'en') ? 'user is required' : 'المستخدم مطلوب';
+            return $this->returnError('E100', $message);
         }
 
-        $Item = Model::where(function ($query) use ($user) {
-              $query->where('user_id', $user->id)
-              ->orWhere('assistant_id',$user->id)
-              ->orWhereHas("sub_user", function($query) use($user){
-                $query->where("users.id", $user->id);
-              });
-        })
-        ->with("scan_employee:id,employee_gender")
-        ->get(['id','title','address','file as image','date','time',
-        'sending_type', 'scan_assistant_id'])
-        ->map(function($item) use($user) {
+        $items = Model::where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('assistant_id', $user->id)
+                    ->orWhereHas("sub_user", function ($q) use ($user) {
+                        $q->where("users.id", $user->id);
+                    });
+            })
+            ->with("scan_employee:id,employee_gender")
+            ->get([
+                'id', 'title', 'address', 'file as image', 'date', 'time',
+                'sending_type', 'scan_assistant_id'
+            ]);
+
+        $data = $items->map(function ($item) use ($user) {
             $user_id = $user->id;
-            $user_status = $item->user_id == $user->id;
-            $user_id = $user->id; 
-            $users_ids = EventUsers::where('event_id', $item->id);
-                $users_ids = !$user_status ? $users_ids->where("user_id", $user_id)->sum('users_count'): 
-                $users_ids->where(function($query) use($user_id){
-                    $query->whereNull("user_id")
-                    ->orWhere("user_id", $user_id);
-                })
-                ->pluck("id")
-                ->toArray();
-            $all_invited_users = EventUsers::where('event_id', $item->id);
-                $all_invited_users = !$user_status ? $all_invited_users->where("user_id", $user_id)->sum('users_count'): 
-                $all_invited_users->where(function($query) use($user_id){
-                    $query->whereNull("user_id")
-                    ->orWhere("user_id", $user_id);
-                })
-                ->sum("users_count");
-                
-            $invitations_not_sent_users = EventUsers::where('event_id', $item->id);
-                
-            $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users->where("user_id", $user_id)->sum('users_count'): 
-            $invitations_not_sent_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->where('status', 'hold')
-            ->where('is_new_sent', 0)
-            ->whereNull('is_sent')
-            ->sum('users_count');
-            
-            $confirmed_invitatios_users = EventUsers::
-            where('event_id', $item->id);
-            $confirmed_invitatios_users = !$user_status ? $confirmed_invitatios_users->where("user_id", $user_id)->sum('accept_count'): 
-            $confirmed_invitatios_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum('accept_count'); 
+            $user_status = ($item->user_id == $user_id);
 
-            $scaned_qr_users = EventUsers::
-            where('event_id',$item->id)
-            ->where('scan','yes');
-            $scaned_qr_users = !$user_status ? $scaned_qr_users->where("user_id", $user_id)->sum('scan_count'): 
-            $scaned_qr_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum('scan_count');
+            // بناء الاستعلام الأساسي لـ EventUsers طبقاً لـ user_status نفس لوجيك event_users_count
+            $baseEventUsers = EventUsers::where('event_id', $item->id)
+                ->when(!$user_status, function ($q) use ($user_id) {
+                    return $q->where("user_id", $user_id);
+                }, function ($q) use ($user_id) {
+                    return $q->where(function ($subQuery) use ($user_id) {
+                        $subQuery->whereNull("user_id")
+                            ->orWhere("user_id", $user_id);
+                    });
+                });
 
-            $apologized_invitatios_users = EventUsers::
-            where('event_id',$item->id)
-            ->where('status','not-attend');
-                $apologized_invitatios_users = !$user_status ? $apologized_invitatios_users->where("user_id", $user_id)->sum('users_count'): 
-                $apologized_invitatios_users->where(function($query) use($user_id){
-                    $query->whereNull("user_id")
-                    ->orWhere("user_id", $user_id);
+            // جلب قائمة المعرفات الخاصة بالرسائل والأصوات
+            $users_ids = (clone $baseEventUsers)->pluck('id')->toArray();
+
+            // حساب القيم باستخدام clone بنفس اللوجيك المطابق
+            $all_invited_users = (clone $baseEventUsers)->sum('users_count');
+
+            $invitations_not_sent_users = (clone $baseEventUsers)
+                ->where('status', 'hold')
+                ->where('is_new_sent', 0)
+                ->whereNull('is_sent')
+                ->sum('users_count');
+
+            $confirmed_invitatios_users = (clone $baseEventUsers)->sum('accept_count');
+
+            $scaned_qr_users = (clone $baseEventUsers)
+                ->where('scan', 'yes')
+                ->sum('scan_count');
+
+            $apologized_invitatios_users = (clone $baseEventUsers)
+                ->where('status', 'not-attend')
+                ->sum('users_count');
+
+            $failed_invitatios_users = (clone $baseEventUsers)
+                ->where('accept_count', 0)
+                ->where('status', '!=', 'not-attend')
+                ->where(function ($query) {
+                    $query->where('is_new_sent', '!=', 0)
+                        ->orWhere('status', '!=', 'hold')
+                        ->orWhereNotNull('is_sent');
                 })
-            ->sum('users_count'); 
-            $failed_invitatios_users = EventUsers::where('event_id', $item->id)
-            ->where('accept_count', 0)
-            ->where('status', "!=", 'not-attend')
-            ->where(function($query) { 
-                $query->where('is_new_sent', "!=", 0)
-                ->orWhere('status', "!=", 'hold')
-                ->orWhereNotNull('is_sent'); 
-            });
-            $failed_invitatios_users = !$user_status ? $failed_invitatios_users->where("user_id", $user_id)->sum('users_count'): 
-            $failed_invitatios_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum('users_count');
-            $send_Qr = EventUsers::where('event_id', $item->id)
-            ->where('qr_sent', 'yes');
-            $send_Qr = !$user_status ? $send_Qr->where("user_id", $user_id)->sum('accept_count'): 
-            $send_Qr->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum('accept_count'); 
-            $confirm_web_users = EventUsers::where('event_id', $item->id)
-            ->where('send_type', 'link')
-            ->where('qr_sent', 'yes');
-            $confirm_web_users = !$user_status ? $confirm_web_users->where("user_id", $user_id)->sum('accept_count'): 
-            $confirm_web_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum('accept_count'); 
+                ->sum('users_count');
+
+            $send_Qr = (clone $baseEventUsers)
+                ->where('qr_sent', 'yes')
+                ->sum('accept_count');
+
+            $confirm_web_users = (clone $baseEventUsers)
+                ->where('send_type', 'link')
+                ->where('qr_sent', 'yes')
+                ->sum('accept_count');
+
+            $remember_users = (clone $baseEventUsers)
+                ->where("remember", 1)
+                ->sum('users_count');
+
             $non_attendance_users = $confirmed_invitatios_users - $scaned_qr_users;
-                
-            $enterd_events = EventFamily::where('event_id', $item->id)
-            ->count(); 
-            $scan_enterd_events = EventFamily::where('event_id', $item->id)
-            ->where('scan_qr', 'yes')
-            ->count(); 
-            $not_scan_enterd_events = EventFamily::where('event_id', $item->id)
-            ->where('scan_qr', 'no')
-            ->count();
-            $congratulation_msgs = CongratulationMessages::
-            whereIn("event_user_id", $users_ids)
-            ->count();
-            $apologize_msgs = EventMessages::
-            whereIn("event_user_id", $users_ids)
-            ->count();
-            $voices = EventVoice::
-            whereIn("event_user_id", $users_ids)
-            ->with("event_user:id,name,mobile")
-            ->count();
-            $remember_users = EventUsers::where('event_id', $item->id)
-            ->where("remember", 1);
-            $remember_users = !$user_status ? $remember_users->where("user_id", $user_id)->sum('users_count'): 
-            $remember_users->where(function($query) use($user_id){
-                $query->whereNull("user_id")
-                ->orWhere("user_id", $user_id);
-            })
-            ->sum("users_count");
-            return [ 
+
+            // إحصائيات EventFamily
+            $enterd_events = EventFamily::where('event_id', $item->id)->count();
+            $scan_enterd_events = EventFamily::where('event_id', $item->id)->where('scan_qr', 'yes')->count();
+            $not_scan_enterd_events = EventFamily::where('event_id', $item->id)->where('scan_qr', 'no')->count();
+
+            // إحصائيات الرسائل والأصوات
+            $congratulation_msgs = CongratulationMessages::whereIn("event_user_id", $users_ids)->count();
+            $apologize_msgs = EventMessages::whereIn("event_user_id", $users_ids)->count();
+            $voices = EventVoice::whereIn("event_user_id", $users_ids)->count();
+
+            // إرجاع نفس الـ Keys بنفس الأسماء القديمة بالظبط
+            return [
                 'item' => $item,
-                "all_invited" => intval($all_invited_users), 
-                "invitations_not_sent" => intval($invitations_not_sent_users), 
+                "all_invited" => intval($all_invited_users),
+                "invitations_not_sent" => intval($invitations_not_sent_users),
                 "confirmed_invitatios" => intval($confirmed_invitatios_users),
-                "scaned_qr" => intval($scaned_qr_users), 
-                "apologized_invitatios" => intval($apologized_invitatios_users), 
-                "failed_invitatios" => intval($failed_invitatios_users), 
-                "send_Qr" => intval($send_Qr), 
-                "confirm_web_users" => intval($confirm_web_users), 
-                "non_attendance_user" => intval($non_attendance_users), 
+                "scaned_qr" => intval($scaned_qr_users),
+                "apologized_invitatios" => intval($apologized_invitatios_users),
+                "failed_invitatios" => intval($failed_invitatios_users),
+                "send_Qr" => intval($send_Qr),
+                "confirm_web_users" => intval($confirm_web_users),
+                "non_attendance_user" => intval($non_attendance_users),
                 "enterd_events" => intval($enterd_events),
-                "scan_enterd_events" => intval($scan_enterd_events), 
+                "scan_enterd_events" => intval($scan_enterd_events),
                 "not_scan_enterd_events" => intval($not_scan_enterd_events),
                 "congratulation_msgs" => intval($congratulation_msgs),
                 "apologize_msgs" => intval($apologize_msgs),
                 "voices" => intval($voices),
                 "remember_users" => intval($remember_users),
-            ]; 
+            ];
         });
 
-        return $this->returnData('data', $Item);
+        return $this->returnData('data', $data);
     }
-
-
 
     /**
      * Show the form for creating a new resource.

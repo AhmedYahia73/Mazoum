@@ -514,7 +514,7 @@ class ApiEventsController extends Controller
                 'title' => $item->title,
                 'address' => $item->address,
                 'date' => $item->date,
-                'image' => $item->image,
+                'image' => $item->file,
                 "all_invited" => intval($all_invited_users),
                 "invitations_not_sent" => intval($invitations_not_sent_users),
                 "confirmed_invitatios" => intval($confirmed_invitatios_users),

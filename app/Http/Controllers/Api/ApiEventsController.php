@@ -1044,9 +1044,14 @@ class ApiEventsController extends Controller
                         $q->where('is_new_sent', '!=', 0)
                           ->where('status', '!=', 'hold')
                           ->whereNotNull('is_sent');
-                    })->where(function($q) use($user){
-                        $q->where("user_id", $user->id)
-                        ->orWhereNull("user_id");
+                    })
+                    ->when(!$user_status, function ($q) use ($user_id) {
+                        return $q->where("user_id", $user_id);
+                    }, function ($q) use ($user_id) {
+                        return $q->where(function ($subQuery) use ($user_id) {
+                            $subQuery->whereNull("user_id")
+                                ->orWhere("user_id", $user_id);
+                        });
                     });
                 break;
 

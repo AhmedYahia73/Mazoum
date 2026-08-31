@@ -1040,11 +1040,11 @@ class ApiEventsController extends Controller
             case 'failed_invitatios_users':
                 $query = EventUsers::where('event_id', $Item->id)
                     ->where('accept_count', 0)
-                    ->where(function ($q) {
-                        $q->where('is_new_sent', '!=', 0)
-                          ->where('status', '!=', 'hold')
-                          ->whereNotNull('is_sent');
-                    });
+                ->where(function ($query) {
+                    $query->where('is_new_sent', '!=', 0)
+                        ->orWhere('status', '!=', 'hold')
+                        ->orWhereNotNull('is_sent');
+                });
                 break;
 
             case 'send_Qr':

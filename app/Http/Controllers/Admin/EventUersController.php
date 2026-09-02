@@ -1857,7 +1857,8 @@ class EventUersController extends Controller
             $instance_id="instance109805"; // Ultramsg.com instance id
             $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
   
-            $text = "باركود الدخـول الخـاص بـك, فضـلاً تأكد من حفـظ الصـورة في هاتفك لإبرازهــا عند دخـول المناسبة.
+            $text = "تم تأكيـد حضــورك للمناسبـة 👍 
+كــود الـدخـول الخـــاص بكــم
                     عدد الضيـوف  : ( " . $user_event->accept_count . " ) 🌺";
             // $api=$client->sendChatMessage($to,$body);
             $api2 = $client->sendImageMessage($mobile, $image_url, $text, 0, "SDK");

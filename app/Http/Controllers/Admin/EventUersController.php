@@ -298,15 +298,18 @@ class EventUersController extends Controller
                   if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
                     // dd('ok');
+                    if($row->status == "hold" || $row->status == "failed"){
+
+                        $update_data = [
+                        'balance' => $user->balance - $row->users_count,
+                        ];
+                    }
                     $row->update([
                         'is_new_sent' => 1, 
                         'status' => "sent", 
                         'is_delivered' => "yes", 
                     ]);
 
-                    $update_data = [
-                      'balance' => $user->balance - $row->users_count,
-                    ];
                     if (!$was_sent) {
                         $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $row->users_count;
                     }
@@ -1053,6 +1056,7 @@ class EventUersController extends Controller
                         'users_count' => $arr['users_count'],
                         'status' => 'hold', 
                         'suit_num' => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
+                        'user_id' => $event->user_id,
                     ]);
 
                   }
@@ -1422,6 +1426,7 @@ class EventUersController extends Controller
         $event = Events::where('id', $event_id)->firstOrFail();
 
         $user = $event->user;
+        $update_data = [];
 
         $total_qty = 0;
         foreach ($request->users as $arr) {
@@ -1609,9 +1614,11 @@ class EventUersController extends Controller
                                     "event_id" => $event->id,
                                     "phone_numer_id" => $phone_numer_id,
                                 ]);
-                                $update_data = [
-                                    'balance' => $user->balance - $users_count
-                                ];
+                                if($user_event->status == "hold" || $user_event->status == "failed"){
+                                    $update_data = [
+                                        'balance' => $user->balance - $users_count
+                                    ];
+                                }
                                 if (!$was_sent) {
                                     $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $users_count;
                                 }

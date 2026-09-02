@@ -842,6 +842,7 @@ class PackageController extends Controller
                 where('id',$item)
                 ->with("event")
                 ->first();
+                $user = User::where('id',$row->user_id)->first();
                 // __________________________________________________________________________________
                 if(!$event->resend_qr && $row->send_qr || $event->resend_qr && $row->resend_qr){
                     continue;
@@ -877,20 +878,28 @@ class PackageController extends Controller
 
                 //   dd($api);
 
-                  if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+                    if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
-                    // dd('ok');
-                    // $row->update(['is_new_sent' => 1]);
+                        if($row->send_status == "not_sent"){
+                            $update_data = [
+                                'balance' => $user->balance - $row->users_count
+                            ];
+                            $user->update($update_data);
+                        } 
+                        // dd('ok');
+                        // $row->update(['is_new_sent' => 1]);
+                        $row->update([
+                            'send_status' => "sent",
+                            "send_qr" => 1,
+                        ]); 
+                    } else {
 
-                        $row->send_qr = 1;
-                        $row->save();
-                  } else {
+                        $error_count = $error_count + 1;
 
-                    $error_count = $error_count + 1;
-
-                    // dd('not ok',$api);
-                    // $row->update(['is_new_sent' => 0]);
-                  }
+                        // dd('not ok',$api);
+                        // $row->update(['is_new_sent' => 0]);
+                        $row->update(['send_status' => "failed"]);
+                    } 
 
                 }
 

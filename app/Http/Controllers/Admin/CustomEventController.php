@@ -126,6 +126,7 @@ class CustomEventController extends Controller
                         'users_count' => $arr['users_count'],
                         'mobile' => isset($arr['mobile']) ? $arr['mobile'] : null,
                         'uu_id' => $uu_id,
+                        'user_id' => $event?->user_id,
                         "suit_num" => isset($arr['suit_num']) ? $arr['suit_num'] : 0,
                     ]);
 
@@ -2053,6 +2054,7 @@ class CustomEventController extends Controller
               if(isset($item)) {
 
                 $row = CustomEventUsers::where('id',$item)->first();
+                $user = User::where('id',$row->user_id)->first();
 
                 if($row != null && $row->mobile != null && $event != null) {
 
@@ -2092,15 +2094,25 @@ class CustomEventController extends Controller
 
                   if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
 
+                    if($row->send_status == "not_sent"){
+                        $update_data = [
+                            'balance' => $user->balance - $row->users_count
+                        ];
+                        $user->update($update_data);
+                    } 
                     // dd('ok');
                     // $row->update(['is_new_sent' => 1]);
-
+                    $row->update([
+                        'send_status' => "sent",
+                        "send_qr" => 1,
+                    ]); 
                   } else {
 
                     $error_count = $error_count + 1;
 
                     // dd('not ok',$api);
                     // $row->update(['is_new_sent' => 0]);
+                    $row->update(['send_status' => "failed"]);
                   }
 
                 }
@@ -2123,8 +2135,7 @@ class CustomEventController extends Controller
             return response()->json([
                 'errors' =>  'من فضلك اختر عنصر واحد علي الاقل', 
             ], 400);  
-        }
-
+        } 
     }
 
 

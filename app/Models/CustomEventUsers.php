@@ -35,6 +35,7 @@ class CustomEventUsers extends Model
         "apologize_count",
         "suit_num",
         "remember",
+        'send_status',
     ];
 
     public function enter()

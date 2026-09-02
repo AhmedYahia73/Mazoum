@@ -3566,7 +3566,7 @@ class EventUersController extends Controller
                 unlink($qr_tmp_path);
             }
 
-        } 
+        }
         else {
             // ==========================================
             // 1. إعدادات المسارات
@@ -3580,31 +3580,20 @@ class EventUersController extends Controller
             // ==========================================
             // 2. إعدادات الخطوط
             // ==========================================
-            // الخط العربي: نحاول public/font أولاً ثم resources/fonts كـ fallback
+            // خط العناوين العربية
             $arabic_font = public_path('font/DroidArabicKufiRegular.ttf');
             if (!file_exists($arabic_font)) {
                 $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
             }
             
             // الخط الجديد للأرقام والإنجليزية (Times New Roman)
-            $number_font = public_path('font/timr45w.ttf');
-            if (!file_exists($number_font)) {
-                $number_font = $arabic_font; // fallback لنفس الخط العربي
-            }
-
-            Log::info('update_qr FONTS', [
-                'arabic_font'        => $arabic_font,
-                'arabic_font_exists' => file_exists($arabic_font),
-                'number_font_exists' => file_exists($number_font),
-                'event_name'         => $event->name ?? 'NULL',
-                'bg_exists'          => file_exists(public_path('qr-image-v10.jpg')),
-            ]);
+            $number_font = public_path('font/timr45w.ttf'); 
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
             // ==========================================
             $qr_size        = 450; // حجم الباركود
-            $y_title        = 580; // الارتفاع الخاص باسم المناسبة / المدعو 
+            $y_title        = 580; // الارتفاع الخاص باسم المناسبة 
             $y_tickets      = 900 ; // الارتفاع الخاص برقم المقعد وعدد الدعوات
             $x_left_ticket  = 600; // العرض الخاص برقم المقعد 
             $x_right_ticket = 1430; // العرض الخاص بعدد الدعوات 
@@ -3639,6 +3628,17 @@ class EventUersController extends Controller
                     $font->file($arabic_font);
                     $font->size(50);
                     $font->color('#fff'); 
+                    $font->align('center');
+                    $font->valign('middle');
+                });
+            }
+
+            // ج- إضافة عدد الدعوات
+            if (isset($user_event->accept_count)) {
+                $img->text($user_event->accept_count, $x_right_ticket, $y_tickets, function ($font) use ($number_font) {
+                    $font->file($number_font);
+                    $font->size(90);
+                    $font->color('#000000');
                     $font->align('center');
                     $font->valign('middle');
                 });

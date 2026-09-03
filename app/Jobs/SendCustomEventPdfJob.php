@@ -255,5 +255,6 @@ class SendCustomEventPdfJob implements ShouldQueue
         } else {
             Log::error("Failed to send PDF via Ultramsg.", ['response' => $api]);
         }
+        return $api;
     }
 }

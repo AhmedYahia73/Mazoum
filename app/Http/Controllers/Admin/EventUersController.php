@@ -1859,7 +1859,7 @@ class EventUersController extends Controller
   
             $text = "تم تأكيـد حضــورك للمناسبـة 👍 
 كــود الـدخـول الخـــاص بكــم
-                    عدد الضيـوف  : ( " . $user_event->accept_count . " ) 🌺";
+                    *عدد الضيـوف  : ( " . $user_event->accept_count . " )* 🌺";
             // $api=$client->sendChatMessage($to,$body);
             $api2 = $client->sendImageMessage($mobile, $image_url, $text, 0, "SDK");
             $response = ["success"];

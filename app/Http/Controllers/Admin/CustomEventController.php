@@ -3100,7 +3100,7 @@ class CustomEventController extends Controller
                     if($request->type == "pdf"){ 
                         $api = SendCustomEventPdfJob::dispatch($item, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom, $caption);
                         return response()->json([
-                            'api' => $api->body(), 
+                            'api' => $api 
                         ]);
                     }
                     elseif($request->type == "video"){ 

@@ -3098,7 +3098,10 @@ class CustomEventController extends Controller
 
                     // $api=$client->sendChatMessage($to,$body);
                     if($request->type == "pdf"){ 
-                        SendCustomEventPdfJob::dispatch($item, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom, $caption);
+                        $api = SendCustomEventPdfJob::dispatch($item, $event->id, $ultramsg_token, $instance_id, $event->pdf_bottom, $caption);
+                        return response()->json([
+                            'api' => $api->body(), 
+                        ]);
                     }
                     elseif($request->type == "video"){ 
                         $api = $client->sendVideoMessage($to, $url_image,$caption,$priority,$referenceId,$nocache);

@@ -199,7 +199,7 @@ class SendEventPdfJob implements ShouldQueue
             
             <div style="position: absolute; bottom: ' . $this->pdf_bottom . 'px; width: 100%; text-align: center;">
                 <a href="' . $confirm_link . '" style="text-decoration: none; display: inline-block;">
-                    <img src="' . $buttonsImage . '" style="width: 130mm; height: 104px; border: none; padding: 0; margin: 0;" />
+                    <img src="' . $buttonsImage . '" style="width: 130mm; height: auto; border: none; padding: 0; margin: 0;" />
                 </a>
             </div>';
 

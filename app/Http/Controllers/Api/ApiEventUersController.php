@@ -757,6 +757,7 @@ class ApiEventUersController extends Controller
                                         $user->update([
                                             'balance' => $user->balance - $user_event->users_count
                                         ]);
+                                        dd(324);
 
                                     } else {
                                         // dd('not ok',$api);

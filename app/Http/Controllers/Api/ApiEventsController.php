@@ -1215,16 +1215,19 @@ class ApiEventsController extends Controller
                 ->orWhere("user_id", $user_id);
             })
             ->sum("users_count");
-        $invitations_not_sent_users = EventUsers::where('event_id', $Item->id);
+        $invitations_not_sent_users = EventUsers::
+        where('event_id', $Item->id);
                 
-            $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users->where("user_id", $user_id)->sum('users_count'): 
+            $invitations_not_sent_users = !$user_status ? $invitations_not_sent_users
+            ->where("user_id", $user_id)
+            ->where('status', 'hold')
+            ->where('is_new_sent', 0)
+            ->whereNull('is_sent')
+            ->sum('users_count'): 
             $invitations_not_sent_users->where(function($query) use($user_id){
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             })
-            ->where('status', 'hold')
-            ->where('is_new_sent', 0)
-            ->whereNull('is_sent')
             ->sum('users_count');
         $confirmed_invitatios_users = EventUsers::
             where('event_id', $Item->id);

@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Traits\GeneralTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
 use PDF;
@@ -1050,8 +1051,9 @@ class ApiEventUersController extends Controller
 
         $event_id = $request->event_id;
 
-        $event = Events::where('id', $event_id)->where('user_id', $user->id)->first();
-        $user = null;
+        $authUser = $user;
+        $event = Events::where('id', $event_id)->where('user_id', $authUser->id)->first();
+
         try {
 
           if($event != null) {
@@ -1062,7 +1064,6 @@ class ApiEventUersController extends Controller
 
                     $cong_message = CongratulationMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
 
-                    $user = $cong_message?->event_user_id;
                     if($cong_message != null) {
 
                       if ($lang == 'en') {
@@ -1076,7 +1077,6 @@ class ApiEventUersController extends Controller
 
                     $apologize_message = EventMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
 
-                    $user = $apologize_message?->event_user_id;
                     if($apologize_message != null) {
 
                       if ($lang == 'en') {
@@ -1090,21 +1090,36 @@ class ApiEventUersController extends Controller
               	if($request->message_type == 'congratulation_msg') {
 
                   $itemRow = CongratulationMessages::find($request->message_id);
-                  $user = $itemRow?->event_user_id;
 
                 } else {
 
                   $itemRow = EventMessages::find($request->message_id);
-                  $user = $itemRow?->event_user_id;
 
                 }
 
+                if($itemRow == null) {
+                    if ($lang == 'en') {
+                        return $this->returnError('E100', 'message not found');
+                    } else {
+                        return $this->returnError('E100', 'الرسالة غير موجودة');
+                    }
+                }
 
-                $mobile = $itemRow != null ? $itemRow->mobile : $user->mobile;
+                $event_user = $itemRow->user ?? ($itemRow->event_user_id ? EventUsers::find($itemRow->event_user_id) : null);
 
-                //$to = $code.$mobile;
-                $to = $mobile;
-                $to = str_replace("+","",$to);
+                $mobile = !empty($itemRow->mobile) ? $itemRow->mobile : ($event_user?->mobile ?? '');
+
+                $to = preg_replace('/[^0-9]/', '', $mobile);
+                $to = preg_replace('/^00/', '', $to);
+
+                if(empty($to)) {
+                    Log::error("send_custom_message: Recipient mobile is empty or invalid", [
+                        'event_id' => $event->id,
+                        'message_id' => $request->message_id,
+                        'itemRow' => $itemRow->toArray()
+                    ]);
+                    return $this->returnError('E100', $lang == 'en' ? 'recipient mobile is invalid' : 'رقم هاتف المستلم غير صحيح');
+                }
 
                 $template_name = 'car_msg5';
                 $language = 'ar';
@@ -1116,19 +1131,96 @@ class ApiEventUersController extends Controller
                 $sender_id      = get_whats_setting($event)['sender_id'];
                 $phone_numer_id = get_whats_setting($event)['sender_id'];
 
-                // $response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
+                $send_type = $event_user?->send_type ?? $event->send_type;
 
-                if($user->send_type == "link"){
+                if($send_type == "link"){
                                 
                     $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
                     $instance_id="instance109805"; // Ultramsg.com instance id
                     $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
 
-                    $priority=0;
+                    $priority=10;
                     $referenceId="SDK";
                     $nocache=true;
-                    $caption = "*تهنئة* " . $message . PHP_EOL . PHP_EOL . "الرد بواسطة صاحب المناسبة";
+                    $titlePrefix = ($request->message_type == 'congratulation_msg') ? "*تهنئة*" : "*اعتذار*";
+                    $caption = $titlePrefix . " " . $message . PHP_EOL . PHP_EOL . "الرد بواسطة صاحب المناسبة";
+                    
                     $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
+
+                    Log::info("UltraMsg send_custom_message attempt", [
+                        'event_id' => $event->id,
+                        'message_id' => $request->message_id,
+                        'message_type' => $request->message_type,
+                        'to' => $to,
+                        'response' => $api
+                    ]);
+
+                    $isSent = is_array($api) && isset($api['sent']) && ($api['sent'] === 'true' || $api['sent'] === true);
+
+                    if($isSent) {
+
+                        if($request->message_type == 'congratulation_msg') {
+
+                            $cong_message = CongratulationMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
+
+                            if($cong_message == null) {
+
+                                CongratulationMessages::create([
+                                    'event_id' => $event->id,
+                                    'event_user_id' => $event_user?->id,
+                                    'message_id' => $request->message_id,
+                                    'type' => 'replay',
+                                    'name' => $authUser->name,
+                                    'mobile' => $authUser->mobile,
+                                    'message' => $request->message
+                                ]);
+                            }
+
+                        } else {
+
+                            $apologize_message = EventMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
+
+                            if($apologize_message == null) {
+
+                                EventMessages::create([
+                                    'event_id' => $event->id,
+                                    'event_user_id' => $event_user?->id,
+                                    'message_id' => $request->message_id,
+                                    'type' => 'replay',
+                                    'name' => $authUser->name,
+                                    'mobile' => $authUser->mobile,
+                                    'message' => $request->message
+                                ]);
+
+                            }
+                        }
+
+                        return $this->event_details($event->id);
+
+                    } else {
+
+                        $errorReason = 'Unknown UltraMsg error';
+                        if(is_array($api)) {
+                            $errorReason = $api['error'] ?? ($api['Error'] ?? ($api['message'] ?? json_encode($api, JSON_UNESCAPED_UNICODE)));
+                        } elseif(is_string($api)) {
+                            $errorReason = $api;
+                        }
+
+                        Log::error("UltraMsg send_custom_message failed", [
+                            'event_id' => $event->id,
+                            'message_id' => $request->message_id,
+                            'to' => $to,
+                            'reason' => $errorReason,
+                            'raw' => $api
+                        ]);
+
+                        if ($lang == 'en') {
+                            return $this->returnError('E100', 'sorry failed to send message: ' . (is_string($errorReason) ? $errorReason : 'UltraMsg error'));
+                        } else {
+                            return $this->returnError('E100', 'عفوا فشل ارسال الرساله: ' . (is_string($errorReason) ? $errorReason : 'خطأ في الإرسال'));
+                        }
+                    }
+
                 }
                 else{ 
 
@@ -1136,6 +1228,14 @@ class ApiEventUersController extends Controller
 
                     $response = SendCarMsgTemplateV5($to,$template_name,$language,$param_1,$phone_numer_id,$token);
                     
+                    Log::info("Meta send_custom_message response", [
+                        'event_id' => $event->id,
+                        'message_id' => $request->message_id,
+                        'to' => $to,
+                        'status' => $response?->getStatusCode(),
+                        'body' => $response?->getBody()?->getContents()
+                    ]);
+
                     if ($response != null && $response->getStatusCode() == 200) {
 
                         $body = $response->getBody();
@@ -1148,46 +1248,46 @@ class ApiEventUersController extends Controller
 
                             if($cong_message == null) {
 
-                            CongratulationMessages::create([
-                                'event_id' => $event->id,
-                                'message_id' => $request->message_id,
-                                'type' => 'replay',
-                                'name' => $user->name,
-                                'mobile' => $user->mobile,
-                                'message' => $request->message
-                            ]);
-                        }
+                                CongratulationMessages::create([
+                                    'event_id' => $event->id,
+                                    'event_user_id' => $event_user?->id,
+                                    'message_id' => $request->message_id,
+                                    'type' => 'replay',
+                                    'name' => $authUser->name,
+                                    'mobile' => $authUser->mobile,
+                                    'message' => $request->message
+                                ]);
+                            }
 
                         } else {
 
-                        $apologize_message = EventMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
+                            $apologize_message = EventMessages::where('event_id',$event->id)->where('message_id',$request->message_id)->where('type','replay')->first();
 
-                        if($apologize_message == null) {
+                            if($apologize_message == null) {
 
-                            EventMessages::create([
-                                'event_id' => $event->id,
-                                'message_id' => $request->message_id,
-                                'type' => 'replay',
-                                'name' => $user->name,
-                                'mobile' => $user->mobile,
-                                'message' => $request->message
-                            ]);
+                                EventMessages::create([
+                                    'event_id' => $event->id,
+                                    'event_user_id' => $event_user?->id,
+                                    'message_id' => $request->message_id,
+                                    'type' => 'replay',
+                                    'name' => $authUser->name,
+                                    'mobile' => $authUser->mobile,
+                                    'message' => $request->message
+                                ]);
 
+                            }
                         }
-                        }
-
-
-                        /*
-                        if ($lang == 'en') {
-                        return $this->returnSuccessMessage('message sent successfully');
-                        } else {
-                        return $this->returnSuccessMessage('تم ارسال الرساله بنجاح');
-                        }
-                        */
 
                         return $this->event_details($event->id);
 
                     } else {
+                        Log::error("Meta send_custom_message failed", [
+                            'event_id' => $event->id,
+                            'message_id' => $request->message_id,
+                            'to' => $to,
+                            'response' => $response
+                        ]);
+
                         if ($lang == 'en') {
                             return $this->returnError('E100', 'sorry failed send any messages');
                         } else {
@@ -1217,13 +1317,18 @@ class ApiEventUersController extends Controller
           }
 
 
-        } catch(\Exception $e) {
-           dd($e->getMessage(), $e->getLine());
-             if ($lang == 'en') {
-               return $this->returnError('E100', 'some thing went wrong please try again');
-             } else {
-               return $this->returnError('E100', 'لقد حدث خطا ما برجاء المحاوله مره اخري');
-             }
+        } catch(\Throwable $e) {
+            Log::error("send_custom_message Exception: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($lang == 'en') {
+                return $this->returnError('E100', 'some thing went wrong please try again');
+            } else {
+                return $this->returnError('E100', 'لقد حدث خطا ما برجاء المحاوله مره اخري');
+            }
         }
 
         //dd('error-v2');

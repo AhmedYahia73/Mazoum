@@ -1142,8 +1142,8 @@ class ApiEventUersController extends Controller
                     $priority=10;
                     $referenceId="SDK";
                     $nocache=true;
-                    $titlePrefix = ($request->message_type == 'congratulation_msg') ? "*تهنئة*" : "*اعتذار*";
-                    $caption = $titlePrefix . " " . $message . PHP_EOL . PHP_EOL . "الرد بواسطة صاحب المناسبة";
+                    $titlePrefix = ($request->message_type == 'congratulation_msg') ? "*تهنئــة*" . PHP_EOL  : "*اعتذار*" . PHP_EOL;
+                    $caption = $titlePrefix . $message . PHP_EOL . PHP_EOL . "الرد بواسطة صاحب المناسبة";
                     
                     $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
 

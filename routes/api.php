@@ -62,6 +62,8 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
     Route::get('/all_event_users_excel/{id}', 'Api\CustomEvent\CustomEventController@all_event_users_excel');
     Route::get('/apologize_users/{id}', 'Api\CustomEvent\CustomEventController@apologize_users');
     Route::get('/confirm_users/{id}', 'Api\CustomEvent\CustomEventController@confirm_users');
+    Route::get('/apologize_users_excel/{id}', 'Api\CustomEvent\CustomEventController@apologize_users_excel');
+    Route::get('/confirm_users_excel/{id}', 'Api\CustomEvent\CustomEventController@confirm_users_excel');
     Route::get('/all_event_users_excel/{id}', 'Api\CustomEvent\CustomEventController@all_event_users_excel');
     Route::get('/scan_users_excel/{id}', 'Api\CustomEvent\CustomEventController@scan_users_excel');
     Route::get('/congratulation_msg_excel/{id}', 'Api\CustomEvent\CustomEventController@congratulation_msg_excel');

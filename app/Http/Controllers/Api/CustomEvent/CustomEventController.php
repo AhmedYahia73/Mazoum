@@ -512,6 +512,58 @@ class CustomEventController extends Controller
         ]);
     } 
     
+    public function confirm_users($id){
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        $confirm = CustomEventUsers::
+        where("custom_event_id", $id) 
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->where("confirm_count", ">", 0)
+        ->paginate(10);
+
+        return response()->json([
+            "confirm" => $confirm
+        ]);
+    } 
+    
+    public function apologize_users($id){
+        if ($this->lang == null) {
+            return $this->returnError('E300', 'language is required');
+        }
+
+        $lang = $this->lang;
+
+        $user = null;
+
+        if ($this->token != null) {
+            $user = User::where('token', $this->token)->first();
+        }
+
+        $apologize = CustomEventUsers::
+        where("custom_event_id", $id) 
+        ->whereHas("user", function($query) use($user){
+            $query->where("user_id", $user?->id);
+        })
+        ->where("apologize_count", ">", 0)
+        ->paginate(10);
+
+        return response()->json([
+            "apologize" => $apologize
+        ]);
+    } 
+    
     public function apologize_msg($id){
         // status
         if ($this->lang == null) {

@@ -172,189 +172,351 @@ class EventUersController extends Controller
 
     // new-send-event-invitation
     public function new_send_event_invitation(Request $request) {
+        Log::info('--- [new-send-event-invitation] بدء استلام طلب إرسال الدعوات ---', [
+            'event_id'    => $request->event_id,
+            'file_type'   => $request->file_type,
+            'new_design'  => $request->new_design,
+            'users_raw_count' => is_array($request->users) ? count($request->users) : 0,
+            'request_data' => $request->except(['_token']),
+        ]);
 
-       $validator = Validator::make($request->all(), [ 
-        	'event_id' => 'required',
-            'users' => 'required|array',
-            'users.*.id' => 'required',
-            'users.*.users_count' => 'required|numeric', 
-            'file_type' => 'required',
-            'new_design' => 'boolean',
-        ]); 
-        if ($validator->fails()) { // if Validate Make Error Return Message Error
-            return response()->json([
-                'errors' => $validator->errors(),
-            ],400);
-        }   
-        // dd($request->all());
-
-        $ultramsg_token="7ye6ifujyug0u46g"; // Ultramsg.com token
-        $instance_id="instance109805"; // Ultramsg.com instance id
-        $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);
-
-        $priority=0;
-        $referenceId="SDK";
-        $nocache=true; 
-
-      	$total_qty = 0;
-
-      	$event = Events::where('id',$request->event_id)->firstOrFail();
-
-        $user = $event->user;
-
-        if($request->users != null && ! empty($request->users)) {
-
-          	foreach($request->users as $arr) {
-
-              if(isset($arr['id'])) {
-                $row = Model::withTrashed()->where('id',$arr['id'])->first();
-                if ($row == null || $row->is_sent != 'yes') {
-                    if(isset($arr['users_count']) && $arr['users_count']) {
-                        $total_qty = $total_qty + $arr['users_count'];
-                    } else {
-                        if($row != null) {
-                             $total_qty = $total_qty + $row->users_count;
-                        } else {
-                           $total_qty = $total_qty + 1;
-                        }
-                    }
-                }
-              }
-
+        try {
+            // تصفية المستخدمين المحددين فقط (الذين لديهم id) لتجنب أخطاء حقول الإدخال الإضافية
+            if ($request->has('users') && is_array($request->users)) {
+                $filtered_users = array_filter($request->users, function($arr) {
+                    return is_array($arr) && isset($arr['id']) && !empty($arr['id']);
+                });
+                $request->merge(['users' => array_values($filtered_users)]);
             }
 
-          	//dd($total_qty);
+            $validator = Validator::make($request->all(), [ 
+                'event_id'            => 'required',
+                'users'               => 'required|array|min:1',
+                'users.*.id'          => 'required',
+                'users.*.users_count' => 'required|numeric', 
+                'file_type'           => 'required',
+                'new_design'          => 'boolean',
+            ]); 
 
-            if($user == null) {
+            if ($validator->fails()) {
+                Log::error('[new-send-event-invitation] فشل التحقق من صحة البيانات (Validation Failed)', [
+                    'errors'  => $validator->errors()->toArray(),
+                    'request' => $request->all(),
+                ]);
+                return response()->json([
+                    'errors' => $validator->errors(),
+                ], 400);
+            }
+
+            $ultramsg_token = "7ye6ifujyug0u46g"; // Ultramsg.com token
+            $instance_id = "instance109805"; // Ultramsg.com instance id
+            $client = new \UltraMsg\WhatsAppApi($ultramsg_token, $instance_id);
+
+            $priority = 0;
+            $referenceId = "SDK";
+            $nocache = true; 
+
+            $total_qty = 0;
+
+            $event = Events::where('id', $request->event_id)->first();
+            if (!$event) {
+                Log::error('[new-send-event-invitation] الفعالية غير موجودة في قاعدة البيانات', [
+                    'event_id' => $request->event_id,
+                ]);
+                return response()->json([
+                    'errors' => 'الحدث غير موجود',
+                ], 404);
+            }
+
+            $user = $event->user;
+            if ($user == null) {
+                Log::error('[new-send-event-invitation] صاحب الفعالية غير موجود (Event User is null)', [
+                    'event_id' => $event->id,
+                    'user_id'  => $event->user_id,
+                ]);
                 return response()->json([
                     'errors' => 'لقد حدث خطا ما برجاء المحاوله مره اخري', 
                 ]); 
             }
 
-          	foreach($request->users as $arr) {
+            if (empty($request->users)) {
+                Log::warning('[new-send-event-invitation] لم يتم اختيار أي مستخدم للإرسال');
+                return response()->json([
+                    'errors' => 'من فضلك اختر عنصر واحد علي الاقل', 
+                ]); 
+            }
 
-              if(isset($arr['id'])) {
+            foreach ($request->users as $arr) {
+                if (isset($arr['id'])) {
+                    $row = Model::withTrashed()->where('id', $arr['id'])->first();
+                    if ($row == null || $row->is_sent != 'yes') {
+                        if (isset($arr['users_count']) && $arr['users_count']) {
+                            $total_qty = $total_qty + $arr['users_count'];
+                        } else {
+                            if ($row != null) {
+                                $total_qty = $total_qty + $row->users_count;
+                            } else {
+                                $total_qty = $total_qty + 1;
+                            }
+                        }
+                    }
+                }
+            }
 
-                $row = Model::withTrashed()->where('id',$arr['id'])->first();
-                $was_sent = $row != null && ($row->is_sent == 'yes' || $row->is_new_sent == 1);
+            $success_count = 0;
+            $error_count = 0;
+            $errors_details = [];
 
-                if($row != null && $row->event != null) {
-                    $row->update([
-                        "send_time" => now(),
-                        "send_type" => "link",
+            foreach ($request->users as $arr) {
+                if (!isset($arr['id'])) {
+                    Log::warning('[new-send-event-invitation] تخطي عنصر بدون معرف ID في قائمة المستخدمين', [
+                        'item' => $arr,
                     ]);
-                    if($row->code != null) {
-                        $code = $row->code;
-                    } else {
-                        $code = generateUniqueCode();
-                        $row->update(['code' => $code]);
-                    }
+                    $error_count++;
+                    $errors_details[] = 'عنصر بدون معرف ID';
+                    continue;
+                }
 
-                  /////////////////
+                $row = Model::withTrashed()->where('id', $arr['id'])->first();
+                if ($row == null) {
+                    Log::warning('[new-send-event-invitation] مستخدم الفعالية غير موجود بقاعدة البيانات', [
+                        'id' => $arr['id'],
+                    ]);
+                    $error_count++;
+                    $errors_details[] = 'المستخدم ID ' . $arr['id'] . ' غير موجود';
+                    continue;
+                }
 
-                  $to = $row->mobile;
+                if ($row->event == null) {
+                    Log::warning('[new-send-event-invitation] الفعالية المرتبطة بالمستخدم غير موجودة', [
+                        'user_id'  => $row->id,
+                        'event_id' => $row->event_id,
+                    ]);
+                    $error_count++;
+                    $errors_details[] = 'المستخدم ' . $row->name . ' ليس لديه فعالية مرتبطة';
+                    continue;
+                }
 
-                  //$image="https://file-example.s3-accelerate.amazonaws.com/images/test.jpg";
+                if (empty($row->mobile)) {
+                    Log::warning('[new-send-event-invitation] رقم الجوال فارغ للمستخدم', [
+                        'user_id' => $row->id,
+                        'name'    => $row->name,
+                    ]);
+                    $error_count++;
+                    $errors_details[] = 'المستخدم ' . $row->name . ' ليس لديه رقم جوال';
+                    continue;
+                }
 
-                  $day_name   = Carbon::parse($row->event->date)->locale('ar')->translatedFormat('l');
+                $was_sent = ($row->is_sent == 'yes' || $row->is_new_sent == 1);
 
-                  $time = date('g:i', strtotime($row->event->time)) . (date('a', strtotime($row->event->time)) === 'am' ? ' صباحاً' : ' مساءً');
-                    if($request->new_design){
-                        $caption = $row->name . PHP_EOL . PHP_EOL . 
-                        "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL . 
-                        "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
-                    }
-                    else{ 
-                        $caption = $row->name . PHP_EOL . PHP_EOL .
-                        $row->event->title . PHP_EOL . PHP_EOL .
-                        " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
-                        $row->event->date  . PHP_EOL . PHP_EOL .
-                        " وقت الاستقبال ⏱️ " . $time . PHP_EOL . PHP_EOL .
-                        "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 
-                        "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
-                        "فضلاً الدخول على الرابط والضغط على (قبـول الدعـوة) لتأكيد الحضور، أو اختيار (الاعتذار) في حال عـدم التمكن من الحضور." . PHP_EOL .
-                        // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
-                        "https://www.mazoominvitations.com/event-login/".$code;
-                    }
+                $row->update([
+                    "send_time" => now(),
+                    "send_type" => "link",
+                ]);
 
-                  if($request->file_type == 'image') {
+                if ($row->code != null) {
+                    $code = $row->code;
+                } else {
+                    $code = generateUniqueCode();
+                    $row->update(['code' => $code]);
+                }
 
+                $to = $row->mobile;
+                $day_name = Carbon::parse($row->event->date)->locale('ar')->translatedFormat('l');
+                $time = date('g:i', strtotime($row->event->time)) . (date('a', strtotime($row->event->time)) === 'am' ? ' صباحاً' : ' مساءً');
+
+                if ($request->new_design) {
+                    $caption = $row->name . PHP_EOL . PHP_EOL . 
+                    "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL . 
+                    "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                } else { 
+                    $caption = $row->name . PHP_EOL . PHP_EOL .
+                    $row->event->title . PHP_EOL . PHP_EOL .
+                    " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
+                    $row->event->date  . PHP_EOL . PHP_EOL .
+                    " وقت الاستقبال ⏱️ " . $time . PHP_EOL . PHP_EOL .
+                    "📍مكان الحفـل " . $row->event->address . PHP_EOL . PHP_EOL . 
+                    "عدد الدعوات " . $row->users_count . PHP_EOL . PHP_EOL .
+                    "فضلاً الدخول على الرابط والضغط على (قبـول الدعـوة) لتأكيد الحضور، أو اختيار (الاعتذار) في حال عـدم التمكن من الحضور." . PHP_EOL .
+                    "https://www.mazoominvitations.com/event-login/".$code;
+                }
+
+                $api = null;
+
+                if ($request->file_type == 'image') {
                     $image = $row->event->file;
                     $caption .= "?type=image"; 
-                    // $api=$client->sendChatMessage($to,$body);
-                    $api = $client->sendImageMessage($to,$image,$caption,$priority,$referenceId,$nocache);
 
-                  } 
-                  elseif($request->file_type == 'pdf'){
+                    Log::info('[new-send-event-invitation] محاولة إرسال صورة عبر واتساب', [
+                        'user_id'   => $row->id,
+                        'name'      => $row->name,
+                        'to'        => $to,
+                        'image_url' => $image,
+                    ]);
+
+                    try {
+                        $api = $client->sendImageMessage($to, $image, $caption, $priority, $referenceId, $nocache);
+                    } catch (\Throwable $e) {
+                        Log::error('[new-send-event-invitation] استثناء أثناء إرسال الصورة عبر UltraMsg', [
+                            'user_id' => $row->id,
+                            'name'    => $row->name,
+                            'to'      => $to,
+                            'error'   => $e->getMessage(),
+                        ]);
+                        $api = ['sent' => 'false', 'message' => $e->getMessage()];
+                    }
+                } elseif ($request->file_type == 'pdf') {
                     $document = $row->event->pdf;
                     $caption .= "?type=pdf";
-                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom, $caption, $request->new_design, $code);
-		            // $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
-                  }
-                  else {
 
+                    Log::info('[new-send-event-invitation] تمرير إرسال الـ PDF إلى كيو SendEventPdfJob', [
+                        'user_id'  => $row->id,
+                        'name'     => $row->name,
+                        'to'       => $to,
+                        'pdf_url'  => $document,
+                    ]);
+
+                    try {
+                        SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom, $caption, $request->new_design, $code);
+                        $api = ['sent' => 'true', 'message' => 'ok', 'queued' => true];
+                    } catch (\Throwable $e) {
+                        Log::error('[new-send-event-invitation] استثناء أثناء dispatch لـ SendEventPdfJob', [
+                            'user_id' => $row->id,
+                            'name'    => $row->name,
+                            'to'      => $to,
+                            'error'   => $e->getMessage(),
+                        ]);
+                        $api = ['sent' => 'false', 'message' => $e->getMessage()];
+                    }
+                } else {
                     $caption .= "?type=video";
                     $video = $row->event->video;
 
-                    // $api=$client->sendChatMessage($to,$body);
-                    $api = $client->sendVideoMessage($to,$video,$caption,$priority,$referenceId,$nocache);
+                    Log::info('[new-send-event-invitation] محاولة إرسال فيديو عبر واتساب', [
+                        'user_id'   => $row->id,
+                        'name'      => $row->name,
+                        'to'        => $to,
+                        'video_url' => $video,
+                    ]);
 
-                  }
+                    try {
+                        $api = $client->sendVideoMessage($to, $video, $caption, $priority, $referenceId, $nocache);
+                    } catch (\Throwable $e) {
+                        Log::error('[new-send-event-invitation] استثناء أثناء إرسال الفيديو عبر UltraMsg', [
+                            'user_id' => $row->id,
+                            'name'    => $row->name,
+                            'to'      => $to,
+                            'error'   => $e->getMessage(),
+                        ]);
+                        $api = ['sent' => 'false', 'message' => $e->getMessage()];
+                    }
+                }
 
-                  ///////////////////////////////////////////////////////////////////////
+                // تسجيل استجابة الـ API
+                Log::info('[new-send-event-invitation] استجابة UltraMsg API للمستخدم ' . $row->id, [
+                    'user_id'  => $row->id,
+                    'name'     => $row->name,
+                    'to'       => $to,
+                    'response' => $api,
+                ]);
 
-                  if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
+                $is_success = !empty($api) && isset($api['sent']) && ($api['sent'] === 'true' || $api['sent'] === true) && isset($api['message']) && $api['message'] === 'ok';
 
-                    // dd('ok');
-                    if($row->status == "hold" || $row->status == "failed"){
+                if ($is_success) {
+                    Log::info('[new-send-event-invitation] تم إرسال الدعوة بنجاح للمستخدم', [
+                        'user_id' => $row->id,
+                        'name'    => $row->name,
+                        'to'      => $to,
+                    ]);
 
-                        $update_data = [
-                        'balance' => $user->balance - $row->users_count,
-                        ];
+                    $success_count++;
+
+                    $update_data = [];
+                    if ($row->status == "hold" || $row->status == "failed") {
+                        $update_data['balance'] = $user->balance - $row->users_count;
                     }
                     $row->update([
                         'is_new_sent' => 1, 
-                        'status' => "sent", 
+                        'status'      => "sent", 
                         'is_delivered' => "yes", 
                     ]);
 
                     if (!$was_sent) {
                         $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $row->users_count;
                     }
-                    $user->update($update_data);
+                    if (!empty($update_data)) {
+                        $user->update($update_data);
+                    }
+                } else {
+                    $failure_reason = 'سبب غير معروف';
+                    if (empty($api)) {
+                        $failure_reason = 'استجابة فارغة من خادم واتساب (Empty response from UltraMsg)';
+                    } elseif (is_array($api)) {
+                        if (isset($api['error'])) {
+                            $failure_reason = is_array($api['error']) ? json_encode($api['error'], JSON_UNESCAPED_UNICODE) : $api['error'];
+                        } elseif (isset($api['Error'])) {
+                            $failure_reason = $api['Error'];
+                        } elseif (isset($api['message']) && $api['message'] !== 'ok') {
+                            $failure_reason = $api['message'];
+                        } else {
+                            $failure_reason = json_encode($api, JSON_UNESCAPED_UNICODE);
+                        }
+                    } elseif (is_string($api)) {
+                        $failure_reason = $api;
+                    }
 
-                  } else {
-                    // dd('not ok',$api);
+                    Log::error('[new-send-event-invitation] فشل إرسال الدعوة عبر واتساب للمستخدم', [
+                        'user_id'          => $row->id,
+                        'name'             => $row->name,
+                        'to'               => $to,
+                        'file_type'        => $request->file_type,
+                        'failure_reason'   => $failure_reason,
+                        'api_response_raw' => $api,
+                    ]);
+
+                    $error_count++;
+                    $errors_details[] = 'المستخدم ' . $row->name . ' (' . $to . '): ' . $failure_reason;
                     $row->update(['is_new_sent' => 0]);
-                  }
-
                 }
-
-              }
-
             }
 
-          return response()->json([
-              'success' => 'تم ارسال الرسائل بنجاح', 
-          ]); 
+            Log::info('[new-send-event-invitation] --- اكتملت معالجة الطلب ---', [
+                'event_id'       => $request->event_id,
+                'total_users'    => count($request->users),
+                'success_count'  => $success_count,
+                'error_count'    => $error_count,
+                'errors_summary' => $errors_details,
+            ]);
 
-
-          	/*
-            if($user->balance >= $total_qty) {
-
-
-            } else {
-                $msg = ' عفوا رصيدك غير كافي برجاء شحن رصيدك برصيد ' . $total_qty;
-                return redirect()->back()->with('error',$msg);
+            if ($error_count > 0 && $success_count == 0) {
+                return response()->json([
+                    'errors' => 'فشل إرسال الدعوات لجميع المستخدمين (' . $error_count . '). السبب: ' . implode(' | ', array_slice($errors_details, 0, 3)),
+                    'errors_details' => $errors_details,
+                ], 400);
+            } elseif ($error_count > 0) {
+                return response()->json([
+                    'success' => 'تم إرسال ' . $success_count . ' دعوة بنجاح، وفشل إرسال ' . $error_count . ' دعوة. راجع سجل النظام laravel.log للتفاصيل.',
+                    'errors_details' => $errors_details,
+                ]);
             }
-            */
 
-        } else {
             return response()->json([
-                'errors' => 'من فضلك اختر عنصر واحد علي الاقل', 
-            ]); 
-        }
+                'success' => 'تم ارسال الرسائل بنجاح', 
+            ]);
 
+        } catch (\Throwable $e) {
+            Log::error('[new-send-event-invitation] خطأ غير متوقع (Fatal Exception)', [
+                'error_message' => $e->getMessage(),
+                'file'          => $e->getFile(),
+                'line'          => $e->getLine(),
+                'trace'         => $e->getTraceAsString(),
+                'request'       => $request->all(),
+            ]);
+
+            return response()->json([
+                'errors' => 'حدث خطأ في النظام: ' . $e->getMessage(),
+            ], 500);
+        }
     }
    
   	// send_event_users

@@ -23,8 +23,10 @@ class SendEventPdfJob implements ShouldQueue
     public $instance_id;
     public $pdf_bottom;
     public $caption;
-    
-    public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom, $caption = null)
+    public $new_design;
+    public $code;
+
+    public function __construct($userId, $eventId, $ultramsg_token, $instance_id, $pdf_bottom, $caption = null, $new_design = false, $code = null)
     {
         $this->userId = $userId;
         $this->eventId = $eventId;
@@ -32,6 +34,8 @@ class SendEventPdfJob implements ShouldQueue
         $this->instance_id = $instance_id;
         $this->pdf_bottom = $pdf_bottom;
         $this->caption = $caption;
+        $this->new_design = $new_design;
+        $this->code = $code;
     }
 
     /**
@@ -61,6 +65,12 @@ class SendEventPdfJob implements ShouldQueue
         $to = $row->mobile;
         $day_name = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
 
+        if($this->new_design){
+
+            $caption = $row->name . PHP_EOL . PHP_EOL . 
+            "https://www.mazoominvitations.com/event-login/".$this->code . PHP_EOL . PHP_EOL . 
+            "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+        }
         if($event->show_data_pdf){
             $caption =  $row->name . PHP_EOL . PHP_EOL .
                 $event->title . PHP_EOL . PHP_EOL .

@@ -179,6 +179,7 @@ class EventUersController extends Controller
             'users.*.id' => 'required',
             'users.*.users_count' => 'required|numeric', 
             'file_type' => 'required',
+            'new_design' => 'boolean',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -258,7 +259,13 @@ class EventUersController extends Controller
                   $day_name   = Carbon::parse($row->event->date)->locale('ar')->translatedFormat('l');
 
                   $time = date('g:i', strtotime($row->event->time)) . (date('a', strtotime($row->event->time)) === 'am' ? ' صباحاً' : ' مساءً');
-                  $caption = $row->name . PHP_EOL . PHP_EOL .
+                    if($request->new_design){
+                        $caption = $row->name . PHP_EOL . PHP_EOL . 
+                        "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL . 
+                        "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                    }
+                    else{ 
+                        $caption = $row->name . PHP_EOL . PHP_EOL .
                         $row->event->title . PHP_EOL . PHP_EOL .
                         " وذلك بمشيئة الله تعالى يوم " . $day_name ." الموافق 📆 " .
                         $row->event->date  . PHP_EOL . PHP_EOL .
@@ -268,6 +275,7 @@ class EventUersController extends Controller
                         "فضلاً الدخول على الرابط والضغط على (قبـول الدعـوة) لتأكيد الحضور، أو اختيار (الاعتذار) في حال عـدم التمكن من الحضور." . PHP_EOL .
                         // "يرجي التأكيد أو الاعتذار خلال 24 ساعة حتى لا يتم الغاء الدعوة. قم بضغط على الرابط لمعرفة تفاصيل المناسبة" . PHP_EOL . PHP_EOL .
                         "https://www.mazoominvitations.com/event-login/".$code;
+                    }
 
                   if($request->file_type == 'image') {
 
@@ -280,7 +288,7 @@ class EventUersController extends Controller
                   elseif($request->file_type == 'pdf'){
                     $document = $row->event->pdf;
                     $caption .= "?type=pdf";
-                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom, $caption);
+                    SendEventPdfJob::dispatch($row->id, $row->event->id, $ultramsg_token, $instance_id, $row->event->pdf_bottom, $caption, $request->new_design, $code);
 		            // $api = $client->sendDocumentMessage($to,"invetation",$document,$caption,$priority,$referenceId,$nocache);
                   }
                   else {

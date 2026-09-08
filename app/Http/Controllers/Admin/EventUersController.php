@@ -326,8 +326,9 @@ class EventUersController extends Controller
                 $time = date('g:i', strtotime($row->event->time)) . (date('a', strtotime($row->event->time)) === 'am' ? ' صباحاً' : ' مساءً');
 
                 if ($request->new_design) {
-                    $caption = $row->name . PHP_EOL . PHP_EOL . 
-                    "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL . 
+                    $caption = $row->name . PHP_EOL . PHP_EOL .
+                    "*عدد الدعوات: " . $row->users_count . "*" . PHP_EOL . PHP_EOL .
+                    "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL .
                     "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
                 } else { 
                     $caption = $row->name . PHP_EOL . PHP_EOL .
@@ -1734,7 +1735,9 @@ class EventUersController extends Controller
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
                             $param_4   = $event->address;
-                            $param_5   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
+                            $param_5 = $event->time != null 
+                            ? date('h:i', strtotime($event->time)) . ' ' . (date('a', strtotime($event->time)) == 'am' ? 'صباحاً' : 'مساءً') 
+                            : '07:00 مساءً';
 							$param_6   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
                             

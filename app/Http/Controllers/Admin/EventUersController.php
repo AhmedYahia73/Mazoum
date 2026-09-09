@@ -2031,8 +2031,8 @@ class EventUersController extends Controller
             $client = new \UltraMsg\WhatsAppApi($ultramsg_token,$instance_id);  
   
             $text = "تم تأكيـد حضــورك للمناسبـة 👍 
-كــود الـدخـول الخـــاص بالمناسبة
-                    *عدد الضيـوف  : ( " . $user_event->accept_count . " )* 🌺";
+كــود الـدخـول الخـــاص بالمناسبة" . PHP_EOL .
+                    "*عدد الضيـوف  : ( " . $user_event->accept_count . " )* 🌺";
             // $api=$client->sendChatMessage($to,$body);
             $api2 = $client->sendImageMessage($mobile, $image_url, $text, 0, "SDK");
             $response = ["success"];

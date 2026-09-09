@@ -69,7 +69,7 @@ class SendEventPdfJob implements ShouldQueue
 
             $caption = $row->name . PHP_EOL . PHP_EOL . 
             "*عدد الدعوات: " . $row->users_count . "*" . PHP_EOL . PHP_EOL .
-            "https://www.mazoominvitations.com/event-login/".$this->code . PHP_EOL . PHP_EOL . 
+            "https://www.mazoominvitations.com/event-login/".$this->code  . "?type=pdf" . PHP_EOL . PHP_EOL . 
             "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
         }
         if($event->show_data_pdf){

@@ -328,8 +328,7 @@ class EventUersController extends Controller
                 if ($request->new_design) {
                     $caption = $row->name . PHP_EOL . PHP_EOL .
                     "*عدد الدعوات: " . $row->users_count . "*" . PHP_EOL . PHP_EOL .
-                    "https://www.mazoominvitations.com/event-login/".$code . PHP_EOL . PHP_EOL .
-                    "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                    "https://www.mazoominvitations.com/event-login/".$code;
                 } else { 
                     $caption = $row->name . PHP_EOL . PHP_EOL .
                     $row->event->title . PHP_EOL . PHP_EOL .
@@ -346,7 +345,13 @@ class EventUersController extends Controller
 
                 if ($request->file_type == 'image') {
                     $image = $row->event->file;
-                    $caption .= "?type=image"; 
+                    if($request->new_design) {
+                        $caption .= "?type=image" . PHP_EOL . PHP_EOL .
+                        "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                    }
+                    else{
+                        $caption .= "?type=image"; 
+                    }
 
                     Log::info('[new-send-event-invitation] محاولة إرسال صورة عبر واتساب', [
                         'user_id'   => $row->id,
@@ -368,7 +373,13 @@ class EventUersController extends Controller
                     }
                 } elseif ($request->file_type == 'pdf') {
                     $document = $row->event->pdf;
-                    $caption .= "?type=pdf";
+                    if($request->new_design) {
+                        $caption .= "?type=pdf" . PHP_EOL . PHP_EOL .
+                        "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                    }
+                    else{
+                        $caption .= "?type=pdf";
+                    }
 
                     Log::info('[new-send-event-invitation] تمرير إرسال الـ PDF إلى كيو SendEventPdfJob', [
                         'user_id'  => $row->id,
@@ -390,7 +401,13 @@ class EventUersController extends Controller
                         $api = ['sent' => 'false', 'message' => $e->getMessage()];
                     }
                 } else {
-                    $caption .= "?type=video";
+                    if($request->new_design) {
+                        $caption .= "?type=video" . PHP_EOL . PHP_EOL .
+                        "قبـول الدعــوة أو الاعتذار عن الدعــوة من خلال الضغــط على الرابـط";
+                    }
+                    else{
+                        $caption .= "?type=video";
+                    }
                     $video = $row->event->video;
 
                     Log::info('[new-send-event-invitation] محاولة إرسال فيديو عبر واتساب', [

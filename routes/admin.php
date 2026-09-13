@@ -385,6 +385,13 @@ Route::get('event-chat/{id}', 'EventUersController@event_chat_details');
 Route::post('send-custom-message', 'EventUersController@send_custom_message');
 Route::post('delete_event_users', 'EventUersController@delete_event_users');
 
+Route::get('send-congratulation-messages', function () {
+    return response()->json([
+        'status' => false,
+        'message' => 'The GET method is not supported for this route. Supported methods: POST.',
+        'required_method' => 'POST',
+    ], 405);
+});
 Route::post('send-congratulation-message', 'EventUersController@send_congratulation_message');
 Route::post('send-congratulation-messages', 'EventUersController@send_congratulation_messages');
 

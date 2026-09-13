@@ -3526,12 +3526,11 @@ class EventUersController extends Controller
                                 $customerPhone = $user_event?->mobile;
                                 $template_name = "wedding_data_v10_ar_new";
                                 $language = "ar";
-                                $phone_numer_id = $this->get_phone_id($user_event?->event?->phone_setting_id);
-                                $access_token = Setting::first()?->access_token;
+                                $phone_setting_id = $request->phone_setting_id ?? $user_event?->event?->phone_setting_id;
+                                $phone_numer_id = $this->get_phone_id($phone_setting_id);
+                                $whats_settings = get_whats_setting($event);
+                                $access_token = $whats_settings['token'] ?? Setting::first()?->access_token;
                                 $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone); 
-                              	// dd($response);
-
-                                //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
@@ -3558,6 +3557,8 @@ class EventUersController extends Controller
                                     $user_event->update([
                                         'status' => 'failed-v2',
                                     ]);
+                                    $errors = $errors + 1;
+                                    $last_error = $response != null ? $response->json() : 'No response from Meta';
                                 }
 
                             } else {
@@ -3565,23 +3566,17 @@ class EventUersController extends Controller
                                 " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL .
                                 " وقت الحضور " . $param_1;
 
-                                // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
-
-                                // $api=$client->sendChatMessage($to,$body);
                                 $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
 
-                                // $api2 = $client->sendContactMessage($to,'96597378181',$priority=0,$referenceId="SDK");
-
                                 if(! empty($api) && isset($api['sent']) && $api['sent'] == 'true'  && isset($api['message']) && $api['message'] == 'ok') {
-                                    // dd('ok');
 
                                     $user_event->update([
                                         'is_send_congratulation' => 1,
                                     ]);
 
                                 } else {
-                                    // dd('not ok',$api);
                                     $errors = $errors + 1;
+                                    $last_error = $api;
                                 }
 
                             }
@@ -3597,16 +3592,36 @@ class EventUersController extends Controller
                 }
 
 
+                if ($errors > 0) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'حدث خطأ أثناء الإرسال لبعض أو كل المستخدمين',
+                        'failed_count' => $errors,
+                        'last_error' => $last_error ?? null,
+                    ], 400);
+                }
+
                 return response()->json([
+                    'status' => true,
+                    'message' => 'تم الأرسال بنجاح',
                     'success' => 'تم الأرسال بنجاح', 
                 ]); 
             }
 
-        } catch(\Exception $e) {
-            dd($e->getMessage(), $e->getLine());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ], 500);
         }
 
-        dd('error-v2');
+        return response()->json([
+            'status' => false,
+            'message' => 'لم يتم إرسال أي رسائل تهنئة، تأكد من قائمة المستخدمين المرسلة',
+            'errors_count' => $errors ?? 0,
+        ], 400);
 
     }
 

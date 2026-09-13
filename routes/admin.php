@@ -308,7 +308,11 @@ Route::post('update_event_users', 'EventUersController@update_event_users');
 
 // send_event_users
 Route::get('send_event_users', function () {
-    return redirect('admin');
+    return response()->json([
+        'status' => false,
+        'message' => 'The GET method is not supported for this route. Supported methods: POST.',
+        'required_method' => 'POST',
+    ], 405);
 });
 Route::post('send_event_users', 'EventUersController@send_event_users');
 

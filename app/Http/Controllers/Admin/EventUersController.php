@@ -1852,14 +1852,54 @@ class EventUersController extends Controller
 
                 }
                 
-                return response()->json(['success', 'تم الأرسال بنجاح']);
+                if ($errors > 0) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'تمت العملية مع وجود أخطاء في بعض المستخدمين',
+                        'failed_count' => $errors,
+                        'success' => 'تم الأرسال بنجاح للبعض مع فشل ' . $errors,
+                    ], 207);
+                }
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'تم الأرسال بنجاح',
+                    'success' => 'تم الأرسال بنجاح',
+                ]);
             }
 
-        } catch(\Exception $e) {
-            dd($e->getMessage(), $e->getLine());
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $responseBody = $e->getResponse() ? (string)$e->getResponse()->getBody() : null;
+            $metaError = json_decode($responseBody, true);
+            return response()->json([
+                'status' => false,
+                'message' => 'فشل الإرسال من جانب مزود الخدمة (Meta/WhatsApp)',
+                'meta_error' => $metaError ?? $responseBody,
+                'error_detail' => $e->getMessage(),
+            ], 400);
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $responseBody = $e->getResponse() ? (string)$e->getResponse()->getBody() : null;
+            $metaError = json_decode($responseBody, true);
+            return response()->json([
+                'status' => false,
+                'message' => 'خطأ في الاتصال بمزود الخدمة (Meta/WhatsApp)',
+                'meta_error' => $metaError ?? $responseBody,
+                'error_detail' => $e->getMessage(),
+            ], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ], 500);
         }
 
-        dd('error-v2');
+        return response()->json([
+            'status' => false,
+            'message' => 'لم يتم إرسال أي دعوات، تأكد من قائمة المستخدمين المرسلة',
+            'errors_count' => $errors ?? 0,
+        ], 400);
 
     }
 

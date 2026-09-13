@@ -29,7 +29,8 @@ class AdminController extends Controller
 
      public function home()
     {
-        $msg = trans('home.welcome_msg') . Auth::guard('admin')->user()->name;
+        $adminName = Auth::guard('admin')->user()?->name ?? Auth::user()?->name ?? '';
+        $msg = trans('home.welcome_msg') . $adminName;
 
         return view('admin.layouts.home',compact('msg'));
     }

@@ -105,6 +105,8 @@ class HomeController extends Controller
         $message_id = 0;
         $customerPhone = null;
 
+            $messageData = $value['messages'][0];
+            $text = $messageData['text']['body'] ?? '';
         if (isset($value['messages'][0])) {
             $messageData = $value['messages'][0];
             $message_id = $messageData['id'];
@@ -116,7 +118,7 @@ class HomeController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            if ($last_msg) {
+            if ($last_msg || $text == "معزوم") {
                 $user_msgs_count = WattsChatModel::where('phone', $customerPhone)
                     ->whereNotNull('message')
                     ->where('is_sent_by_me', 0)
@@ -132,7 +134,7 @@ class HomeController extends Controller
             }
         }
 
-        if ($my_msg && isset($last_msg)) {
+        if (($my_msg && isset($last_msg)) || $text == "معزوم") {
             $user_event = EventUsers::where('id', $last_msg->event_user_id)->with('event')->first();
             $event = $user_event?->event;
 

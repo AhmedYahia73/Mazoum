@@ -105,8 +105,6 @@ class HomeController extends Controller
         $message_id = 0;
         $customerPhone = null;
 
-            $messageData = $value['messages'][0];
-            $text = $messageData['text']['body'] ?? '';
         if (isset($value['messages'][0])) {
             $messageData = $value['messages'][0];
             $message_id = $messageData['id'];
@@ -118,7 +116,7 @@ class HomeController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            if ($last_msg || $text == "معزوم") {
+            if ($last_msg) {
                 $user_msgs_count = WattsChatModel::where('phone', $customerPhone)
                     ->whereNotNull('message')
                     ->where('is_sent_by_me', 0)
@@ -134,7 +132,7 @@ class HomeController extends Controller
             }
         }
 
-        if (($my_msg && isset($last_msg)) || $text == "معزوم") {
+        if ($my_msg && isset($last_msg)) {
             $user_event = EventUsers::where('id', $last_msg->event_user_id)->with('event')->first();
             $event = $user_event?->event;
 
@@ -1383,7 +1381,7 @@ class HomeController extends Controller
             $center_x = intval($background->width() / 2);
             $text_y   = $y + $qr->height() + 15;
 
-            // if ($event->language == 'ar') {
+            if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
                 $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
@@ -1393,14 +1391,14 @@ class HomeController extends Controller
                     $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
                     $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
                 }
-            // } else {
-            //     $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-            //     $name      = $user_event->name;
-            //     $name2     = 'Entered Users ' . $user_event->users_count;
-            //     if($user_event->suit_num && $user_event->suit_num != 0){
-            //         $name3     = "Suit Num " . $user_event->suit_num;
-            //     }
-            // }
+            } else {
+                $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+                $name      = $user_event->name;
+                $name2     = 'Entered Users ' . $user_event->users_count;
+                if($user_event->suit_num && $user_event->suit_num != 0){
+                    $name3     = "Suit Num " . $user_event->suit_num;
+                }
+            }
 
             if ($name_qr) {
                 $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
@@ -1461,13 +1459,6 @@ class HomeController extends Controller
             $number_font = public_path('font/timr45w.ttf');
             if (!file_exists($number_font)) {
                 $number_font = $arabic_font;
-            }
-            $datetime_font = public_path('font/Tajawal-Regular.ttf');
-            if (!file_exists($datetime_font)) {
-                $datetime_font = base_path('resources/fonts/Tajawal-Regular.ttf');
-            }
-            if (!file_exists($datetime_font)) {
-                $datetime_font = $arabic_font;
             }
  
             // ==========================================
@@ -1549,15 +1540,9 @@ class HomeController extends Controller
 
             // هـ- إضافة التاريخ والوقت
             if (isset($event->date) && isset($event->time)) {
-                $time_formatted = $event->time;
-                if (!empty($event->time) && ($timestamp = strtotime($event->time)) !== false) {
-                    $period = date('a', $timestamp) === 'am' ? 'صباحاً' : 'مساءً';
-                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                    $time_formatted = date('h:i', $timestamp) . ' ' . $Arabic->utf8Glyphs($period);
-                }
-                $datetime = $event->date . ' ' . $time_formatted;
-                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($datetime_font) {
-                    $font->file($datetime_font);
+                $datetime = $event->date . ' ' . $event->time;
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
+                    $font->file($number_font);
                     $font->size(50);
                     $font->color('#000000');
                     $font->align('center');

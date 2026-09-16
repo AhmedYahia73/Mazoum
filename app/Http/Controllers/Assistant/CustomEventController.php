@@ -256,66 +256,76 @@ class CustomEventController extends Controller
             $background->insert($qr, 'top-left', $x, $y);
 
         // // إعداد النصوص
-        // if ($event->language == 'ar') {
+            $font_path = public_path('font/Tajawal-Regular.ttf');
+            if (!file_exists($font_path)) {
+                $font_path = base_path('resources/fonts/Tajawal-Regular.ttf');
+            }
+            if (!file_exists($font_path)) {
+                $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
+            }
+
             $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
-            $name = $Arabic->utf8Glyphs($row->name);
-            
+            $name   = $Arabic->utf8Glyphs($row->name);
+
             $user_count_label = 'عدد الضيوف ' . $row->users_count;
             $Arabic2 = new \ArPHP\I18N\Arabic('Glyphs');
-            $name2 = $Arabic2->utf8Glyphs($user_count_label);
-            if($row->suit_num && $row->suit_num != 0){
-                $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
-                $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $row->suit_num);
+            $name2   = $Arabic2->utf8Glyphs($user_count_label);
+
+            $suit_num = $row->suit_num ?? null;
+            if (!empty($suit_num) && $suit_num != '0' && $suit_num != 0) {
+                $Arabic3 = new \ArPHP\I18N\Arabic('Glyphs');
+                $name3   = $Arabic3->utf8Glyphs('رقم الكرسى ' . $suit_num);
             }
-            $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
-        // } else {
-        //     $name = $row->name;
-        //     $name2 = 'Entered Users ' . $row->users_count;
-        //     $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-        //     if($row->suit_num && $row->suit_num != 0){
-        //         $name3     = "Suit Num " . $row->suit_num;
-        //     }
-        // }
 
-        // مركز الصورة للنص
-        $center_x = intval($background->width() / 2);
-        $text_y = $y + $qr->height() + 15;
+            $space_below = $background->height() - ($y + $qr->height());
+            $font_size   = 20;
+            $line_step   = 25;
+            $margin_top  = 15;
+            $active_lines = ($name_qr ? 1 : 0) + (($number_qr && $row->users_count > 1) ? 1 : 0) + (isset($name3) ? 1 : 0);
 
-        // إضافة اسم الشخص (مربوط بالـ Boolean)
-        if ($name_qr) {
-            $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            });
-            
-            // لو الاسم انطبع، ننزل السطر اللي بعده مسافة عشان العدد (لو موجود)
-            $text_y += 25; 
-        }
+            if ($active_lines > 0 && $space_below < ($active_lines * $line_step + $margin_top)) {
+                $margin_top = max(2, intval($margin_top * 0.3));
+                $available_for_lines = $space_below - $margin_top - 2;
+                if ($available_for_lines > 0) {
+                    $line_step = max(11, intval($available_for_lines / $active_lines));
+                    $font_size = max(10, intval($line_step * 0.75));
+                }
+            }
 
-        // إضافة عدد المستخدمين (مربوط بالـ Boolean)
-        if ($number_qr && $row->users_count > 1) {
-            $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            });
-            $text_y += 25;
-        }
+            $center_x = intval($background->width() / 2);
+            $text_y   = $y + $qr->height() + $margin_top;
 
-        if (isset($name3)) {
-            $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $text_color) {
-                $font->file($font_path);
-                $font->size(20);
-                $font->color($text_color);
-                $font->align('center');
-                $font->valign('top');
-            }); 
-        }
+            if ($name_qr) {
+                $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $font_size, $text_color) {
+                    $font->file($font_path);
+                    $font->size($font_size);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += $line_step;
+            }
+
+            if ($number_qr && $row->users_count > 1) {
+                $background->text($name2, $center_x, $text_y, function ($font) use ($font_path, $font_size, $text_color) {
+                    $font->file($font_path);
+                    $font->size($font_size);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                });
+                $text_y += $line_step;
+            }
+
+            if (isset($name3)) {
+                $background->text($name3, $center_x, $text_y, function ($font) use ($font_path, $font_size, $text_color) {
+                    $font->file($font_path);
+                    $font->size($font_size);
+                    $font->color($text_color);
+                    $font->align('center');
+                    $font->valign('top');
+                }); 
+            }
 
         // حفظ الصورة النهائية
         $final_path = public_path('custom_event_qr_code/' . $image_name);

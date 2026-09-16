@@ -132,8 +132,20 @@ class HomeController extends Controller
             }
         }
 
-        if ($my_msg && isset($last_msg)) {
-            $user_event = EventUsers::where('id', $last_msg->event_user_id)->with('event')->first();
+        if (($my_msg && isset($last_msg)) || $messageData['text']['body'] == "معزوم") {
+
+            if($messageData['text']['body'] == "معزوم"){
+                $user_event = EventUsers::
+                where('mobile', $customerPhone)
+                ->with('event')
+                ->first();
+            }
+            else{
+                $user_event = EventUsers::
+                where('id', $last_msg->event_user_id)
+                ->with('event')
+                ->first();
+            }
             $event = $user_event?->event;
 
             if ($user_event && $event) {
@@ -1381,7 +1393,7 @@ class HomeController extends Controller
             $center_x = intval($background->width() / 2);
             $text_y   = $y + $qr->height() + 15;
 
-            if ($event->language == 'ar') {
+            // if ($event->language == 'ar') {
                 $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
                 $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                 $name      = $Arabic->utf8Glyphs($user_event->name);
@@ -1391,14 +1403,14 @@ class HomeController extends Controller
                     $Arabic3   = new \ArPHP\I18N\Arabic('Glyphs');
                     $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
                 }
-            } else {
-                $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-                $name      = $user_event->name;
-                $name2     = 'Entered Users ' . $user_event->users_count;
-                if($user_event->suit_num && $user_event->suit_num != 0){
-                    $name3     = "Suit Num " . $user_event->suit_num;
-                }
-            }
+            // } else {
+            //     $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+            //     $name      = $user_event->name;
+            //     $name2     = 'Entered Users ' . $user_event->users_count;
+            //     if($user_event->suit_num && $user_event->suit_num != 0){
+            //         $name3     = "Suit Num " . $user_event->suit_num;
+            //     }
+            // }
 
             if ($name_qr) {
                 $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {

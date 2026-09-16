@@ -407,7 +407,7 @@ class CustomEventController extends Controller
                 $center_x = intval($background->width() / 2);
                 $text_y   = $y + $qr->height() + 15;
 
-                if ($event->language == 'ar') {
+                // if ($event->language == 'ar') {
                     $Arabic    = new \ArPHP\I18N\Arabic('Glyphs');
                     $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
                     $name      = $Arabic->utf8Glyphs($user_event->name);
@@ -417,14 +417,14 @@ class CustomEventController extends Controller
                         $Arabic3 = new \ArPHP\I18N\Arabic('Glyphs');
                         $name3   = $Arabic3->utf8Glyphs('رقم الكرسى ' . $user_event->suit_num);
                     }
-                } else {
-                    $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-                    $name      = $user_event->name;
-                    $name2     = 'Entered Users ' . $user_event->confirm_count;
-                    if ($user_event->suit_num && $user_event->suit_num != 0) {
-                        $name3 = "Suit Num " . $user_event->suit_num;
-                    }
-                }
+                // } else {
+                //     $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+                //     $name      = $user_event->name;
+                //     $name2     = 'Entered Users ' . $user_event->confirm_count;
+                //     if ($user_event->suit_num && $user_event->suit_num != 0) {
+                //         $name3 = "Suit Num " . $user_event->suit_num;
+                //     }
+                // }
 
                 if ($name_qr) {
                     $background->text($name, $center_x, $text_y, function ($font) use ($font_path, $text_color) {

@@ -255,8 +255,8 @@ class CustomEventController extends Controller
 
             $background->insert($qr, 'top-left', $x, $y);
 
-        // إعداد النصوص
-        if ($event->language == 'ar') {
+        // // إعداد النصوص
+        // if ($event->language == 'ar') {
             $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
             $name = $Arabic->utf8Glyphs($row->name);
             
@@ -268,14 +268,14 @@ class CustomEventController extends Controller
                 $name3     = $Arabic3->utf8Glyphs('رقم الكرسى ' . $row->suit_num);
             }
             $font_path = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
-        } else {
-            $name = $row->name;
-            $name2 = 'Entered Users ' . $row->users_count;
-            $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
-            if($row->suit_num && $row->suit_num != 0){
-                $name3     = "Suit Num " . $row->suit_num;
-            }
-        }
+        // } else {
+        //     $name = $row->name;
+        //     $name2 = 'Entered Users ' . $row->users_count;
+        //     $font_path = public_path('font/LuxuriousRoman-Regular.ttf');
+        //     if($row->suit_num && $row->suit_num != 0){
+        //         $name3     = "Suit Num " . $row->suit_num;
+        //     }
+        // }
 
         // مركز الصورة للنص
         $center_x = intval($background->width() / 2);

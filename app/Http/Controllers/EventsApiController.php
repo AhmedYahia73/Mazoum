@@ -735,6 +735,13 @@ class EventsApiController extends Controller
                 $arabic_font = base_path('resources/fonts/DroidArabicKufiRegular.ttf');
             }
             $number_font = public_path('font/timr45w.ttf'); 
+            $datetime_font = public_path('font/Tajawal-Regular.ttf');
+            if (!file_exists($datetime_font)) {
+                $datetime_font = base_path('resources/fonts/Tajawal-Regular.ttf');
+            }
+            if (!file_exists($datetime_font)) {
+                $datetime_font = $arabic_font;
+            }
  
             // ==========================================
             // 3. إعدادات الأبعاد والإحداثيات
@@ -804,9 +811,15 @@ class EventsApiController extends Controller
 
             // هـ- إضافة التاريخ والوقت
             if (isset($event->date) && isset($event->time)) {
-                $datetime = $event->date . ' ' . $event->time;
-                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($number_font) {
-                    $font->file($number_font);
+                $time_formatted = $event->time;
+                if (!empty($event->time) && ($timestamp = strtotime($event->time)) !== false) {
+                    $period = date('a', $timestamp) === 'am' ? 'صباحاً' : 'مساءً';
+                    $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                    $time_formatted = date('h:i', $timestamp) . ' ' . $Arabic->utf8Glyphs($period);
+                }
+                $datetime = $event->date . ' ' . $time_formatted;
+                $img->text($datetime, $center_x, $y_datetime, function ($font) use ($datetime_font) {
+                    $font->file($datetime_font);
                     $font->size(50);
                     $font->color('#000000');
                     $font->align('center');

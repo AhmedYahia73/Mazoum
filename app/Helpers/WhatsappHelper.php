@@ -338,6 +338,9 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
     function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
+        if (func_num_args() >= 12 && function_exists('SendWeddingDataV1ArImageTemplate')) {
+            return SendWeddingDataV1ArImageTemplate(...func_get_args());
+        }
 
         $arr = [
           'messaging_product' => 'whatsapp',

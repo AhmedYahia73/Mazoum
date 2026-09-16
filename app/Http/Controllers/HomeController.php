@@ -99,11 +99,22 @@ class HomeController extends Controller
         }
 
         // -------------------------------------------------------------
-        // 1. معالجة الرسائل التلقائية المعتمدة على آخر رسالة من الأدمن
+        // 1. معالجة الرسائل التلقائية المعتمدة على آخر رسالة من الأدمن أو إرسال كلمة معزوم
         // -------------------------------------------------------------
         $my_msg = false;
         $message_id = 0;
         $customerPhone = null;
+        $is_invitation_sent = false;
+
+        $incomingText = trim(
+            data_get($value, 'messages.0.text.body') 
+            ?? data_get($value, 'messages.0.button.text') 
+            ?? data_get($value, 'messages.0.interactive.button_reply.title') 
+            ?? ''
+        );
+        $cleanText = mb_strtolower($incomingText);
+        $normalizedText = preg_replace('~[\x{064B}-\x{065F}]~u', '', $cleanText);
+        $isMazoum = ($normalizedText === 'معزوم' || mb_strpos($normalizedText, 'معزوم') !== false || $cleanText === 'mazoum');
 
         if (isset($value['messages'][0])) {
             $messageData = $value['messages'][0];
@@ -132,8 +143,31 @@ class HomeController extends Controller
             }
         }
 
-        if ($my_msg && isset($last_msg)) {
-            $user_event = EventUsers::where('id', $last_msg->event_user_id)->with('event')->first();
+        if (($isMazoum || ($my_msg && isset($last_msg))) && $customerPhone) {
+            $user_event = null;
+
+            // 1. محاولة جلب المستخدم من آخر رسالة شات
+            if (isset($last_msg) && !empty($last_msg->event_user_id)) {
+                $user_event = EventUsers::where('id', $last_msg->event_user_id)->with(['event.user'])->first();
+            }
+
+            // 2. إذا لم يتوفر في آخر رسالة، جلب المستخدم برقم الهاتف
+            if (!$user_event) {
+                $user_event = EventUsers::where(function ($q) use ($customerPhone, $messageData) {
+                    $rawFrom = $messageData['from'] ?? $customerPhone;
+                    $q->where('mobile', $customerPhone)
+                      ->orWhere('mobile', '+' . $customerPhone)
+                      ->orWhere('phone_number', $customerPhone)
+                      ->orWhere('phone_number', '+' . $customerPhone);
+                    if ($rawFrom !== $customerPhone) {
+                        $q->orWhere('mobile', $rawFrom)
+                          ->orWhere('mobile', '+' . $rawFrom)
+                          ->orWhere('phone_number', $rawFrom)
+                          ->orWhere('phone_number', '+' . $rawFrom);
+                    }
+                })->with(['event.user'])->orderByDesc('id')->first();
+            }
+
             $event = $user_event?->event;
 
             if ($user_event && $event) {
@@ -146,33 +180,44 @@ class HomeController extends Controller
                 $template_name = 'wedding_data_v1_ar';
                 $image_url = $event->file;
 
-                $response = SendWeddingDataV1ArTemplate(
-                    $customerPhone, $template_name, $language, $param_1, $param_2, 
-                    $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, 'image'
-                );
+                try {
+                    $response = SendWeddingDataV1ArTemplate(
+                        $customerPhone, $template_name, $language, $param_1, $param_2, 
+                        $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, 'image'
+                    );
 
-                if ($response && $response->getStatusCode() == 200) {
-                    $event->user?->decrement('balance', $user_event->users_count);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $resBody = json_decode($response->getBody()->getContents(), true);
+                        $sent_message_id = $resBody['messages'][0]['id'] ?? $message_id;
 
-                    $user_event->update([
-                        'is_sent' => 'yes',
-                        'sent_from' => 'dashboard',
-                        'status' => 'sent',
-                        'message_id' => $message_id,
-                        'send_type' => 'meta',
-                    ]);
+                        if ($user_event->is_sent !== 'yes') {
+                            $event->user?->decrement('balance', $user_event->users_count);
+                        }
 
-                    WattsChatModel::create([
-                        'phone' => $customerPhone,
-                        'name' => 'Admin',
-                        'message' => $template_name,
-                        'is_sent_by_me' => true,
-                        'message_id' => $message_id,
-                        'from' => $from,
-                        'template_name' => $template_name,
-                        'event_user_id' => $user_event->id,
-                        'event_id' => $event->id,
-                    ]);
+                        $user_event->update([
+                            'is_sent' => 'yes',
+                            'sent_from' => 'dashboard',
+                            'status' => 'sent',
+                            'message_id' => $sent_message_id,
+                            'send_type' => 'meta',
+                        ]);
+
+                        WattsChatModel::create([
+                            'phone' => $customerPhone,
+                            'name' => 'Admin',
+                            'message' => $template_name,
+                            'is_sent_by_me' => true,
+                            'message_id' => $sent_message_id,
+                            'from' => $from,
+                            'template_name' => $template_name,
+                            'event_user_id' => $user_event->id,
+                            'event_id' => $event->id,
+                        ]);
+
+                        $is_invitation_sent = true;
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('SendWeddingDataV1ArTemplate Error in webhook: ' . $e->getMessage());
                 }
             }
         }
@@ -441,7 +486,7 @@ class HomeController extends Controller
         $textBody = data_get($value, 'messages.0.text.body');
         $textFrom = data_get($value, 'messages.0.from');
 
-        if ($textBody && $textFrom) {
+        if ($textBody && $textFrom && !$is_invitation_sent && !$isMazoum) {
             $user_event = EventUsers::where('mobile', $textFrom)->orderByDesc('updated_at')->first();
 
             $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);

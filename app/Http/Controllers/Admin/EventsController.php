@@ -497,7 +497,7 @@ class EventsController extends Controller
     public function store(modelRequest $request)
     {
         $validator = Validator::make($request->all(), [
-            'file' => 'sometimes|mimes:pdf,jpg,png,jpeg',
+            'file' => 'sometimes',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([

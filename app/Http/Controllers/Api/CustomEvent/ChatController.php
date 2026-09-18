@@ -13,7 +13,7 @@ use App\Models\Qr_Code;
 use App\Models\CustomEventUsers;
 use App\Models\CustomChat;
 use App\Models\EventUsers;
-use App\Models\EventChat;
+use App\Models\EventVoice;
 
 class ChatController extends Controller
 {
@@ -74,6 +74,42 @@ class ChatController extends Controller
             "chat" => $chat,
             "custom_event" => $custom_event,
             "custom_event_user" => $custom_event_user,
+        ]);
+    }
+
+    public function custom_voice_msgs(Request $request, $id){
+        $custom_event_voice = EventVoice:: 
+        whereHas("custom_event_user", function($query) use($id){
+            $query->where("custom_event_id", $id);
+        })
+        ->paginate(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "voice" => $item->voice_url,
+            ];
+        });
+
+        return response()->json([
+            "custom_event_voice" => $custom_event_voice,
+        ]);
+    }
+
+    public function voice_msgs(Request $request, $id){
+        $event_voice = EventVoice:: 
+        whereHas("event_user", function($query) use($id){
+            $query->where("event_id", $id);
+        })
+        ->paginate(15)
+        ->through(function($item){
+            return [
+                "id" => $item->id,
+                "voice" => $item->voice_url,
+            ];
+        });
+
+        return response()->json([
+            "event_voice" => $event_voice,
         ]);
     }
 

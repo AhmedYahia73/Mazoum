@@ -79,9 +79,7 @@ class ChatController extends Controller
 
     public function custom_voice_msgs(Request $request, $id){
         $custom_event_voice = EventVoice:: 
-        whereHas("custom_event_user", function($query) use($id){
-            $query->where("custom_event_id", $id);
-        })
+        where("custom_event_user_id", $id)
         ->paginate(15)
         ->through(function($item){
             return [
@@ -97,9 +95,7 @@ class ChatController extends Controller
 
     public function voice_msgs(Request $request, $id){
         $event_voice = EventVoice:: 
-        whereHas("event_user", function($query) use($id){
-            $query->where("event_id", $id);
-        })
+        where("event_user_id", $id)
         ->paginate(15)
         ->through(function($item){
             return [

@@ -665,7 +665,7 @@ class EventChatController extends Controller
             if (!empty($event->date) && !empty($event->time)) {
                 $time_formatted = $event->time;
                 if (($timestamp = strtotime($event->time)) !== false) {
-                    $period = date('a', $timestamp) === 'am' ? 'صباحاً' : 'مساءً';
+                    $period = date('a', $timestamp)  ;
                     $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                     $time_formatted = date('h:i', $timestamp) . ' ' . $Arabic->utf8Glyphs($period);
                 }

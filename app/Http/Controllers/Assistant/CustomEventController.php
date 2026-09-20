@@ -1,21 +1,22 @@
 <?php
 namespace App\Http\Controllers\Assistant;
 
-use App\Models\CustomEventUsers;
-use App\Models\Qr_Code;
-use Illuminate\Http\Request;
-use App\Http\Requests\CustomEvent as modelRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CustomEvent as modelRequest;
 use App\Models\CustomEvent as Model;
 use App\Models\CustomEventFamily;
-use Carbon\Carbon;
-use Response;
-use PDF;
-use Intervention\Image\ImageManagerStatic as Image;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\CustomEventUsers;
 use App\Models\Notifications;
+use App\Models\Qr_Code;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\ImageManagerStatic as Image;
 use Maatwebsite\Excel\Facades\Excel;
+use PDF;
+use Response;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 

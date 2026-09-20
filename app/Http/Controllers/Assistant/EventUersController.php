@@ -1112,7 +1112,7 @@ class EventUersController extends Controller
             if (isset($event->date) && isset($event->time)) {
                 $time_formatted = $event->time;
                 if (!empty($event->time) && ($timestamp = strtotime($event->time)) !== false) {
-                    $period = date('a', $timestamp) === 'am' ? 'صباحاً' : 'مساءً';
+                    $period = date('a', $timestamp) ;
                     $Arabic = new \ArPHP\I18N\Arabic('Glyphs');
                     $time_formatted = date('h:i', $timestamp) . ' ' . $Arabic->utf8Glyphs($period);
                 }
@@ -1139,8 +1139,7 @@ class EventUersController extends Controller
             }
 
             return $final_path;
-        }
-        dd($new_img);
+        } 
     }
 
 

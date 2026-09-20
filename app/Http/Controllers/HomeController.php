@@ -403,16 +403,16 @@ class HomeController extends Controller
                     }
                 }
 
-                // تحديث حالة المعازيم
-                if ($status !== 'location') {
+                // تحديث حالة المعازيم (تجنب تغيير الحالة للأزرار التفاعلية مثل التهاني والاعتذار)
+                if (!in_array($status, ['location', 'yes-congrato', 'no-congrato', 'yes-apologize', 'no-apologize'])) {
                     $user_event->update(['status' => $status]);
-                } else {
+                } elseif ($status === 'location') {
                     $user_event->update(['get_location' => 'yes']);
                 }
             }
 
             // حالات Contacts المعالجة
-            $wa_id = data_get($value, 'contacts.0.wa_id');
+            $wa_id = data_get($value, 'contacts.0.wa_id') ?? data_get($value, 'messages.0.from');
             if ($wa_id) {
                 $this->handleContactActions($wa_id, $status, $phone_numer_id, $token, $language);
             }
@@ -578,15 +578,29 @@ class HomeController extends Controller
      */
     private function handleContactActions($mobile, $status, $phone_numer_id, $token, $language)
     {
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+
         $user_event = EventUsers::whereHas('event', function ($e) {
             $e->whereIn('is_open', ['yes', 'current']);
-        })->where('mobile', $mobile)->orderByDesc('id')->first();
+        })->where(function ($q) use ($mobile, $cleanMobile) {
+            $q->where('mobile', $mobile)
+              ->orWhere('mobile', '+' . $cleanMobile)
+              ->orWhere('mobile', $cleanMobile)
+              ->orWhere('phone_number', $cleanMobile)
+              ->orWhere('phone_number', '+' . $cleanMobile);
+        })->orderByDesc('id')->first();
 
         if (!$user_event) {
-            return;
+            $user_event = EventUsers::where(function ($q) use ($mobile, $cleanMobile) {
+                $q->where('mobile', $mobile)
+                  ->orWhere('mobile', '+' . $cleanMobile)
+                  ->orWhere('mobile', $cleanMobile)
+                  ->orWhere('phone_number', $cleanMobile)
+                  ->orWhere('phone_number', '+' . $cleanMobile);
+            })->orderByDesc('id')->first();
         }
 
-        if ($status === 'no') {
+        if ($status === 'no' && $user_event) {
             $Qr_Code = Qr_Code::where('event_user_id', $user_event->id)->first();
             if ($Qr_Code) {
                 $url_image = asset('qr_code/' . $Qr_Code->uu_id . '-test-qr.png');
@@ -594,12 +608,22 @@ class HomeController extends Controller
             }
         }
 
-        if (in_array($status, ['no-congrato', 'no-apologize', 'yes'])) {
-            SendMessageTemplate($mobile, 'wedding_data_v11_ar_', $language, $phone_numer_id, $token);
+        // عند الرد بـ "لا" على التهنئة أو الاعتذار
+        if (in_array($status, ['no-congrato', 'no-apologize'])) {
+            $response = SendMessageTemplate($mobile, 'wedding_data_v11_ar_', $language, $phone_numer_id, $token);
+            if ($response && $response->getStatusCode() == 200) {
+                $body = json_decode($response->getBody()->getContents(), true);
+                log_sent_watts_message($mobile, 'wedding_data_v11_ar_', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+            }
         }
 
-        if (in_array($status, ['yes-congrato', 'yes-apologize'])) {
-            SendMessageTemplate($mobile, 'message', $language, $phone_numer_id, $token);
+        // عند الرد بـ "نعم" على رسالة التهنئة (أو الاعتذار) يتم إرسال تمبلت wedding_data_v4_ar
+        if (in_array($status, ['yes-congrato', 'yes-apologize', 'yes'])) {
+            $response = SendMessageTemplate($mobile, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
+            if ($response && $response->getStatusCode() == 200) {
+                $body = json_decode($response->getBody()->getContents(), true);
+                log_sent_watts_message($mobile, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+            }
         }
 
         // تحديد الأعداد بالأرقام (1 إلى 10)

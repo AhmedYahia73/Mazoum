@@ -489,7 +489,7 @@ class HomeController extends Controller
         if ($textBody && $textFrom && !$is_invitation_sent && !$isMazoum) {
             $user_event = EventUsers::where('mobile', $textFrom)->orderByDesc('updated_at')->first();
 
-            $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
+            $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
 
             if ($response && $response->getStatusCode() == 200) {
                 if ($user_event && $user_event->status === 'attend') {

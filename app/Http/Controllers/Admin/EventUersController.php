@@ -21,12 +21,14 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Models\WattsChat as WattsChatModel;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
+use IntlDateFormatter;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Response;
@@ -1751,11 +1753,27 @@ class EventUersController extends Controller
                             $param_1   = $user_name;
                             $param_2   = $event->title;
                             $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                            $param_4   = $event->address;
-                            $param_5 = $event->time != null 
+                            // التأكد من أن التاريخ كائن DateTime أو Carbon
+                            $date = $event->date instanceof DateTime 
+                                ? $event->date 
+                                : new DateTime($event->date);
+
+                            // إعداد المنسق للتقويم الهجري مع اللغة العربية
+                            $formatter = new IntlDateFormatter(
+                                'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
+                                IntlDateFormatter::FULL,
+                                IntlDateFormatter::NONE,
+                                'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
+                                IntlDateFormatter::TRADITIONAL,
+                                'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                            );
+
+                            $param_4 = $formatter->format($date);
+                            $param_5   = $event->address;
+                            $param_6 = $event->time != null 
                             ? date('h:i', strtotime($event->time)) . ' ' . (date('a', strtotime($event->time)) == 'am' ? 'صباحاً' : 'مساءً') 
                             : '07:00 مساءً';
-							$param_6   = $users_count > 10 ? 10 : $users_count;
+							$param_7   = $users_count > 10 ? 10 : $users_count;
                             $phone_number = $this->get_phone_number($request->phone_setting_id);
                             
                             $user_event->update([
@@ -1768,7 +1786,7 @@ class EventUersController extends Controller
                           	*/
  
                             if($header_type == 'image'){
-                                $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type);
+                                $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7, $image_url,$phone_numer_id,$token, $header_type);
                             }
                             else{
                                 $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type); 

@@ -7,13 +7,13 @@ use App\Http\Resources\APiResource\EventMessagesResource;
 use App\Http\Resources\APiResource\UserEvents_Data;
 use App\Http\Resources\APiResource\UserEventsData_V2;
 use App\Models\CongratulationMessages;
+use App\Models\CustomEventUsers;
 use App\Models\EnterUserEvent;
 use App\Models\EventFamily;
 use App\Models\EventMessages;
 use App\Models\Events;
 use App\Models\EventUsers as Model;
 use App\Models\EventUsers;
-use App\Models\CustomEventUsers;
 use App\Models\NewSetting;
 use App\Models\Notifications;
 use App\Models\Qr_Code;
@@ -21,10 +21,12 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Traits\GeneralTrait;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
+use IntlDateFormatter;
 use PDF;
 use Response;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -235,10 +237,26 @@ class ApiEventUersController extends Controller
                 $param_1 = $user_event->name;
                 $param_2 = $event->title;
                 $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                $param_4 = $event->address;
-                $param_5 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
-                $param_6 = $user_event->users_count;
-                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image");
+                // التأكد من أن التاريخ كائن DateTime أو Carbon
+                $date = $event->date instanceof DateTime 
+                    ? $event->date 
+                    : new DateTime($event->date);
+
+                // إعداد المنسق للتقويم الهجري مع اللغة العربية
+                $formatter = new IntlDateFormatter(
+                    'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
+                    IntlDateFormatter::FULL,
+                    IntlDateFormatter::NONE,
+                    'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
+                    IntlDateFormatter::TRADITIONAL,
+                    'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                );
+
+                $param_4 = $formatter->format($date);
+                $param_5 = $event->address;
+                $param_6 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
+                $param_7 = $user_event->users_count;
+                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$param_7,$image_url,$phone_numer_id,$token, "image");
       	//dd($response);
 
         if ($response != null && $response->getStatusCode() == 200) {
@@ -680,13 +698,30 @@ class ApiEventUersController extends Controller
                                 $param_1   = $user_name;
                                 $param_2   = $event->title;
                                 $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                                $param_4   = $event->address;
-                                $param_5   = $event->time != null ? $event->time : '07:00 مساءً';
-                                $param_6   = $users_count;
+                                
+                                // التأكد من أن التاريخ كائن DateTime أو Carbon
+                                $date = $event->date instanceof DateTime 
+                                    ? $event->date 
+                                    : new DateTime($event->date);
+
+                                // إعداد المنسق للتقويم الهجري مع اللغة العربية
+                                $formatter = new IntlDateFormatter(
+                                    'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
+                                    IntlDateFormatter::FULL,
+                                    IntlDateFormatter::NONE,
+                                    'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
+                                    IntlDateFormatter::TRADITIONAL,
+                                    'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                                );
+
+                                $param_4 = $formatter->format($date);
+                                $param_5   = $event->address;
+                                $param_6   = $event->time != null ? $event->time : '07:00 مساءً';
+                                $param_7   = $users_count;
 
                                 if($event->sending_type == 'old_send') {
 
-                                    $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image"); 
+                                    $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$param_7,$image_url,$phone_numer_id,$token, "image"); 
 
                                     // if($event->country_code == 'kw') {
 
@@ -938,9 +973,25 @@ class ApiEventUersController extends Controller
                         $param_1   = $user_name;
                         $param_2   = $event->title;
                         $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                        $param_4   = $event->address;
-                        $param_5   = $event->time != null ? $event->time : '07:00 مساءً';
-						$param_6   = $users_count > 10 ? 10 : $users_count;
+                        // التأكد من أن التاريخ كائن DateTime أو Carbon
+                        $date = $event->date instanceof DateTime 
+                            ? $event->date 
+                            : new DateTime($event->date);
+
+                        // إعداد المنسق للتقويم الهجري مع اللغة العربية
+                        $formatter = new IntlDateFormatter(
+                            'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
+                            IntlDateFormatter::FULL,
+                            IntlDateFormatter::NONE,
+                            'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
+                            IntlDateFormatter::TRADITIONAL,
+                            'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                        );
+
+                        $param_4 = $formatter->format($date);
+                        $param_5   = $event->address;
+                        $param_6   = $event->time != null ? $event->time : '07:00 مساءً';
+						$param_7   = $users_count > 10 ? 10 : $users_count;
 
                         //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
                         $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
@@ -955,7 +1006,7 @@ class ApiEventUersController extends Controller
                         $users_count = $user_event->users_count;
                         $phone_number = $this->get_phone_number($request->phone_setting_id);
                         $header_type = "image";
-                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, "image"); 
+                        $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$param_7,$image_url,$phone_numer_id,$token, "image"); 
                         if ($response != null && $response->getStatusCode() == 200) {
 
                             // $user->update([

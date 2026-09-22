@@ -11,8 +11,8 @@ use App\Models\EventUserActions;
 use App\Models\EventUserLogs;
 use App\Models\EventUsers;
 use App\Models\Logs;
-use App\Models\Notifications;
 use App\Models\NewSetting;
+use App\Models\Notifications;
 use App\Models\Orders;
 use App\Models\Parking;
 use App\Models\Pricing; 
@@ -21,12 +21,14 @@ use App\Models\Setting;
 use App\Models\WattsChat as WattsChatModel;
 use App\Models\WebDesgins;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManagerStatic as Image;
+use IntlDateFormatter;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class HomeController extends Controller
@@ -174,16 +176,32 @@ class HomeController extends Controller
                 $param_1 = $user_event->name;
                 $param_2 = $event->title;
                 $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
-                $param_4 = $event->address;
-                $param_5 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
-                $param_6 = $user_event->users_count;
+                // التأكد من أن التاريخ كائن DateTime أو Carbon
+                $date = $event->date instanceof DateTime 
+                    ? $event->date 
+                    : new DateTime($event->date);
+
+                // إعداد المنسق للتقويم الهجري مع اللغة العربية
+                $formatter = new IntlDateFormatter(
+                    'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
+                    IntlDateFormatter::FULL,
+                    IntlDateFormatter::NONE,
+                    'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
+                    IntlDateFormatter::TRADITIONAL,
+                    'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                );
+
+                $param_4 = $formatter->format($date);
+                $param_5 = $event->address;
+                $param_6 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
+                $param_7 = $user_event->users_count;
                 $template_name = 'wedding_data_v1_ar';
                 $image_url = $event->file;
 
                 try {
                     $response = SendWeddingDataV1ArTemplate(
                         $customerPhone, $template_name, $language, $param_1, $param_2, 
-                        $param_3, $param_4, $param_5, $param_6, $image_url, $phone_numer_id, $token, 'image'
+                        $param_3, $param_4, $param_5, $param_6, $param_7, $image_url, $phone_numer_id, $token, 'image'
                     );
 
                     if ($response && $response->getStatusCode() == 200) {

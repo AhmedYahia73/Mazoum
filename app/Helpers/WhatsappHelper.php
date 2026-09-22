@@ -227,7 +227,7 @@ if (! function_exists('SendCustomMessageTemplate')) {
 
 if (! function_exists('SendWeddingDataV1ArImageTemplate')) {
 
-    function SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token, $header_type = "image")
+    function SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
 
         $arr = [
@@ -278,6 +278,10 @@ if (! function_exists('SendWeddingDataV1ArImageTemplate')) {
                             [
                                 'type' => 'text',
                                 'text' => $param_6
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_7
                             ]
                         ],
                     ],

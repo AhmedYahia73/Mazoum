@@ -340,7 +340,7 @@ if (! function_exists('SendWeddingDataV1ArImageTemplate')) {
 
 if (! function_exists('SendWeddingDataV1ArTemplate')) {
 
-    function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
+    function SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
         if (func_num_args() >= 12 && function_exists('SendWeddingDataV1ArImageTemplate')) {
             return SendWeddingDataV1ArImageTemplate(...func_get_args());
@@ -378,6 +378,26 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
                             [
                                 'type' => 'text',
                                 'text' => $param_2
+                            ], 
+                            [
+                                'type' => 'text',
+                                'text' => $param_3
+                            ], 
+                            [
+                                'type' => 'text',
+                                'text' => $param_4
+                            ], 
+                            [
+                                'type' => 'text',
+                                'text' => $param_5
+                            ], 
+                            [
+                                'type' => 'text',
+                                'text' => $param_6
+                            ],
+                            [
+                                'type' => 'text',
+                                'text' => $param_7
                             ], 
                         ],
                     ],

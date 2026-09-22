@@ -535,30 +535,101 @@ class HomeController extends Controller
                 ]);
             }
 
-            // التأكد من إرسال تمبلت message مرة واحدة فقط في اليوم لنفس الرقم
             $today = Carbon::today();
-            $cacheKey = 'watts_msg_tpl_' . $customerPhone . '_' . $today->toDateString();
+            $dailyCacheKey = 'watts_msg_tpl_' . $customerPhone . '_' . $today->toDateString();
 
-            $alreadySentToday = Cache::has($cacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+            // فحص هل تم إرسال تمبلت wedding_data_v16_ar لهذا الرقم سابقاً ولم يتم الرد عليها بعد (أول رد فقط)
+            $lastV16 = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
                     $q->where('phone', $customerPhone)
                       ->orWhere('phone', $textFrom);
                 })
                 ->where('is_sent_by_me', 1)
                 ->where(function ($q) {
-                    $q->where('template_name', 'message')
-                      ->orWhere('message', 'message');
+                    $q->where('template_name', 'wedding_data_v16_ar')
+                      ->orWhere('message', 'wedding_data_v16_ar');
                 })
-                ->whereDate('created_at', $today)
-                ->exists();
+                ->orderByDesc('id')
+                ->first();
 
-            if (!$alreadySentToday) {
-                Cache::put($cacheKey, true, now()->endOfDay());
+            $isFirstReplyToV16 = false;
 
-                $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
+            if ($lastV16) {
+                // جلب آخر رسالة مرسلة من النظام
+                $lastSentMsg = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)
+                          ->orWhere('phone', $textFrom);
+                    })
+                    ->where('is_sent_by_me', 1)
+                    ->orderByDesc('id')
+                    ->first();
+
+                $v16CacheKey = 'v16_first_reply_' . $customerPhone . '_' . $lastV16->id;
+
+                $v4AlreadySent = Cache::has($v16CacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)
+                          ->orWhere('phone', $textFrom);
+                    })
+                    ->where('is_sent_by_me', 1)
+                    ->where(function ($q) {
+                        $q->where('template_name', 'wedding_data_v4_ar')
+                          ->orWhere('message', 'wedding_data_v4_ar');
+                    })
+                    ->where('id', '>', $lastV16->id)
+                    ->exists();
+
+                $userMsgsSinceV16 = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)
+                          ->orWhere('phone', $textFrom);
+                    })
+                    ->where('is_sent_by_me', 0)
+                    ->where('id', '>', $lastV16->id)
+                    ->count();
+
+                $contextId = data_get($value, 'messages.0.context.id');
+                $isDirectReply = ($lastSentMsg && $lastSentMsg->id === $lastV16->id)
+                    || ($contextId && $lastV16->message_id && $contextId == $lastV16->message_id);
+
+                if ($isDirectReply && !$v4AlreadySent && $userMsgsSinceV16 === 0) {
+                    $isFirstReplyToV16 = true;
+                }
+            }
+
+            if ($isFirstReplyToV16) {
+                // إرسال تمبلت wedding_data_v4_ar بدون متغيرات لأول رد فقط على wedding_data_v16_ar
+                Cache::put($v16CacheKey, true, now()->addDays(7));
+                Cache::put($dailyCacheKey, true, now()->endOfDay());
+
+                $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
 
                 if ($response && $response->getStatusCode() == 200) {
                     $body = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($textFrom, 'message', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                    log_sent_watts_message($textFrom, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                }
+            } else {
+                // في الحالات الأخرى: التأكد من إرسال تمبلت message مرة واحدة فقط في اليوم لنفس الرقم
+                $alreadySentToday = Cache::has($dailyCacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)
+                          ->orWhere('phone', $textFrom);
+                    })
+                    ->where('is_sent_by_me', 1)
+                    ->where(function ($q) {
+                        $q->where('template_name', 'message')
+                          ->orWhere('message', 'message')
+                          ->orWhere('template_name', 'wedding_data_v4_ar')
+                          ->orWhere('message', 'wedding_data_v4_ar');
+                    })
+                    ->whereDate('created_at', $today)
+                    ->exists();
+
+                if (!$alreadySentToday) {
+                    Cache::put($dailyCacheKey, true, now()->endOfDay());
+
+                    $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
+
+                    if ($response && $response->getStatusCode() == 200) {
+                        $body = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($textFrom, 'message', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                    }
                 }
             }
         }
@@ -668,12 +739,12 @@ class HomeController extends Controller
             }
         }
 
-        // عند الرد بـ "نعم" على رسالة التهنئة (أو الاعتذار) يتم إرسال تمبلت wedding_data_v4_ar
+        // عند الرد بـ "نعم" على رسالة التهنئة (أو الاعتذار) يتم إرسال تمبلت wedding_data_v16_ar
         if (in_array($status, ['yes-congrato', 'yes-apologize', 'yes'])) {
-            $response = SendMessageTemplate($mobile, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
+            $response = SendMessageTemplate($mobile, 'wedding_data_v16_ar', $language, $phone_numer_id, $token);
             if ($response && $response->getStatusCode() == 200) {
                 $body = json_decode($response->getBody()->getContents(), true);
-                log_sent_watts_message($mobile, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                log_sent_watts_message($mobile, 'wedding_data_v16_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
             }
         }
 
@@ -1239,7 +1310,7 @@ class HomeController extends Controller
 
                 $to = $mobile;
 
-                $template_name = 'wedding_data_v4_ar';
+                $template_name = 'wedding_data_v16_ar';
                 $language = 'ar';
 
 
@@ -1267,7 +1338,7 @@ class HomeController extends Controller
 
                 $to = $mobile;
 
-                $template_name = 'wedding_data_v4_ar';
+                $template_name = 'wedding_data_v16_ar';
                 $language = 'ar';
 
 

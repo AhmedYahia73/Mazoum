@@ -252,7 +252,7 @@ class ApiEventUersController extends Controller
                     'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
                 );
 
-                $param_4 = $formatter->format($date);
+                $param_4 = $formatter->format($date) . "هـ";
                 $param_5 = $event->address;
                 $param_6 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
                 $param_7 = $user_event->users_count;
@@ -714,7 +714,7 @@ class ApiEventUersController extends Controller
                                     'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
                                 );
 
-                                $param_4 = $formatter->format($date);
+                                $param_4 = $formatter->format($date) . "هـ";
                                 $param_5   = $event->address;
                                 $param_6   = $event->time != null ? $event->time : '07:00 مساءً';
                                 $param_7   = $users_count;
@@ -988,7 +988,7 @@ class ApiEventUersController extends Controller
                             'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
                         );
 
-                        $param_4 = $formatter->format($date);
+                        $param_4 = $formatter->format($date) . "هـ";
                         $param_5   = $event->address;
                         $param_6   = $event->time != null ? $event->time : '07:00 مساءً';
 						$param_7   = $users_count > 10 ? 10 : $users_count;

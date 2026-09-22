@@ -1768,7 +1768,7 @@ class EventUersController extends Controller
                                 'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
                             );
 
-                            $param_4 = $formatter->format($date);
+                            $param_4 = $formatter->format($date) . "هـ";
                             $param_5   = $event->address;
                             $param_6 = $event->time != null 
                             ? date('h:i', strtotime($event->time)) . ' ' . (date('a', strtotime($event->time)) == 'am' ? 'صباحاً' : 'مساءً') 

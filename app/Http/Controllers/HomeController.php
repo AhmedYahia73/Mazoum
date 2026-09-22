@@ -23,6 +23,7 @@ use App\Models\WebDesgins;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -191,7 +192,7 @@ class HomeController extends Controller
                     'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
                 );
 
-                $param_4 = $formatter->format($date);
+                $param_4 = $formatter->format($date) . "هـ";
                 $param_5 = $event->address;
                 $param_6 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
                 $param_7 = $user_event->users_count;
@@ -505,27 +506,59 @@ class HomeController extends Controller
         $textFrom = data_get($value, 'messages.0.from');
 
         if ($textBody && $textFrom && !$is_invitation_sent && !$isMazoum) {
-            $user_event = EventUsers::where('mobile', $textFrom)->orderByDesc('updated_at')->first();
+            $customerPhone = preg_replace('/[^0-9]/', '', $textFrom);
 
-            $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
+            $user_event = EventUsers::where(function ($q) use ($customerPhone, $textFrom) {
+                $q->where('mobile', $textFrom)
+                  ->orWhere('mobile', $customerPhone)
+                  ->orWhere('mobile', '+' . $customerPhone)
+                  ->orWhere('phone_number', $customerPhone)
+                  ->orWhere('phone_number', '+' . $customerPhone);
+            })->orderByDesc('updated_at')->first();
 
-            if ($response && $response->getStatusCode() == 200) {
-                if ($user_event && $user_event->status === 'attend') {
-                    CongratulationMessages::create([
-                        'event_id' => $user_event->event_id,
-                        'event_user_id' => $user_event->id,
-                        'name' => $user_event->name,
-                        'mobile' => $textFrom,
-                        'message' => $textBody
-                    ]);
-                } else {
-                    EventMessages::create([
-                        'event_id' => $user_event?->event_id ?? 0,
-                        'event_user_id' => $user_event?->id ?? 0,
-                        'name' => $user_event?->name ?? '',
-                        'mobile' => $textFrom,
-                        'message' => $textBody
-                    ]);
+            // حفظ الرسالة القادمة دائماً (سواء تهنئة أو رسالة مناسبة)
+            if ($user_event && $user_event->status === 'attend') {
+                CongratulationMessages::create([
+                    'event_id' => $user_event->event_id,
+                    'event_user_id' => $user_event->id,
+                    'name' => $user_event->name,
+                    'mobile' => $textFrom,
+                    'message' => $textBody
+                ]);
+            } else {
+                EventMessages::create([
+                    'event_id' => $user_event?->event_id ?? 0,
+                    'event_user_id' => $user_event?->id ?? 0,
+                    'name' => $user_event?->name ?? '',
+                    'mobile' => $textFrom,
+                    'message' => $textBody
+                ]);
+            }
+
+            // التأكد من إرسال تمبلت message مرة واحدة فقط في اليوم لنفس الرقم
+            $today = Carbon::today();
+            $cacheKey = 'watts_msg_tpl_' . $customerPhone . '_' . $today->toDateString();
+
+            $alreadySentToday = Cache::has($cacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                    $q->where('phone', $customerPhone)
+                      ->orWhere('phone', $textFrom);
+                })
+                ->where('is_sent_by_me', 1)
+                ->where(function ($q) {
+                    $q->where('template_name', 'message')
+                      ->orWhere('message', 'message');
+                })
+                ->whereDate('created_at', $today)
+                ->exists();
+
+            if (!$alreadySentToday) {
+                Cache::put($cacheKey, true, now()->endOfDay());
+
+                $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
+
+                if ($response && $response->getStatusCode() == 200) {
+                    $body = json_decode($response->getBody()->getContents(), true);
+                    log_sent_watts_message($textFrom, 'message', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
                 }
             }
         }

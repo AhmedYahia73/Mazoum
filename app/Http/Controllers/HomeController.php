@@ -538,72 +538,58 @@ class HomeController extends Controller
             $today = Carbon::today();
             $dailyCacheKey = 'watts_msg_tpl_' . $customerPhone . '_' . $today->toDateString();
 
-            // فحص هل تم إرسال تمبلت wedding_data_v16_ar لهذا الرقم سابقاً ولم يتم الرد عليها بعد (أول رد فقط)
-            $lastV16 = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
-                    $q->where('phone', $customerPhone)
-                      ->orWhere('phone', $textFrom);
-                })
-                ->where('is_sent_by_me', 1)
-                ->where(function ($q) {
-                    $q->where('template_name', 'wedding_data_v16_ar')
-                      ->orWhere('message', 'wedding_data_v16_ar');
-                })
-                ->orderByDesc('id')
-                ->first();
+            // فحص هل تم إرسال تمبلت wedding_data_v16_ar لهذا الرقم سابقاً ولم يتم الرد عليها بعد بـ wedding_data_v4_ar
+            $isReplyToV16 = false;
+            $v16Msg = null;
 
-            $isFirstReplyToV16 = false;
-
-            if ($lastV16) {
-                // جلب آخر رسالة مرسلة من النظام
-                $lastSentMsg = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
-                        $q->where('phone', $customerPhone)
-                          ->orWhere('phone', $textFrom);
+            if (isset($last_msg) && $last_msg && (in_array($last_msg->message, ['wedding_data_v16_ar', 'wedding_data_v16_ar_']) || in_array($last_msg->template_name, ['wedding_data_v16_ar', 'wedding_data_v16_ar_']))) {
+                $v16Msg = $last_msg;
+            } else {
+                $v16Msg = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)->orWhere('phone', $textFrom);
                     })
                     ->where('is_sent_by_me', 1)
+                    ->where(function ($q) {
+                        $q->where('template_name', 'wedding_data_v16_ar')
+                          ->orWhere('message', 'wedding_data_v16_ar');
+                    })
                     ->orderByDesc('id')
                     ->first();
+            }
 
-                $v16CacheKey = 'v16_first_reply_' . $customerPhone . '_' . $lastV16->id;
-
-                $v4AlreadySent = Cache::has($v16CacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
-                        $q->where('phone', $customerPhone)
-                          ->orWhere('phone', $textFrom);
+            if ($v16Msg) {
+                // التحقق هل تم إرسال رد wedding_data_v4_ar بعد هذا التمبلت مسبقاً (لضمان أول رد فقط)
+                $v4AlreadySent = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
+                        $q->where('phone', $customerPhone)->orWhere('phone', $textFrom);
                     })
                     ->where('is_sent_by_me', 1)
+                    ->where('id', '>', $v16Msg->id)
                     ->where(function ($q) {
                         $q->where('template_name', 'wedding_data_v4_ar')
                           ->orWhere('message', 'wedding_data_v4_ar');
                     })
-                    ->where('id', '>', $lastV16->id)
                     ->exists();
 
-                $userMsgsSinceV16 = WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
-                        $q->where('phone', $customerPhone)
-                          ->orWhere('phone', $textFrom);
-                    })
-                    ->where('is_sent_by_me', 0)
-                    ->where('id', '>', $lastV16->id)
-                    ->count();
-
-                $contextId = data_get($value, 'messages.0.context.id');
-                $isDirectReply = ($lastSentMsg && $lastSentMsg->id === $lastV16->id)
-                    || ($contextId && $lastV16->message_id && $contextId == $lastV16->message_id);
-
-                if ($isDirectReply && !$v4AlreadySent && $userMsgsSinceV16 === 0) {
-                    $isFirstReplyToV16 = true;
+                if (!$v4AlreadySent) {
+                    $isReplyToV16 = true;
                 }
             }
 
-            if ($isFirstReplyToV16) {
-                // إرسال تمبلت wedding_data_v4_ar بدون متغيرات لأول رد فقط على wedding_data_v16_ar
-                Cache::put($v16CacheKey, true, now()->addDays(7));
-                Cache::put($dailyCacheKey, true, now()->endOfDay());
+            if ($isReplyToV16) {
+                Log::info("Sending wedding_data_v4_ar to {$textFrom} in response to wedding_data_v16_ar");
+                try {
+                    $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
 
-                $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
-
-                if ($response && $response->getStatusCode() == 200) {
-                    $body = json_decode($response->getBody()->getContents(), true);
-                    log_sent_watts_message($textFrom, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $body = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($textFrom, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                        Cache::put($dailyCacheKey, true, now()->endOfDay());
+                        Log::info("wedding_data_v4_ar successfully sent to {$textFrom}");
+                    } else {
+                        Log::error("Failed sending wedding_data_v4_ar to {$textFrom}: status " . ($response ? $response->getStatusCode() : 'no response'));
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Error sending wedding_data_v4_ar to {$textFrom}: " . $e->getMessage());
                 }
             } else {
                 // في الحالات الأخرى: التأكد من إرسال تمبلت message مرة واحدة فقط في اليوم لنفس الرقم
@@ -622,13 +608,17 @@ class HomeController extends Controller
                     ->exists();
 
                 if (!$alreadySentToday) {
-                    Cache::put($dailyCacheKey, true, now()->endOfDay());
+                    Log::info("Sending message template to {$textFrom}");
+                    try {
+                        $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
 
-                    $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
-
-                    if ($response && $response->getStatusCode() == 200) {
-                        $body = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($textFrom, 'message', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $body = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($textFrom, 'message', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                            Cache::put($dailyCacheKey, true, now()->endOfDay());
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Error sending message template to {$textFrom}: " . $e->getMessage());
                     }
                 }
             }

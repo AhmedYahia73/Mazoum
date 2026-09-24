@@ -1178,9 +1178,10 @@ class ApiEventUersController extends Controller
                 $message = $request->message;
 
 
-                $token          = get_whats_setting($event)['token'];
-                $sender_id      = get_whats_setting($event)['sender_id'];
-                $phone_numer_id = get_whats_setting($event)['sender_id'];
+                $whatsSetting   = get_whats_setting($event);
+                $token          = $whatsSetting['token'];
+                $sender_id      = $this->get_phone_id($event->phone_setting_id, $event) ?? $whatsSetting['sender_id'];
+                $phone_numer_id = $this->get_phone_id($event->phone_setting_id, $event) ?? $whatsSetting['phone_numer_id'];
 
                 $send_type = $event_user?->send_type ?? $event->send_type;
 
@@ -2086,12 +2087,16 @@ class ApiEventUersController extends Controller
     }
 
 
-    private function get_phone_id($id){
+    private function get_phone_id($id, $event = null){
         $data = NewSetting::
         where("id", $id)
         ->first();
-        if(empty($data)){
-            return Setting::first()?->phone_numer_id ?? null;
+        if(empty($data) || empty($data->phone_numer_id)){
+            $setting = Setting::first();
+            if ($event && $event->country_code != 'kw') {
+                return $setting?->sa_phone_numer_id ?? $setting?->phone_numer_id;
+            }
+            return $setting?->phone_numer_id ?? $setting?->sa_phone_numer_id;
         }
         return $data->phone_numer_id;
     }

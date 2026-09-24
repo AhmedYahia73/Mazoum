@@ -32,16 +32,19 @@ if (! function_exists('get_whats_setting')) {
       	//dd($event->country_code);
 
         if($event->country_code == 'kw') {
-            $token     = $setting->access_token;
-            $sender_id = $setting->sender_id;
+            $token          = $setting->access_token;
+            $sender_id      = $setting->sender_id;
+            $phone_numer_id = $setting->phone_numer_id;
         } else {
           	//dd('ok');
-            $token     = $setting->sa_access_token;
-            $sender_id = $setting->sa_sender_id;
+            $token          = $setting->sa_access_token;
+            $sender_id      = $setting->sa_sender_id;
+            $phone_numer_id = $setting->sa_phone_numer_id;
         }
 
-        $arr['token'] = $token;
-        $arr['sender_id'] = $sender_id;
+        $arr['token']          = $token;
+        $arr['sender_id']      = $sender_id;
+        $arr['phone_numer_id'] = $phone_numer_id;
 
         return $arr;
 

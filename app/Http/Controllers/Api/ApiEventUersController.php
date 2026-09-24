@@ -1172,7 +1172,7 @@ class ApiEventUersController extends Controller
                     return $this->returnError('E100', $lang == 'en' ? 'recipient mobile is invalid' : 'رقم هاتف المستلم غير صحيح');
                 }
 
-                $template_name = 'car_msg5';
+                $template_name = 'car_msg5_';
                 $language = 'ar';
 
                 $message = $request->message;

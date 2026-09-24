@@ -1791,7 +1791,6 @@ class EventUersController extends Controller
                             else{
                                 $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7,$image_url,$phone_numer_id,$token, $header_type); 
                             }
- 
 
                             // if($event->country_code == 'kw') {
 

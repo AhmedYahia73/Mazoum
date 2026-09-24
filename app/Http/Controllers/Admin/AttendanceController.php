@@ -305,10 +305,10 @@ class AttendanceController extends Controller
         $startOfMonth = $month->copy()->startOfMonth();
         $endOfMonth   = $month->copy()->endOfMonth();
 
-        // لو الشهر الحالي، نحسب لحد امبارح بس
+        // لو الشهر الحالي، نحسب لحد اليوم الحالي
         $today = Carbon::today();
         $isCurrentMonth = $month->isSameMonth($today);
-        $lastDayToCount = $isCurrentMonth ? $today->copy()->subDay() : $endOfMonth;
+        $lastDayToCount = $isCurrentMonth ? $today : $endOfMonth;
 
         $holidayDayNumber = $user->holiday;
         $appointmentFrom  = $user->appointment_from;
@@ -441,6 +441,23 @@ class AttendanceController extends Controller
             $dayRecords = $recordsByDay->get($dateStr, collect());
 
             if ($dayRecords->isEmpty()) {
+                // لو اليوم هو النهارده والموظف لسه ما سجلش، ما نحسبوش غياب لأن اليوم لسه شغال
+                if ($day->isSameDay($today)) {
+                    $dailyDetails[] = [
+                        'id'                  => null,
+                        'date'                => $dateStr,
+                        'status'              => 'upcoming',
+                        'check_in'            => null,
+                        'check_out'           => null,
+                        'late_minutes'        => 0,
+                        'early_leave_minutes' => 0,
+                        'overtime_minutes'    => 0,
+                        "image"               => null,
+                        "second_image"        => null,
+                    ];
+                    continue;
+                }
+
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay)) {
                     $absenceDays++;
                 }

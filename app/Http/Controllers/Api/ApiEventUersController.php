@@ -1279,18 +1279,20 @@ class ApiEventUersController extends Controller
 
                     $response = SendCarMsgTemplateV5($to,$template_name,$language,$param_1,$phone_numer_id,$token);
                     
+                    $rawBody = $response ? (string) $response->getBody() : null;
+                    $statusCode = $response ? $response->getStatusCode() : 500;
+
                     Log::info("Meta send_custom_message response", [
                         'event_id' => $event->id,
                         'message_id' => $request->message_id,
                         'to' => $to,
-                        'status' => $response?->getStatusCode(),
-                        'body' => $response?->getBody()?->getContents()
+                        'status' => $statusCode,
+                        'body' => $rawBody
                     ]);
 
-                    if ($response != null && $response->getStatusCode() == 200) {
+                    if ($response != null && $statusCode == 200) {
 
-                        $body = $response->getBody();
-                        $data = json_decode($body, true);
+                        $data = json_decode($rawBody, true);
 
 
                         if($request->message_type == 'congratulation_msg') {
@@ -1332,17 +1334,26 @@ class ApiEventUersController extends Controller
                         return $this->event_details($event->id);
 
                     } else {
+                        $metaError = 'Meta API error';
+                        if ($rawBody) {
+                            $decoded = json_decode($rawBody, true);
+                            if (isset($decoded['error']['message'])) {
+                                $metaError = $decoded['error']['message'];
+                            }
+                        }
+
                         Log::error("Meta send_custom_message failed", [
                             'event_id' => $event->id,
                             'message_id' => $request->message_id,
                             'to' => $to,
-                            'response' => $response
+                            'status' => $statusCode,
+                            'response' => $rawBody
                         ]);
 
                         if ($lang == 'en') {
-                            return $this->returnError('E100', 'sorry failed send any messages');
+                            return $this->returnError('E100', 'sorry failed to send message: ' . $metaError);
                         } else {
-                            return $this->returnError('E100', ' عفوا فشل ارسال الرساله  ');
+                            return $this->returnError('E100', 'عفوا فشل ارسال الرساله: ' . $metaError);
                         }
                     }
                 }
@@ -1375,11 +1386,7 @@ class ApiEventUersController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            if ($lang == 'en') {
-                return $this->returnError('E100', 'some thing went wrong please try again');
-            } else {
-                return $this->returnError('E100', 'لقد حدث خطا ما برجاء المحاوله مره اخري');
-            }
+            return $this->returnError('E100', $lang == 'en' ? 'something went wrong: ' . $e->getMessage() : 'لقد حدث خطا ما: ' . $e->getMessage());
         }
 
         //dd('error-v2');
@@ -1427,17 +1434,12 @@ class ApiEventUersController extends Controller
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             });
-            $EventUsers = $EventUsers->get()
+            $EventUsers = $EventUsers->get(['id','name','mobile','users_count','scan_at','confirmed_at', 
+            "scan_count", "accept_count", "is_sent", "is_accepted", "is_refused",
+            "is_delivered", "is_read", "qr_sent", "status"])
             ->map(function($item){
-                return [
-                    "id" => $item->id,
-                    "name" => $item->name,
-                    "mobile" => $item->mobile,
-                    "users_count" => $item->users_count,
-                    "scan_at" => $item->scan_at,
-                    "confirmed_at" => $item->confirmed_at,
-                    "scan_status" => $item->users_count > $item->scan_count,
-                ];
+                $item->scan_status = $item->users_count > $item->scan_count;
+                return $item;
             });
             $user_events = UserEvents_Data::collection($EventUsers);
 
@@ -1518,6 +1520,7 @@ class ApiEventUersController extends Controller
                     "name" => $item->name,
                     "mobile" => $item->mobile,
                     "users_count" => $item->users_count,
+                    "scan_count" => $item->scan_count ?? 0,
                     "scan_at" => $item->scan_at,
                     "confirmed_at" => $item->confirmed_at,
                     "scan_status" => $item->users_count > $item->scan_count,

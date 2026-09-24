@@ -113,6 +113,7 @@ if (! function_exists('SendCarMsgTemplateV5')) {
         $client = new \GuzzleHttp\Client();
 
         $response = $client->post($fullUrl, [
+            'http_errors' => false,
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type'  => 'application/json',

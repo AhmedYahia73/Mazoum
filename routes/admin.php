@@ -623,11 +623,10 @@ Route::post('attendance/multi_delete', 'AttendanceController@multi_delete');
 // Extra Templates
 Route::group(['prefix' => 'extra-templates'], function () {
     Route::match(['get', 'post'], 'send_congratulation_ar_new', 'ExtraTemplateController@send_congratulation_ar_new');
-    Route::match(['get', 'post'], 'wedding_data_v16_ar', 'ExtraTemplateController@wedding_data_v16_ar');
-    Route::match(['get', 'post'], 'wedding_data_v4_ar', 'ExtraTemplateController@wedding_data_v4_ar');
-    Route::match(['get', 'post'], 'wedding_data_v3_ar', 'ExtraTemplateController@wedding_data_v3_ar');
-    Route::match(['get', 'post'], 'wedding_data_v11_ar', 'ExtraTemplateController@wedding_data_v11_ar');
-    Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'ExtraTemplateController@wedding_data_v11_ar');
+    Route::match(['get', 'post'], 'write_msg', 'ExtraTemplateController@wedding_data_v16_ar');
+    Route::match(['get', 'post'], 'done_msg', 'ExtraTemplateController@wedding_data_v4_ar');
+    Route::match(['get', 'post'], 'reply_apologize', 'ExtraTemplateController@wedding_data_v3_ar');
+    Route::match(['get', 'post'], 'thanks_msg', 'ExtraTemplateController@wedding_data_v11_ar');
     Route::match(['get', 'post'], 'send_flow', 'ExtraTemplateController@send_flow');
 });
 

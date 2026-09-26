@@ -3581,8 +3581,9 @@ class EventUersController extends Controller
 
                             } else {
                                 $caption = "حياكـم الله ،،" . PHP_EOL .
+                                "*" . $param_1 . "*" . PHP_EOL .
                                 " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL .
-                                " وقت الحضور " . $param_1;
+                                "* وقت الحضور " . $param_2 . "*";
 
                                 $api = $client->sendChatMessage($to,$caption,$priority,$referenceId);
 
@@ -4098,8 +4099,9 @@ class EventUersController extends Controller
 
 
             $caption = "حياكـم الله ،،" . PHP_EOL .
+            "*" . $param_1 . "*" . PHP_EOL .
             " اكتمل حفلنا بحضوركم نتمنى لكم ليلة ممتعة" . PHP_EOL .
-           " وقت الحضور " . $param_1;
+            "* وقت الحضور " . $param_2 . "*";
 
             // $caption2 = 'تحرص الشركة على تقديم المساعدة للضيف حتى لا توجه اي صعوبات في دخول المناسبة تم ارسال الكود مره ثانية ,يرجى العلم ان الكود نفس الكود المرسل في السابق وليس كودا جديداً ';
 

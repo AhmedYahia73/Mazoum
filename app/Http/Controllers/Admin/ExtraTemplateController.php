@@ -272,7 +272,7 @@ class ExtraTemplateController extends Controller
         $validator = Validator::make($request->all(), [
             'event_user_id' => 'required_without_all:phone,mobile,to',
             'phone' => 'required_without:event_user_id',
-            'count' => 'nullable|integer|min:1|max:10',
+            'count' => 'required|integer|min:1|max:10',
             'users_count' => 'nullable|integer|min:1|max:10',
             'invitations_count' => 'nullable|integer|min:1|max:10',
         ]);

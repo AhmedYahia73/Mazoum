@@ -16,7 +16,7 @@ class ScrambleDocsController extends Controller
     {
         Scramble::routes(function (Route $route) {
             return Str::startsWith($route->uri, 'api/') || Str::startsWith($route->uri, 'api');
-
+        });
 
         config(['scramble.api_path' => 'api']);
 

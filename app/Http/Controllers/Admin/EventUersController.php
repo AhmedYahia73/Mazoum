@@ -3537,7 +3537,8 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
-                            $param_1 = now()->format("h:i A");
+                            $param_1 = $user_event?->event?->name;
+                            $param_2 = now()->format("h:i A");
                             if($request->sending_type == 'old_send') {
   
                                 $customerPhone = $user_event?->mobile;
@@ -3547,7 +3548,7 @@ class EventUersController extends Controller
                                 $phone_numer_id = $this->get_phone_id($phone_setting_id);
                                 $whats_settings = get_whats_setting($event);
                                 $access_token = $whats_settings['token'] ?? Setting::first()?->access_token;
-                                $response = SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone); 
+                                $response = SendScanMsgArTemplate($template_name, $language, $param_1, $param_2, $phone_numer_id, $access_token, $customerPhone); 
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
@@ -4080,7 +4081,8 @@ class EventUersController extends Controller
             "count" => $request->users_count
         ]);
 
-        $param_1 = now()->format("h:i A");
+        $param_1 = $Item?->event?->name;
+        $param_2 = now()->format("h:i A");
         $customerPhone = $Item?->mobile;
         
         $customerPhone = str_replace("+","",$customerPhone);
@@ -4109,7 +4111,7 @@ class EventUersController extends Controller
             $language = "ar";
             $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
             $access_token = Setting::first()?->access_token;
-            SendScanMsgArTemplate($template_name, $language, $param_1, $phone_numer_id, $access_token, $customerPhone);
+            SendScanMsgArTemplate($template_name, $language, $param_1, $param_2, $phone_numer_id, $access_token, $customerPhone);
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,
                 'name'         => "Admin",

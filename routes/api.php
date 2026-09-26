@@ -336,19 +336,20 @@ Route::post('cancel-reservation', 'ReservationApiController@cancel_reservation')
 
 // Extra Templates API
 Route::prefix('extra-templates')->group(function () {
-    Route::post('send_congratulation_ar_new', 'Admin\ExtraTemplateController@send_congratulation_ar_new');
-    Route::post('wedding_data_v16_ar', 'Admin\ExtraTemplateController@wedding_data_v16_ar');
-    Route::post('wedding_data_v4_ar', 'Admin\ExtraTemplateController@wedding_data_v4_ar');
-    Route::post('wedding_data_v3_ar', 'Admin\ExtraTemplateController@wedding_data_v3_ar');
-    Route::post('wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
-    Route::post('wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
-    Route::post('send_flow', 'Admin\ExtraTemplateController@send_flow');
+    Route::match(['get', 'post'], 'send_congratulation_ar_new', 'Admin\ExtraTemplateController@send_congratulation_ar_new');
+    Route::match(['get', 'post'], 'wedding_data_v16_ar', 'Admin\ExtraTemplateController@wedding_data_v16_ar');
+    Route::match(['get', 'post'], 'wedding_data_v4_ar', 'Admin\ExtraTemplateController@wedding_data_v4_ar');
+    Route::match(['get', 'post'], 'wedding_data_v3_ar', 'Admin\ExtraTemplateController@wedding_data_v3_ar');
+    Route::match(['get', 'post'], 'wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
+    Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
+    Route::match(['get', 'post'], 'send_flow', 'Admin\ExtraTemplateController@send_flow');
 });
 
-Route::post('send_congratulation_ar_new', 'Admin\ExtraTemplateController@send_congratulation_ar_new');
-Route::post('wedding_data_v16_ar', 'Admin\ExtraTemplateController@wedding_data_v16_ar');
-Route::post('wedding_data_v4_ar', 'Admin\ExtraTemplateController@wedding_data_v4_ar');
-Route::post('wedding_data_v3_ar', 'Admin\ExtraTemplateController@wedding_data_v3_ar');
-Route::post('wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
-Route::post('wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
-Route::post('send_flow', 'Admin\ExtraTemplateController@send_flow');
+Route::match(['get', 'post'], 'send_congratulation_ar_new', 'Admin\ExtraTemplateController@send_congratulation_ar_new');
+Route::match(['get', 'post'], 'wedding_data_v16_ar', 'Admin\ExtraTemplateController@wedding_data_v16_ar');
+Route::match(['get', 'post'], 'wedding_data_v4_ar', 'Admin\ExtraTemplateController@wedding_data_v4_ar');
+Route::match(['get', 'post'], 'wedding_data_v3_ar', 'Admin\ExtraTemplateController@wedding_data_v3_ar');
+Route::match(['get', 'post'], 'wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
+Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
+Route::match(['get', 'post'], 'send_flow', 'Admin\ExtraTemplateController@send_flow');
+

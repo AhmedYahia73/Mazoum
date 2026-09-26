@@ -53,12 +53,16 @@ class ExtraTemplateController extends Controller
                 'title' => 'رسالة تهنئة لصاحب المناسبة',
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in send_congratulation_ar_new: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -98,12 +102,16 @@ class ExtraTemplateController extends Controller
                 'title' => 'اكتب رسالتك الأن',
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in wedding_data_v16_ar: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -143,12 +151,16 @@ class ExtraTemplateController extends Controller
                 'title' => 'تم إرسال رسالتك لصاحب المناسبة🌷',
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in wedding_data_v4_ar: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -189,12 +201,16 @@ class ExtraTemplateController extends Controller
                 'title' => 'الرد على الأعتذار',
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in wedding_data_v3_ar: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -234,12 +250,16 @@ class ExtraTemplateController extends Controller
                 'title' => 'شكراً لك يسعـدنـا أن نراكـم من جديد🌷',
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in wedding_data_v11_ar: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -252,7 +272,9 @@ class ExtraTemplateController extends Controller
         $validator = Validator::make($request->all(), [
             'event_user_id' => 'required_without_all:phone,mobile,to',
             'phone' => 'required_without:event_user_id',
-            'count' => 'required|integer|min:1|max:10', 
+            'count' => 'nullable|integer|min:1|max:10',
+            'users_count' => 'nullable|integer|min:1|max:10',
+            'invitations_count' => 'nullable|integer|min:1|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -298,12 +320,16 @@ class ExtraTemplateController extends Controller
                 'invitations_count' => $available,
             ]);
         } catch (ClientException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (RequestException $e) {
-            return $this->handleGuzzleException($e, $template_name);
+            return $this->handleGuzzleException($e, $template_name, $params);
         } catch (\Throwable $e) {
             Log::error("Error in send_flow: " . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            ], 500);
         }
     }
 
@@ -408,49 +434,44 @@ class ExtraTemplateController extends Controller
         $name = $request->input('name') ?: $user_event?->name;
         $language = $request->input('language') ?: 'ar';
 
+        // 3. تحديد التوكن (Token) - استخدام access_token الأساسي لـ Meta Cloud API
         $token = $request->input('token');
-        $phone_numer_id = null;
-
-        try {
-            // 3. استخراج phone_numer_id
-            if ($request->filled('phone_numer_id')) {
-                $inputPhoneId = $request->input('phone_numer_id');
-                if (is_numeric($inputPhoneId) && strlen((string)$inputPhoneId) <= 10) {
-                    $new_setting = NewSetting::find($inputPhoneId);
-                    $phone_numer_id = $new_setting ? $new_setting->phone_numer_id : $inputPhoneId;
-                } else {
-                    $phone_numer_id = $inputPhoneId;
-                }
-            } elseif ($request->filled('new_setting_id')) {
-                $new_setting = NewSetting::find($request->input('new_setting_id'));
-                $phone_numer_id = $new_setting?->phone_numer_id;
+        if (!$token) {
+            try {
+                $setting = Setting::first();
+                $token = $setting?->access_token ?: $setting?->sa_access_token;
+            } catch (\Throwable $e) {
+                Log::warning("Could not query Setting for token: " . $e->getMessage());
             }
-
-            // 4. Fallback من إعدادات المناسبة
-            if ((!$token || !$phone_numer_id) && $event && function_exists('get_whats_setting')) {
-                $eventCreds = get_whats_setting($event);
-                if (!$token && !empty($eventCreds['token'])) {
-                    $token = $eventCreds['token'];
-                }
-                if (!$phone_numer_id && !empty($eventCreds['phone_numer_id'])) {
-                    $phone_numer_id = $eventCreds['phone_numer_id'];
-                }
-            }
-
-            // 5. Fallback من إعدادات النظام العامة
-            $setting = Setting::first();
-            if (!$token && $setting) {
-                $token = $setting->access_token ?: $setting->sa_access_token;
-            }
-            if (!$phone_numer_id && $setting) {
-                $phone_numer_id = $setting->sa_phone_numer_id ?: $setting->phone_numer_id;
-            }
-        } catch (\Throwable $e) {
-            Log::warning("Could not query settings in resolveWhatsAppParams: " . $e->getMessage());
         }
 
-        if (!$phone_numer_id && $request->filled('phone_numer_id')) {
-            $phone_numer_id = $request->input('phone_numer_id');
+        // 4. استخراج phone_numer_id
+        $phone_numer_id = null;
+        if ($request->filled('phone_numer_id')) {
+            $inputPhoneId = $request->input('phone_numer_id');
+            if (is_numeric($inputPhoneId) && strlen((string)$inputPhoneId) <= 10) {
+                try {
+                    $new_setting = NewSetting::find($inputPhoneId);
+                    $phone_numer_id = $new_setting ? $new_setting->phone_numer_id : $inputPhoneId;
+                } catch (\Throwable $e) {
+                    $phone_numer_id = $inputPhoneId;
+                }
+            } else {
+                $phone_numer_id = $inputPhoneId;
+            }
+        } elseif ($request->filled('phone_setting_id') || $request->filled('new_setting_id')) {
+            $settingId = $request->input('phone_setting_id') ?? $request->input('new_setting_id');
+            try {
+                $new_setting = NewSetting::find($settingId);
+                $phone_numer_id = $new_setting?->phone_numer_id;
+            } catch (\Throwable $e) {
+                Log::warning("Could not query NewSetting: " . $e->getMessage());
+            }
+        }
+
+        // إذا لم يتم تمرير phone_numer_id صراحة، جلبه من المناسبة أو إعدادات الأرقام
+        if (!$phone_numer_id) {
+            $phone_numer_id = $this->resolvePhoneIdFromEventOrSettings($event);
         }
 
         return [
@@ -462,6 +483,49 @@ class ExtraTemplateController extends Controller
             'user_event' => $user_event,
             'event' => $event,
         ];
+    }
+
+    /**
+     * استخراج رقم المعرف الخاص بواتساب (phone_numer_id) من إعدادات المناسبة أو الأرقام المتاحة
+     */
+    protected function resolvePhoneIdFromEventOrSettings(?Events $event): ?string
+    {
+        try {
+            // أ) من phone_setting_id المسجل على المناسبة
+            if ($event && !empty($event->phone_setting_id)) {
+                $newSetting = NewSetting::find($event->phone_setting_id);
+                if ($newSetting && !empty($newSetting->phone_numer_id)) {
+                    return $newSetting->phone_numer_id;
+                }
+            }
+
+            // ب) من دولة المناسبة إذا كانت محددة
+            if ($event && !empty($event->country_id)) {
+                $newSetting = NewSetting::where('country_id', $event->country_id)->where('status', 1)->first()
+                    ?? NewSetting::where('country_id', $event->country_id)->first();
+                if ($newSetting && !empty($newSetting->phone_numer_id)) {
+                    return $newSetting->phone_numer_id;
+                }
+            }
+
+            // ج) من أول رقم نشط في new_settings
+            $activeSetting = NewSetting::where('status', 1)->first() ?? NewSetting::first();
+            if ($activeSetting && !empty($activeSetting->phone_numer_id)) {
+                return $activeSetting->phone_numer_id;
+            }
+
+            // د) من الإعدادات العامة (Setting::phone_numer_id)
+            $generalSetting = Setting::first();
+            if ($generalSetting && !empty($generalSetting->phone_numer_id)) {
+                return $generalSetting->phone_numer_id;
+            }
+
+            // هـ) خيار احتياطي sa_phone_numer_id
+            return $generalSetting?->sa_phone_numer_id;
+        } catch (\Throwable $e) {
+            Log::warning("Error resolving phone_numer_id: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -487,6 +551,8 @@ class ExtraTemplateController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'WhatsApp credentials (phone_numer_id or access_token) are missing in settings and request.',
+                'phone_numer_id_resolved' => $params['phone_numer_id'],
+                'has_token' => !empty($params['token']),
             ], 400);
         }
 
@@ -520,6 +586,7 @@ class ExtraTemplateController extends Controller
                 'event_user_id' => $params['user_event']?->id,
                 'name' => $params['name'],
                 'mobile' => $params['phone'],
+                'phone_numer_id_used' => $params['phone_numer_id'],
                 'message_id' => $messageId,
                 'meta_response' => $body,
             ], $extra), 200);
@@ -529,6 +596,7 @@ class ExtraTemplateController extends Controller
             'status' => 'error',
             'message' => 'Failed to send template',
             'template' => $template_name,
+            'phone_numer_id_used' => $params['phone_numer_id'],
             'response' => $body,
         ], $statusCode);
     }
@@ -536,18 +604,20 @@ class ExtraTemplateController extends Controller
     /**
      * معالجة أخطاء Guzzle عند التواصل مع Meta Cloud API
      */
-    protected function handleGuzzleException($e, string $template_name): JsonResponse
+    protected function handleGuzzleException($e, string $template_name, array $params = []): JsonResponse
     {
         $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
         $statusCode = $response ? $response->getStatusCode() : 400;
         $body = $response ? json_decode($response->getBody()->getContents(), true) : null;
 
-        Log::error("WhatsApp API Error ({$template_name}): " . $e->getMessage());
+        Log::error("WhatsApp API Error ({$template_name}) with phone_numer_id {$params['phone_numer_id']}: " . $e->getMessage());
 
         return response()->json([
             'status' => 'error',
             'message' => 'WhatsApp API Error',
             'template' => $template_name,
+            'phone_numer_id_used' => $params['phone_numer_id'] ?? null,
+            'recipient' => $params['phone'] ?? null,
             'error' => $body ?? $e->getMessage(),
         ], $statusCode);
     }

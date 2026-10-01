@@ -690,7 +690,7 @@ class EventUersController extends Controller
 
         $event = Events::where('id', $event_id)->firstOrFail();
 
-      	$message = $request->message2;
+      	$message2 = $request->message2;
 
         $url_button = '?q=' . $event->lat . ',' . $event->long;
 
@@ -759,7 +759,7 @@ class EventUersController extends Controller
                                 $sender_id      = $this->get_phone_id($request->phone_setting_id);
                                 $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
 
-                                $param_1 = $message;
+                                $param_1 = $message2;
                                 $param_2 = $time;
                                 $param_3 = $date;
 

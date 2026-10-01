@@ -501,9 +501,16 @@ if (! function_exists('SendEventDetailsArTemplate')) {
 
 if (! function_exists('SendScanMsgArTemplate')) {
 
-    function SendScanMsgArTemplate($template_name,$language,$param_1, $phone_numer_id, $access_token, $customerPhone)
+    function SendScanMsgArTemplate($template_name, $language, $param_1, $param_2, $phone_numer_id, $access_token, $customerPhone)
     {
-        
+        $parameters = [
+            ['type' => 'text', 'text' => (string) ($param_1 ?? '')],
+        ];
+
+        if ($param_2 !== null && $param_2 !== '') {
+            $parameters[] = ['type' => 'text', 'text' => (string) $param_2];
+        }
+
         $response = Http::withToken($access_token)
         ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [
             'messaging_product' => 'whatsapp',
@@ -518,13 +525,19 @@ if (! function_exists('SendScanMsgArTemplate')) {
                 'components' => [ 
                     [
                         'type'       => 'body',
-                        'parameters' => [
-                            ['type' => 'text', 'text' => $param_1],  // {{1}} اسم المدعو
-                        ],
+                        'parameters' => $parameters,
                     ], 
                 ],
             ]
         ]);
+
+        \Illuminate\Support\Facades\Log::info('SendScanMsgArTemplate response: ', [
+            'to'       => $customerPhone,
+            'template' => $template_name,
+            'status'   => $response->status(),
+            'body'     => $response->json(),
+        ]);
+
         return $response;
     }
 }

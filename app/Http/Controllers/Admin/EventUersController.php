@@ -4111,8 +4111,9 @@ class EventUersController extends Controller
         else{
             $template_name = "wedding_data_v10_ar_new";
             $language = "ar";
-            $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id);
-            $access_token = Setting::first()?->access_token;
+            $whats_settings = $Item?->event ? get_whats_setting($Item->event) : null;
+            $phone_numer_id = $this->get_phone_id($Item?->event?->phone_setting_id) ?? ($whats_settings['phone_numer_id'] ?? Setting::first()?->phone_numer_id);
+            $access_token = $whats_settings['token'] ?? Setting::first()?->access_token;
             SendScanMsgArTemplate($template_name, $language, $param_1, $param_2, $phone_numer_id, $access_token, $customerPhone);
             $message = WattsChatModel::create([
                 'phone'        => $customerPhone,

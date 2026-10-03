@@ -459,6 +459,17 @@ if (! function_exists('SendEventDetailsArTemplate')) {
 
     function SendEventDetailsArTemplate($template_name,$language,$param_1,$param_2,$param_3,$param_4, $mapUrl, $phone_numer_id, $access_token, $customerPhone)
     {
+        // استخراج الإحداثيات فقط لتجنب تكرار الرابط مع Base URL المعرف في قالب واتساب (https://www.google.com/maps/place/)
+        if (!empty($mapUrl) && is_string($mapUrl)) {
+            $decoded = urldecode($mapUrl);
+            if (preg_match('/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/', $decoded, $matches)) {
+                $mapUrl = $matches[1] . ',' . $matches[2];
+            } elseif (preg_match('/[?&]q=([^&]+)/', $decoded, $matches)) {
+                $mapUrl = $matches[1];
+            } elseif (preg_match('/maps\/place\/([^\/\?]+)/', $decoded, $matches)) {
+                $mapUrl = $matches[1];
+            }
+        }
         
         $response = Http::withToken($access_token)
         ->post('https://graph.facebook.com/v19.0/' . $phone_numer_id . '/messages', [

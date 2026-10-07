@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // تذكير المستخدمين بأحداث الغد - يعمل يومياً الساعة 4 عصراً
+        $schedule->command('events:remind-tomorrow')->dailyAt('16:00');
     }
 
     /**

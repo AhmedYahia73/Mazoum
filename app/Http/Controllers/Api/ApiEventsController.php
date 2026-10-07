@@ -1207,7 +1207,7 @@ class ApiEventsController extends Controller
         ->sum('users_count');
         $remember_users = EventUsers::where('event_id', $Item->id)
         ->where("remember", 1)
-        ->where("user_id", $user_id)->sum('users_count')
+        ->where("user_id", $user_id)
         ->sum("users_count");
         $invitations_not_sent_users = EventUsers::
         where('event_id', $Item->id)

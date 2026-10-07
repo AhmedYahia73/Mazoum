@@ -25,6 +25,7 @@ class Events extends Model
         'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         'image_height', 'image_width', 'text_color', 'pdf', 'country_id',
         'pdf_bottom', 'show_data_pdf', "phone_setting_id", "name", "scan_gender",
+        "send_type",
     ];
 
     public function sub_user(){

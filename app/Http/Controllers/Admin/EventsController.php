@@ -224,7 +224,7 @@ class EventsController extends Controller
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image',
-                        'assistant_id'
+                        'assistant_id', 'send_type'
                     ]);
 
         // ✔️ search
@@ -1188,7 +1188,7 @@ class EventsController extends Controller
             'country_id', 'scan_assistant_id',
             'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
             'image_height', 'image_width', 'text_color', 'pdf', 'pdf_bottom', 
-            'show_data_pdf', 'phone_setting_id', "name", "scan_gender",
+            'show_data_pdf', 'phone_setting_id', "name", "scan_gender", "send_type",
         ]);
 
         if(! isset($modelClass)) {
@@ -1409,7 +1409,7 @@ class EventsController extends Controller
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image',
-                        'assistant_id'
+                        'assistant_id', 'send_type'
                     ]);
         if ($request->country_id) {
             $query->where('country_id', $request->country_id);
@@ -1464,7 +1464,7 @@ class EventsController extends Controller
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image',
-                        'assistant_id'
+                        'assistant_id', 'send_type'
                     ]);
 
         if ($request->country_id) {
@@ -1520,7 +1520,7 @@ class EventsController extends Controller
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image',
-                        'assistant_id'
+                        'assistant_id', 'send_type'
                     ]);
 
         if ($request->country_id) {
@@ -1575,7 +1575,7 @@ class EventsController extends Controller
                     ->select([
                         'id','title','address','file','user_id',
                         'first_name','last_name','date','time', 'image',
-                        'assistant_id'
+                        'assistant_id', 'send_type'
                     ]);
 
         if ($request->country_id) {

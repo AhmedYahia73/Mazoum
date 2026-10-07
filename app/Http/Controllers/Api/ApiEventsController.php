@@ -1230,6 +1230,9 @@ class ApiEventsController extends Controller
                 $query->whereNull("user_id")
                 ->orWhere("user_id", $user_id);
             })
+            ->where('status', 'hold')
+            ->where('is_new_sent', 0)
+            ->whereNull('is_sent')
             ->sum('users_count');
         $confirmed_invitatios_users = EventUsers::
             where('event_id', $Item->id);

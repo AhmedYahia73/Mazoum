@@ -119,7 +119,6 @@ class AttendanceController extends Controller
             'to_date'      => 'required|date_format:Y-m-d',
             'to_time'      => 'required|date_format:H:i',
             'image'        => 'nullable|image',
-            'image'        => 'nullable|image',
             'second_image' => 'nullable|image',
         ]);
         if ($validator->fails()) {
@@ -308,7 +307,13 @@ class AttendanceController extends Controller
         // لو الشهر الحالي، نحسب لحد اليوم الحالي
         $today = Carbon::today();
         $isCurrentMonth = $month->isSameMonth($today);
-        $lastDayToCount = $isCurrentMonth ? $today : $endOfMonth;
+        if ($isCurrentMonth) {
+            $lastDayToCount = $today;
+        } elseif ($startOfMonth->gt($today)) {
+            $lastDayToCount = $startOfMonth->copy()->subDay();
+        } else {
+            $lastDayToCount = $endOfMonth;
+        }
 
         $holidayDayNumber = $user->holiday;
         $appointmentFrom  = $user->appointment_from;
@@ -400,7 +405,9 @@ class AttendanceController extends Controller
 
             // يوم الإجازة
             if ($isHoliday) {
-                $holidayDays++;
+                if ($day->lte($lastDayToCount)) {
+                    $holidayDays++;
+                }
                 
                 if ($firstEverWorkDay && $day->gte($firstEverWorkDay) && $day->lte($lastDayToCount)) {
                     $paidHolidayDays++;
@@ -544,6 +551,9 @@ class AttendanceController extends Controller
                 }
             }
 
+            $checkInRecord  = $dayRecords->whereNotNull('image')->sortBy('from')->first() ?? $firstRecord;
+            $checkOutRecord = $dayRecords->whereNotNull('second_image')->sortByDesc('to')->first() ?? $lastRecord;
+
             $dailyDetails[] = [
                 'id'                  => $firstRecord->id ?? null,
                 'date'                => $dateStr,
@@ -553,8 +563,8 @@ class AttendanceController extends Controller
                 'late_minutes'        => $dayLate,
                 'early_leave_minutes' => $dayEarlyLeave,
                 'overtime_minutes'    => $dayOvertime,
-                "image"               => $firstRecord->image_url ?? null,
-                "second_image"        => $lastRecord->second_image_url ?? null,
+                "image"               => $checkInRecord->image_url ?? null,
+                "second_image"        => $checkOutRecord->second_image_url ?? null,
             ];
         }
 
@@ -582,6 +592,7 @@ class AttendanceController extends Controller
             'present_days'        => $presentDays,
             'present_days_with_holidays' => $presentDays + $holidayDays,
             'holiday_days'        => $holidayDays,
+            'total_holidays_in_month' => $monthHolidayDays,
             'late_minutes'        => $lateMinutes,
             'early_leave_minutes' => $earlyLeaveMinutes,
             'overtime_minutes'    => $overtimeMinutes,

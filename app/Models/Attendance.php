@@ -28,16 +28,18 @@ class Attendance extends Model
 
     public function getImageUrlAttribute()
     {
-        if(isset($this->attributes['image'])){
+        if (!empty($this->attributes['image'])) {
             return url("images/" . $this->attributes['image']);
         }
+        return null;
     } 
     
     public function getSecondImageUrlAttribute()
     {
-        if(isset($this->attributes['image'])){
-            return url("images/" . $this->attributes['image']);
+        if (!empty($this->attributes['second_image'])) {
+            return url("images/" . $this->attributes['second_image']);
         }
+        return null;
     } 
     
     public function getFromDateAttribute()

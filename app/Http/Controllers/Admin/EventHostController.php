@@ -567,7 +567,9 @@ class EventHostController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            "password" => "required"
+            "password" => "required",
+            'name' => 'sometimes',
+            'mobile' => 'sometimes',
         ]); 
         if ($validator->fails()) { // if Validate Make Error Return Message Error
             return response()->json([
@@ -575,11 +577,13 @@ class EventHostController extends Controller
             ],400);
         }
   
-        User::
-        where("id", $id)
-        ->update([
+        $user = User::
+        findOrFail($id);
+        $user->update([
             "password" => Hash::make($request->password),
             "pass" => $request->password,
+            'name' => $request->name ?? $user->name,
+            'mobile' => $request->mobile ?? $user->mobile,
         ]);
 
         return response()->json([

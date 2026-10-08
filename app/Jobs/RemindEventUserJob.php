@@ -102,6 +102,8 @@ class RemindEventUserJob implements ShouldQueue
             $param_2 = $this->time;
             $param_3 = $this->date;
 
+            $url_button = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
+
             try {
                 $response = SendCarMsgTemplate(
                     $to,
@@ -112,7 +114,8 @@ class RemindEventUserJob implements ShouldQueue
                     $param_2,
                     $param_3,
                     $phone_numer_id,
-                    $token
+                    $token,
+                    $url_button
                 );
 
                 if ($response != null && $response->getStatusCode() == 200) {

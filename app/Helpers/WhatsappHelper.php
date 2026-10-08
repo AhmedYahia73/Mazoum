@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 
 if (! function_exists('SendCarMsgTemplate')) {
 
-    function SendCarMsgTemplate($to, $template_name, $language, $image_url, $param1, $param2, $param3, $phone_numer_id, $token)
+    function SendCarMsgTemplate($to, $template_name, $language, $image_url, $param1, $param2, $param3, $phone_numer_id, $token, $url_button = null)
     {
         // تحويل القيم إلى نصوص وضمان عدم إرسال نصوص فارغة لميتا لأن ميتا ترفض المتغيرات الفارغة بكود 131008
         $p1 = !empty($param1) ? (is_array($param1) ? json_encode($param1, JSON_UNESCAPED_UNICODE) : (string)$param1) : '-';
@@ -18,6 +18,48 @@ if (! function_exists('SendCarMsgTemplate')) {
 
         // التأكد من وجود رابط صورة صالح للرأس
         $headerImageUrl = !empty($image_url) ? $image_url : asset('11.png');
+
+        $components = [
+            [
+                'type' => 'header',
+                'parameters' => [
+                    [
+                        'type' => 'image',
+                        'image' => [
+                            'link' => $headerImageUrl,
+                        ],
+                    ]
+                ],
+            ],
+            [
+                'type' => 'body',
+                'parameters' => [
+                    [
+                        'type' => 'text',
+                        'text' => $p1
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p2
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p3
+                    ]
+                ],
+            ],
+            [
+                'type' => 'button',
+                'sub_type' => 'url',
+                'index' => '0',
+                'parameters' => [
+                    [
+                        'type' => 'text',
+                        'text' => !empty($url_button) ? (string)$url_button : '?q='
+                    ]
+                ],
+            ]
+        ];
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -29,36 +71,7 @@ if (! function_exists('SendCarMsgTemplate')) {
                 'language' => [
                     'code' => $language
                 ],
-                'components' => [
-                    [
-                        'type' => 'header',
-                        'parameters' => [
-                            [
-                                'type' => 'image',
-                                'image' => [
-                                    'link' => $headerImageUrl,
-                                ],
-                            ]
-                        ],
-                    ],
-                    [
-                        'type' => 'body',
-                        'parameters' => [
-                            [
-                                'type' => 'text',
-                                'text' => $p1
-                            ],
-                            [
-                                'type' => 'text',
-                                'text' => $p2
-                            ],
-                            [
-                                'type' => 'text',
-                                'text' => $p3
-                            ]
-                        ],
-                    ],
-                ]
+                'components' => $components
            ],
         ];
 

@@ -763,7 +763,7 @@ class EventUersController extends Controller
                                 $param_2 = $time;
                                 $param_3 = $date;
 
-                                $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token);
+                                $response = SendCarMsgTemplate($to,$template_name,$language,$url_image,$param_1,$param_2,$param_3,$phone_numer_id,$token,$url_button);
 
                                 // if($event->country_code == 'kw') {
 

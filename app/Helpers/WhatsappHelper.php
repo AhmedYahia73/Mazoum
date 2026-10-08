@@ -11,10 +11,13 @@ if (! function_exists('SendCarMsgTemplate')) {
 
     function SendCarMsgTemplate($to, $template_name, $language, $image_url, $param1, $param2, $param3, $phone_numer_id, $token)
     {
-        // تحويل القيم إلى نصوص بشكل صريح لضمان عدم إرسال null أو مصفوفة تسبب خطأ الـ Schema
-        $p1 = is_array($param1) ? json_encode($param1, JSON_UNESCAPED_UNICODE) : (string)($param1 ?? '');
-        $p2 = is_array($param2) ? json_encode($param2, JSON_UNESCAPED_UNICODE) : (string)($param2 ?? '');
-        $p3 = is_array($param3) ? json_encode($param3, JSON_UNESCAPED_UNICODE) : (string)($param3 ?? '');
+        // تحويل القيم إلى نصوص وضمان عدم إرسال نصوص فارغة لميتا لأن ميتا ترفض المتغيرات الفارغة بكود 131008
+        $p1 = !empty($param1) ? (is_array($param1) ? json_encode($param1, JSON_UNESCAPED_UNICODE) : (string)$param1) : '-';
+        $p2 = !empty($param2) ? (is_array($param2) ? json_encode($param2, JSON_UNESCAPED_UNICODE) : (string)$param2) : '-';
+        $p3 = !empty($param3) ? (is_array($param3) ? json_encode($param3, JSON_UNESCAPED_UNICODE) : (string)$param3) : '-';
+
+        // التأكد من وجود رابط صورة صالح للرأس
+        $headerImageUrl = !empty($image_url) ? $image_url : asset('11.png');
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -33,7 +36,7 @@ if (! function_exists('SendCarMsgTemplate')) {
                             [
                                 'type' => 'image',
                                 'image' => [
-                                    'link' => $image_url,
+                                    'link' => $headerImageUrl,
                                 ],
                             ]
                         ],
@@ -64,12 +67,17 @@ if (! function_exists('SendCarMsgTemplate')) {
         $client = new \GuzzleHttp\Client();
 
         $response = $client->post($fullUrl, [
+            'http_errors' => false,
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
                 'Content-Type'   => 'application/json',
             ],
             'json' => $arr,
         ]);
+
+        if ($response->getStatusCode() != 200) {
+            \Illuminate\Support\Facades\Log::error('SendCarMsgTemplate Error: ' . $response->getBody()->getContents());
+        }
 
         return $response;
     }

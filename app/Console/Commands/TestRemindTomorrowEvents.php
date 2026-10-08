@@ -10,20 +10,20 @@ use Illuminate\Support\Facades\Log;
 
 class TestRemindTomorrowEvents extends Command
 {
-    protected $signature = 'events:test-remind-tomorrow {--dry-run : عرض البيانات فقط بدون إرسال}';
+    protected $signature = 'events:test-remind-tomorrow {--dry-run : عرض البيانات فقط بدون إرسال} {--date= : تاريخ الحدث (افتراضياً غداً)}';
 
     protected $description = 'تيست: عرض الأحداث والمستخدمين اللي هيتبعتلهم تذكير بكرة';
 
     public function handle()
     {
-        $tomorrow = Carbon::tomorrow()->toDateString();
+        $targetDate = $this->option('date') ?: Carbon::tomorrow()->toDateString();
 
         $this->info("========================================");
-        $this->info("📅 تاريخ بكرة: {$tomorrow}");
+        $this->info("📅 التاريخ المستهدف: {$targetDate}");
         $this->info("========================================");
 
-        // جلب أحداث بكرة
-        $events = Events::withoutGlobalScopes()->where('date', $tomorrow)->get();
+        // جلب أحداث التاريخ المحدد
+        $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
 
         if ($events->isEmpty()) {
             $this->warn("❌ لا توجد أحداث غداً ({$tomorrow})");
@@ -73,13 +73,13 @@ class TestRemindTomorrowEvents extends Command
 
             $chunks = $eventUsers->chunk(20);
             $batchNum = 0;
-            $delayMinutes = 0;
+            $delayMinutes = 5;
 
             foreach ($chunks as $chunkIndex => $chunk) {
                 $batchNum++;
                 $totalBatches++;
                 $this->info("");
-                $this->info("   📦 المجموعة {$batchNum} ({$chunk->count()} مستخدم) - التأخير: {$delayMinutes} دقيقة");
+                $this->info("   📦 المجموعة {$batchNum} ({$chunk->count()} مستخدم) - يبدأ الإرسال بعد: {$delayMinutes} دقيقة");
 
                 $headers = ['#', 'EventUser ID', 'الاسم', 'الموبايل', 'send_type', 'sending_type2'];
                 $rows = [];

@@ -18,14 +18,14 @@ class RemindTomorrowEvents extends Command
      *
      * @var string
      */
-    protected $signature = 'events:remind-tomorrow';
+    protected $signature = 'events:remind-tomorrow {--date= : تاريخ الفعاليات (افتراضياً غداً)} {--initial-delay=300 : مدة الانتظار قبل أول دفعة بالثواني (افتراضياً 300 ثانية = 5 دقائق)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'تذكير المستخدمين بالأحداث القادمة غداً - يرسل لكل 20 مستخدم ثم ينتظر 5 دقائق';
+    protected $description = 'تذكير المستخدمين بالأحداث القادمة غداً - يبدأ بعد 5 دقائق ويرسل لكل 20 مستخدم ثم ينتظر 5 دقائق';
 
     /**
      * Execute the console command.
@@ -34,20 +34,20 @@ class RemindTomorrowEvents extends Command
      */
     public function handle()
     {
-        $tomorrow = Carbon::tomorrow()->toDateString();
+        $targetDate = $this->option('date') ?: Carbon::tomorrow()->toDateString();
 
-        Log::info("RemindTomorrowEvents: بدء البحث عن أحداث الغد: {$tomorrow}");
+        Log::info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
 
-        // جلب الأحداث التي تاريخها غداً - بدون Global Scope
-        $events = Events::withoutGlobalScopes()->where('date', $tomorrow)->get();
+        // جلب الأحداث التي تاريخها محدد - بدون Global Scope
+        $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
 
         if ($events->isEmpty()) {
-            Log::info("RemindTomorrowEvents: لا توجد أحداث غداً");
-            $this->info('لا توجد أحداث غداً');
+            Log::info("RemindTomorrowEvents: لا توجد أحداث بتاريخ {$targetDate}");
+            $this->info("لا توجد أحداث بتاريخ {$targetDate}");
             return 0;
         }
 
-        Log::info("RemindTomorrowEvents: تم العثور على {$events->count()} حدث/أحداث غداً");
+        Log::info("RemindTomorrowEvents: تم العثور على {$events->count()} حدث/أحداث بتاريخ {$targetDate}");
 
         // أسماء الأيام بالعربي
         $arabicDays = [
@@ -60,7 +60,8 @@ class RemindTomorrowEvents extends Command
             'Saturday'  => 'السبت',
         ];
 
-        $totalDelay = 0; // بالثواني
+        // بدء الإرسال بعد 5 دقائق (300 ثانية) افتراضياً
+        $totalDelay = (int) ($this->option('initial-delay') ?? 300);
 
         foreach ($events as $event) {
 

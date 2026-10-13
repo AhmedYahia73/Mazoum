@@ -10,6 +10,7 @@ use App\Models\WattsChat as WattsChatModel;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class RemindTomorrowEvents extends Command
 {
@@ -20,6 +21,7 @@ class RemindTomorrowEvents extends Command
      */
     protected $signature = 'events:remind-tomorrow
                             {--date= : تاريخ الفعاليات (افتراضياً غداً)}
+                            {--initial-delay=0 : ثواني الانتظار قبل بدء أول دفعة}
                             {--delay=2 : ثواني الانتظار بين كل رسالة}
                             {--batch-delay=300 : ثواني الانتظار بعد كل 20 رسالة}';
 
@@ -37,11 +39,21 @@ class RemindTomorrowEvents extends Command
      */
     public function handle()
     {
-        $targetDate  = $this->option('date') ?: Carbon::tomorrow()->toDateString();
-        $delayPerMsg = (int) ($this->option('delay') ?? 2);        // ثانيتان بين كل رسالة
-        $batchDelay  = (int) ($this->option('batch-delay') ?? 300); // 5 دقائق بعد كل 20
+        // إجبار لارافل في الـ CLI / Cron Job على استخدام الدومين الحقيقي بدلاً من http://localhost
+        // لأن ميتا ترفض تحميل صور الهيدر لو الرابط http://localhost
+        $appUrl = config('app.url');
+        if (empty($appUrl) || str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1')) {
+            URL::forceRootUrl('https://mazoom.online');
+            URL::forceScheme('https');
+        }
+
+        $targetDate   = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $initialDelay = (int) ($this->option('initial-delay') ?? 0);
+        $delayPerMsg  = (int) ($this->option('delay') ?? 2);        // ثانيتان بين كل رسالة
+        $batchDelay   = (int) ($this->option('batch-delay') ?? 300); // 5 دقائق بعد كل 20 رسالة
 
         Log::info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
+        $this->info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
 
         // جلب الأحداث بدون Global Scope (الكرون يعمل بدون مستخدم مسجّل)
         $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
@@ -53,6 +65,13 @@ class RemindTomorrowEvents extends Command
         }
 
         Log::info("RemindTomorrowEvents: تم العثور على {$events->count()} حدث/أحداث بتاريخ {$targetDate}");
+        $this->info("تم العثور على {$events->count()} حدث/أحداث بتاريخ {$targetDate}");
+
+        if ($initialDelay > 0) {
+            Log::info("RemindTomorrowEvents: انتظار {$initialDelay} ثانية قبل بدء الإرسال...");
+            $this->info("انتظار {$initialDelay} ثانية قبل بدء الإرسال...");
+            sleep($initialDelay);
+        }
 
         // أسماء الأيام بالعربي
         $arabicDays = [
@@ -68,41 +87,47 @@ class RemindTomorrowEvents extends Command
         foreach ($events as $event) {
 
             Log::info("RemindTomorrowEvents: معالجة الحدث: {$event->name} (ID: {$event->id})");
+            $this->info("معالجة الحدث: {$event->name} (ID: {$event->id})");
 
-            // جلب المستخدمين الذين لم يُرسل لهم تذكير بعد فقط
-            $eventUsers = EventUsers::where('event_id', $event->id)
-                ->where('remember', 0)
-                ->get();
+            // جلب جميع المستخدمين في هذا الحدث (نفس سلوك remember_users_to_event)
+            $eventUsers = EventUsers::where('event_id', $event->id)->get();
 
             if ($eventUsers->isEmpty()) {
-                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين جدد في الحدث ID: {$event->id}");
+                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين في الحدث ID: {$event->id}");
+                $this->warn("لا يوجد مستخدمين في الحدث ID: {$event->id}");
                 continue;
             }
 
             Log::info("RemindTomorrowEvents: عدد المستخدمين: {$eventUsers->count()} في الحدث ID: {$event->id}");
+            $this->info("عدد المستخدمين: {$eventUsers->count()} في الحدث ID: {$event->id}");
 
             // تحديد اسم اليوم بالعربي
             $dayNameEnglish = Carbon::parse($event->date)->format('l');
             $dayNameArabic  = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
             $dateWithDay    = $event->date . ' ' . $dayNameArabic;
 
-            // إعداد بيانات الإرسال (مشتركة لجميع مستخدمي هذا الحدث)
-            $token          = get_whats_setting($event)['token'];
-            $phone_numer_id = $this->getPhoneId($event->phone_setting_id);
-            $url_image      = $event->file; // Image_Path accessor يُرجع URL كامل
+            // إعداد بيانات الإرسال (مطابقة تماماً لـ remember_users_to_event)
+            $whatsSetting   = get_whats_setting($event);
+            $token          = $whatsSetting['token'];
+            $phone_numer_id = $this->getPhoneId($event->phone_setting_id, $whatsSetting['phone_numer_id'] ?? null);
+            $url_image      = $event->file;
+            $url_image      = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $url_image);
             $url_button     = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
             $template_name  = 'car_msg3_';
             $language       = 'ar';
 
-            Log::info("RemindTomorrowEvents: بيانات الإرسال", [
-                'event_id'       => $event->id,
-                'phone_numer_id' => $phone_numer_id,
-                'url_image'      => $url_image,
-                'url_button'     => $url_button,
-                'token_preview'  => substr($token ?? '', 0, 20) . '...',
+            Log::info("RemindTomorrowEvents: إعدادات الإرسال للحدث ID: {$event->id}", [
+                'phone_setting_id' => $event->phone_setting_id,
+                'phone_numer_id'   => $phone_numer_id,
+                'country_code'     => $event->country_code,
+                'url_image'        => $url_image,
+                'url_button'       => $url_button,
+                'date_param'       => $dateWithDay,
+                'time_param'       => $event->time,
             ]);
 
             $sentCount = 0;
+            $totalUsersInEvent = $eventUsers->count();
 
             foreach ($eventUsers as $eventUser) {
 
@@ -112,10 +137,8 @@ class RemindTomorrowEvents extends Command
                     continue;
                 }
 
-                $to       = str_replace('+', '', $mobile);
+                $to       = str_replace('+', '', trim($mobile));
                 $sendType = ($eventUser->send_type === 'meta') ? 'old_send' : 'new_send';
-
-                Log::info("RemindTomorrowEvents: إرسال للمستخدم ID: {$eventUser->id} | to: {$to} | type: {$sendType}");
 
                 if ($sendType === 'old_send') {
 
@@ -138,22 +161,21 @@ class RemindTomorrowEvents extends Command
                         $bodyRaw    = $response ? (string) $response->getBody() : '';
                         $bodyData   = json_decode($bodyRaw, true);
 
-                        Log::info("RemindTomorrowEvents: استجابة ميتا", [
-                            'event_user_id' => $eventUser->id,
-                            'to'            => $to,
-                            'status_code'   => $statusCode,
-                            'response'      => $bodyData,
-                        ]);
-
                         if ($statusCode == 200) {
-                            $eventUser->update(['remember' => 1]);
+                            $sentMessageId = $bodyData['messages'][0]['id'] ?? null;
+
+                            $updateData = ['remember' => 1];
+                            if ($sentMessageId) {
+                                $updateData['message_id'] = $sentMessageId;
+                            }
+                            $eventUser->update($updateData);
 
                             WattsChatModel::create([
                                 'phone'          => $to,
                                 'name'           => 'Admin',
                                 'message'        => $template_name,
                                 'is_sent_by_me'  => true,
-                                'message_id'     => 0,
+                                'message_id'     => $sentMessageId ?? 0,
                                 'from'           => 'Admin',
                                 'template_name'  => $template_name,
                                 'event_user_id'  => $eventUser->id,
@@ -161,20 +183,25 @@ class RemindTomorrowEvents extends Command
                                 'phone_numer_id' => $phone_numer_id,
                             ]);
 
-                            Log::info("RemindTomorrowEvents: تم وصول الرسالة بنجاح - EventUser ID: {$eventUser->id}");
+                            Log::info("RemindTomorrowEvents: 📤 تم قبول التذكير من ميتا بنجاح (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | Message ID: {$sentMessageId} (سيتم تأكيد الوصول الفعلي عبر الـ Webhook)");
+                            $this->info("✅ [{$eventUser->id}] تم الإرسال إلى {$to} (Message ID: {$sentMessageId})");
                         } else {
+                            $errorMsg = $bodyData['error']['message'] ?? $bodyRaw;
+                            $errorDetails = $bodyData['error']['error_data']['details'] ?? '';
                             $eventUser->update(['status' => 'failed-v2']);
-                            Log::error("RemindTomorrowEvents: فشل إرسال الرسالة - EventUser ID: {$eventUser->id} - Response: {$bodyRaw}");
+                            Log::error("RemindTomorrowEvents: ❌ فشل إرسال الرسالة من ميتا (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | HTTP {$statusCode} | المشكلة: {$errorMsg} | التفاصيل: {$errorDetails}");
+                            $this->error("❌ [{$eventUser->id}] فشل الإرسال إلى {$to}: {$errorMsg}");
                         }
 
                     } catch (\Exception $e) {
-                        Log::error("RemindTomorrowEvents: خطأ في الإرسال - EventUser ID: {$eventUser->id} - Error: {$e->getMessage()}");
+                        Log::error("RemindTomorrowEvents: ❌ استثناء أثناء الإرسال (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$e->getMessage()}");
+                        $this->error("❌ [{$eventUser->id}] خطأ: {$e->getMessage()}");
                         $eventUser->update(['status' => 'failed-v2']);
                     }
 
                 } else {
 
-                    // إرسال عبر UltraMsg
+                    // إرسال عبر UltraMsg (new_send)
                     $ultramsg_token = "7ye6ifujyug0u46g";
                     $instance_id    = "instance109805";
                     $client         = new \UltraMsg\WhatsAppApi($ultramsg_token, $instance_id);
@@ -190,50 +217,57 @@ class RemindTomorrowEvents extends Command
                         if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true'
                             && isset($api['message']) && $api['message'] == 'ok') {
                             $eventUser->update(['remember' => 1]);
-                            Log::info("RemindTomorrowEvents: تم وصول الرسالة بنجاح (new_send) - EventUser ID: {$eventUser->id}");
+                            Log::info("RemindTomorrowEvents: ✅ تم وصول الرسالة بنجاح عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to}");
+                            $this->info("✅ [{$eventUser->id}] تم الإرسال (UltraMsg) إلى {$to}");
                         } else {
-                            Log::error("RemindTomorrowEvents: فشل الإرسال (new_send) - EventUser ID: {$eventUser->id} - Response: " . json_encode($api));
+                            $errResp = json_encode($api, JSON_UNESCAPED_UNICODE);
+                            Log::error("RemindTomorrowEvents: ❌ فشل الإرسال عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$errResp}");
+                            $this->error("❌ [{$eventUser->id}] فشل الإرسال (UltraMsg) إلى {$to}: {$errResp}");
                         }
 
                     } catch (\Exception $e) {
-                        Log::error("RemindTomorrowEvents: خطأ في الإرسال (new_send) - EventUser ID: {$eventUser->id} - Error: {$e->getMessage()}");
+                        Log::error("RemindTomorrowEvents: ❌ خطأ في الإرسال عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$e->getMessage()}");
+                        $this->error("❌ [{$eventUser->id}] خطأ (UltraMsg): {$e->getMessage()}");
                     }
                 }
 
                 $sentCount++;
 
-                // انتظار بين كل رسالة لتفادي الـ rate limit
-                if ($delayPerMsg > 0) {
-                    sleep($delayPerMsg);
-                }
-
-                // بعد كل 20 رسالة انتظر 5 دقائق
-                if ($sentCount % 20 === 0) {
-                    Log::info("RemindTomorrowEvents: تم إرسال {$sentCount} رسالة - انتظار {$batchDelay} ثانية...");
+                // بعد كل 20 رسالة انتظر 5 دقائق (إلا لو كانت آخر رسالة في الحدث)
+                if ($sentCount % 20 === 0 && $sentCount < $totalUsersInEvent) {
+                    Log::info("RemindTomorrowEvents: تم إرسال {$sentCount} من {$totalUsersInEvent} رسالة - انتظار {$batchDelay} ثانية (5 دقائق) قبل الدفعة التالية...");
+                    $this->info("⏳ تم إرسال {$sentCount} رسالة - انتظار {$batchDelay} ثانية قبل الدفعة التالية...");
                     sleep($batchDelay);
+                } elseif ($delayPerMsg > 0 && $sentCount < $totalUsersInEvent) {
+                    sleep($delayPerMsg);
                 }
             }
 
             Log::info("RemindTomorrowEvents: اكتمل إرسال الحدث ID: {$event->id} - إجمالي المُرسل: {$sentCount}");
         }
 
-        Log::info("RemindTomorrowEvents: اكتمل إرسال جميع التذكيرات.");
-        $this->info("اكتمل إرسال جميع التذكيرات.");
+        Log::info("RemindTomorrowEvents: ✅ اكتمل إرسال جميع التذكيرات.");
+        $this->info("✅ اكتمل إرسال جميع التذكيرات.");
 
         return 0;
     }
 
     /**
-     * جلب phone_numer_id من NewSetting
+     * جلب phone_numer_id من NewSetting أو من إعدادات الدولة في Setting
      */
-    private function getPhoneId($id)
+    private function getPhoneId($id, $fallbackPhoneId = null)
     {
-        $data = NewSetting::where('id', $id)->first();
-
-        if (empty($data)) {
-            return Setting::first()?->phone_numer_id ?? null;
+        if (!empty($id)) {
+            $data = NewSetting::where('id', $id)->first();
+            if (!empty($data) && !empty($data->phone_numer_id)) {
+                return $data->phone_numer_id;
+            }
         }
 
-        return $data->phone_numer_id;
+        if (!empty($fallbackPhoneId)) {
+            return $fallbackPhoneId;
+        }
+
+        return Setting::first()?->phone_numer_id ?? null;
     }
 }

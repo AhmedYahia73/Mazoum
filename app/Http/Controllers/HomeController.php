@@ -248,8 +248,15 @@ class HomeController extends Controller
         if ($statuses) {
             $message_id = $statuses['id'];
             $status = $statuses['status'];
+            $recipientPhone = $statuses['recipient_id'] ?? 'غير معروف';
 
             $check_user_event = EventUsers::where('message_id', $message_id)->first();
+            if (!$check_user_event) {
+                $chatRecord = WattsChatModel::where('message_id', $message_id)->whereNotNull('event_user_id')->first();
+                if ($chatRecord) {
+                    $check_user_event = EventUsers::find($chatRecord->event_user_id);
+                }
+            }
 
             $log->update([
                 'event_user_id' => $check_user_event?->id ?? 0,
@@ -257,15 +264,31 @@ class HomeController extends Controller
                 'message_id' => $message_id
             ]);
 
+            $error_code = data_get($statuses, 'errors.0.code');
             $error_title = data_get($statuses, 'errors.0.title');
-            $error_details = data_get($statuses, 'errors.0.error_data.details');
+            $error_details = data_get($statuses, 'errors.0.error_data.details') ?? data_get($statuses, 'errors.0.message');
+
+            if ($status === 'delivered') {
+                Log::info("✅ Webhook: تم وصول الرسالة بنجاح للعميل (delivered) | الرقم: {$recipientPhone} | EventUser ID: " . ($check_user_event?->id ?? 0) . " | Event ID: " . ($check_user_event?->event_id ?? 0) . " | Message ID: {$message_id}");
+            } elseif ($status === 'read') {
+                Log::info("👀 Webhook: تم قراءة الرسالة (read) | الرقم: {$recipientPhone} | EventUser ID: " . ($check_user_event?->id ?? 0) . " | Message ID: {$message_id}");
+            } elseif ($status === 'sent') {
+                Log::info("📤 Webhook: تم إرسال الرسالة من ميتا وجاري التوصيل (sent) | الرقم: {$recipientPhone} | EventUser ID: " . ($check_user_event?->id ?? 0) . " | Message ID: {$message_id}");
+            } elseif ($status === 'failed') {
+                Log::error("❌ Webhook: فشل وصول الرسالة للعميل (failed) | الرقم: {$recipientPhone} | EventUser ID: " . ($check_user_event?->id ?? 0) . " | Event ID: " . ($check_user_event?->event_id ?? 0) . " | الكود: {$error_code} | المشكلة: {$error_title} | التفاصيل: {$error_details}");
+            }
 
             $events_users = EventUsers::where('message_id', $message_id)->get();
+            if ($events_users->isEmpty() && $check_user_event) {
+                $events_users = collect([$check_user_event]);
+            }
 
             foreach ($events_users as $user_event) {
                 $user_event->update([
                     'status' => $status,
-                    'log' => json_encode($data)
+                    'log' => json_encode($data),
+                    'error_title' => $error_title ?? $user_event->error_title,
+                    'error' => $error_details ?? $user_event->error,
                 ]);
 
                 EventUserLogs::create([

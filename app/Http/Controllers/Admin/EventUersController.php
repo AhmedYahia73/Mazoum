@@ -786,17 +786,22 @@ class EventUersController extends Controller
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
-                                    $user_event->update([
-                                        'remember' => 1,
-                                    ]);
-                                    $body = $response->getBody();
+                                    $body = (string) $response->getBody();
                                     $data = json_decode($body, true);
+                                    $sent_message_id = $data['messages'][0]['id'] ?? null;
+
+                                    $updateData = ['remember' => 1];
+                                    if ($sent_message_id) {
+                                        $updateData['message_id'] = $sent_message_id;
+                                    }
+                                    $user_event->update($updateData);
+
                                     $message = WattsChatModel::create([
                                         'phone'        => $to,
                                         'name'         => "Admin",
                                         'message'      => $template_name,
                                         'is_sent_by_me'=> true,
-                                        'message_id'   => 0,
+                                        'message_id'   => $sent_message_id ?? 0,
                                         'from'         => "Admin",
                                         "template_name" => $template_name,
                                         "event_user_id" => $user_event->id,

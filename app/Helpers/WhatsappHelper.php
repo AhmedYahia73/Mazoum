@@ -11,13 +11,24 @@ if (! function_exists('SendCarMsgTemplate')) {
 
     function SendCarMsgTemplate($to, $template_name, $language, $image_url, $param1, $param2, $param3, $phone_numer_id, $token, $url_button = null)
     {
-        // تحويل القيم إلى نصوص وضمان عدم إرسال نصوص فارغة لميتا لأن ميتا ترفض المتغيرات الفارغة بكود 131008
-        $p1 = !empty($param1) ? (is_array($param1) ? json_encode($param1, JSON_UNESCAPED_UNICODE) : (string)$param1) : '-';
-        $p2 = !empty($param2) ? (is_array($param2) ? json_encode($param2, JSON_UNESCAPED_UNICODE) : (string)$param2) : '-';
-        $p3 = !empty($param3) ? (is_array($param3) ? json_encode($param3, JSON_UNESCAPED_UNICODE) : (string)$param3) : '-';
+        // تحويل القيم إلى نصوص وتنظيفها من السطور الجديدة أو المسافات المتعددة وضمان عدم إرسال نصوص فارغة لميتا
+        $cleanParam = function ($val) {
+            if (empty($val)) {
+                return '-';
+            }
+            $str = is_array($val) ? json_encode($val, JSON_UNESCAPED_UNICODE) : (string) $val;
+            $str = preg_replace('/[\r\n\t]+/', ' ', $str);
+            $str = trim(preg_replace('/\s{2,}/u', ' ', $str));
+            return $str !== '' ? $str : '-';
+        };
 
-        // التأكد من وجود رابط صورة صالح للرأس
+        $p1 = $cleanParam($param1);
+        $p2 = $cleanParam($param2);
+        $p3 = $cleanParam($param3);
+
+        // التأكد من وجود رابط صورة صالح للرأس وإصلاح مشكلة http://localhost عند التشغيل من الـ Cron Job / CLI
         $headerImageUrl = !empty($image_url) ? $image_url : asset('11.png');
+        $headerImageUrl = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $headerImageUrl);
 
         $components = [
             [

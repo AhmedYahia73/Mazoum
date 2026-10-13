@@ -18,14 +18,17 @@ class RemindTomorrowEvents extends Command
      *
      * @var string
      */
-    protected $signature = 'events:remind-tomorrow {--date= : تاريخ الفعاليات (افتراضياً غداً)} {--initial-delay=300 : مدة الانتظار قبل أول دفعة بالثواني (افتراضياً 300 ثانية = 5 دقائق)}';
+    protected $signature = 'events:remind-tomorrow
+                            {--date= : تاريخ الفعاليات (افتراضياً غداً)}
+                            {--delay=2 : ثواني الانتظار بين كل رسالة}
+                            {--batch-delay=300 : ثواني الانتظار بعد كل 20 رسالة}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'تذكير المستخدمين بالأحداث القادمة غداً - يبدأ بعد 5 دقائق ويرسل لكل 20 مستخدم ثم ينتظر 5 دقائق';
+    protected $description = 'تذكير المستخدمين بالأحداث القادمة غداً - يرسل 20 رسالة ثم ينتظر 5 دقائق';
 
     /**
      * Execute the console command.
@@ -34,11 +37,13 @@ class RemindTomorrowEvents extends Command
      */
     public function handle()
     {
-        $targetDate = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $targetDate  = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $delayPerMsg = (int) ($this->option('delay') ?? 2);        // ثانيتان بين كل رسالة
+        $batchDelay  = (int) ($this->option('batch-delay') ?? 300); // 5 دقائق بعد كل 20
 
         Log::info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
 
-        // جلب الأحداث التي تاريخها محدد - بدون Global Scope
+        // جلب الأحداث بدون Global Scope (الكرون يعمل بدون مستخدم مسجّل)
         $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
 
         if ($events->isEmpty()) {
@@ -60,84 +65,175 @@ class RemindTomorrowEvents extends Command
             'Saturday'  => 'السبت',
         ];
 
-        // بدء الإرسال بعد 5 دقائق (300 ثانية) افتراضياً
-        $totalDelay = (int) ($this->option('initial-delay') ?? 300);
-
         foreach ($events as $event) {
 
             Log::info("RemindTomorrowEvents: معالجة الحدث: {$event->name} (ID: {$event->id})");
 
-            // جلب جميع المستخدمين في هذا الحدث
-            $eventUsers = EventUsers::where('event_id', $event->id)->get();
+            // جلب المستخدمين الذين لم يُرسل لهم تذكير بعد فقط
+            $eventUsers = EventUsers::where('event_id', $event->id)
+                ->where('remember', 0)
+                ->get();
 
             if ($eventUsers->isEmpty()) {
-                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين في الحدث ID: {$event->id}");
+                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين جدد في الحدث ID: {$event->id}");
                 continue;
             }
 
             Log::info("RemindTomorrowEvents: عدد المستخدمين: {$eventUsers->count()} في الحدث ID: {$event->id}");
 
-            // تقسيم المستخدمين إلى مجموعات من 20
-            $chunks = $eventUsers->chunk(20);
+            // تحديد اسم اليوم بالعربي
+            $dayNameEnglish = Carbon::parse($event->date)->format('l');
+            $dayNameArabic  = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
+            $dateWithDay    = $event->date . ' ' . $dayNameArabic;
 
-            foreach ($chunks as $chunkIndex => $chunk) {
+            // إعداد بيانات الإرسال (مشتركة لجميع مستخدمي هذا الحدث)
+            $token          = get_whats_setting($event)['token'];
+            $phone_numer_id = $this->getPhoneId($event->phone_setting_id);
+            $url_image      = $event->file; // Image_Path accessor يُرجع URL كامل
+            $url_button     = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
+            $template_name  = 'car_msg3_';
+            $language       = 'ar';
 
-                // تحديد اسم اليوم بالعربي
-                $dayNameEnglish = Carbon::parse($event->date)->format('l');
-                $dayNameArabic = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
-                $dateWithDay = $event->date . ' ' . $dayNameArabic;
+            Log::info("RemindTomorrowEvents: بيانات الإرسال", [
+                'event_id'       => $event->id,
+                'phone_numer_id' => $phone_numer_id,
+                'url_image'      => $url_image,
+                'url_button'     => $url_button,
+                'token_preview'  => substr($token ?? '', 0, 20) . '...',
+            ]);
 
-                // تحديد نوع الإرسال بناءً على send_type لكل مستخدم
-                foreach ($chunk as $eventUser) {
+            $sentCount = 0;
 
-                    $sendingType = $this->getSendingType($eventUser);
-                    $message = $event->name;
-                    $date = $dateWithDay;
-                    $time = $event->time;
-                    $phoneSettingId = $event->phone_setting_id;
+            foreach ($eventUsers as $eventUser) {
 
-                    // dispatch job مع delay
-                    \App\Jobs\RemindEventUserJob::dispatch(
-                        $eventUser->id,
-                        $event->id,
-                        $sendingType,
-                        $message,
-                        $date,
-                        $time,
-                        $phoneSettingId
-                    )->delay(now()->addSeconds($totalDelay));
+                $mobile = $eventUser->mobile;
+                if (empty($mobile)) {
+                    Log::warning("RemindTomorrowEvents: رقم موبايل فارغ - EventUser ID: {$eventUser->id}");
+                    continue;
                 }
 
-                Log::info("RemindTomorrowEvents: تم جدولة المجموعة " . ($chunkIndex + 1) . " ({$chunk->count()} مستخدم) بتأخير {$totalDelay} ثانية");
+                $to       = str_replace('+', '', $mobile);
+                $sendType = ($eventUser->send_type === 'meta') ? 'old_send' : 'new_send';
 
-                // انتظار 5 دقائق بعد كل مجموعة من 20
-                $totalDelay += 300; // 5 دقائق = 300 ثانية
+                Log::info("RemindTomorrowEvents: إرسال للمستخدم ID: {$eventUser->id} | to: {$to} | type: {$sendType}");
+
+                if ($sendType === 'old_send') {
+
+                    // إرسال عبر Meta Cloud API
+                    try {
+                        $response = SendCarMsgTemplate(
+                            $to,
+                            $template_name,
+                            $language,
+                            $url_image,
+                            $event->name,  // {{1}} اسم المناسبة
+                            $event->time,  // {{2}} الوقت
+                            $dateWithDay,  // {{3}} التاريخ + اليوم
+                            $phone_numer_id,
+                            $token,
+                            $url_button
+                        );
+
+                        $statusCode = $response ? $response->getStatusCode() : null;
+                        $bodyRaw    = $response ? (string) $response->getBody() : '';
+                        $bodyData   = json_decode($bodyRaw, true);
+
+                        Log::info("RemindTomorrowEvents: استجابة ميتا", [
+                            'event_user_id' => $eventUser->id,
+                            'to'            => $to,
+                            'status_code'   => $statusCode,
+                            'response'      => $bodyData,
+                        ]);
+
+                        if ($statusCode == 200) {
+                            $eventUser->update(['remember' => 1]);
+
+                            WattsChatModel::create([
+                                'phone'          => $to,
+                                'name'           => 'Admin',
+                                'message'        => $template_name,
+                                'is_sent_by_me'  => true,
+                                'message_id'     => 0,
+                                'from'           => 'Admin',
+                                'template_name'  => $template_name,
+                                'event_user_id'  => $eventUser->id,
+                                'event_id'       => $event->id,
+                                'phone_numer_id' => $phone_numer_id,
+                            ]);
+
+                            Log::info("RemindTomorrowEvents: تم وصول الرسالة بنجاح - EventUser ID: {$eventUser->id}");
+                        } else {
+                            $eventUser->update(['status' => 'failed-v2']);
+                            Log::error("RemindTomorrowEvents: فشل إرسال الرسالة - EventUser ID: {$eventUser->id} - Response: {$bodyRaw}");
+                        }
+
+                    } catch (\Exception $e) {
+                        Log::error("RemindTomorrowEvents: خطأ في الإرسال - EventUser ID: {$eventUser->id} - Error: {$e->getMessage()}");
+                        $eventUser->update(['status' => 'failed-v2']);
+                    }
+
+                } else {
+
+                    // إرسال عبر UltraMsg
+                    $ultramsg_token = "7ye6ifujyug0u46g";
+                    $instance_id    = "instance109805";
+                    $client         = new \UltraMsg\WhatsAppApi($ultramsg_token, $instance_id);
+
+                    $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم " . $dateWithDay
+                        . " في تمــام الساعة " . $event->time
+                        . "  تشرفينــا لحضور " . $event->name . ' 🌺🌺 ';
+
+                    try {
+                        $api  = $client->sendImageMessage($to, $url_image, $caption, 0, "SDK", true);
+                        $api2 = $client->sendLocationMessage($to, $event->address, $event->lat, $event->long, 0, "SDK");
+
+                        if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true'
+                            && isset($api['message']) && $api['message'] == 'ok') {
+                            $eventUser->update(['remember' => 1]);
+                            Log::info("RemindTomorrowEvents: تم وصول الرسالة بنجاح (new_send) - EventUser ID: {$eventUser->id}");
+                        } else {
+                            Log::error("RemindTomorrowEvents: فشل الإرسال (new_send) - EventUser ID: {$eventUser->id} - Response: " . json_encode($api));
+                        }
+
+                    } catch (\Exception $e) {
+                        Log::error("RemindTomorrowEvents: خطأ في الإرسال (new_send) - EventUser ID: {$eventUser->id} - Error: {$e->getMessage()}");
+                    }
+                }
+
+                $sentCount++;
+
+                // انتظار بين كل رسالة لتفادي الـ rate limit
+                if ($delayPerMsg > 0) {
+                    sleep($delayPerMsg);
+                }
+
+                // بعد كل 20 رسالة انتظر 5 دقائق
+                if ($sentCount % 20 === 0) {
+                    Log::info("RemindTomorrowEvents: تم إرسال {$sentCount} رسالة - انتظار {$batchDelay} ثانية...");
+                    sleep($batchDelay);
+                }
             }
 
-            // انتظار 5 دقائق إضافية بين الأحداث
-            // (بالفعل تمت إضافة 5 دقائق بعد آخر مجموعة، فهذا يضمن الفاصل بين الأحداث)
-            Log::info("RemindTomorrowEvents: اكتمل جدولة الحدث ID: {$event->id}");
+            Log::info("RemindTomorrowEvents: اكتمل إرسال الحدث ID: {$event->id} - إجمالي المُرسل: {$sentCount}");
         }
 
-        $totalMinutes = $totalDelay / 60;
-        Log::info("RemindTomorrowEvents: تم جدولة جميع الرسائل. إجمالي وقت التأخير: {$totalMinutes} دقيقة");
-        $this->info("تم جدولة جميع الرسائل بنجاح. إجمالي وقت التأخير: {$totalMinutes} دقيقة");
+        Log::info("RemindTomorrowEvents: اكتمل إرسال جميع التذكيرات.");
+        $this->info("اكتمل إرسال جميع التذكيرات.");
 
         return 0;
     }
 
     /**
-     * تحديد نوع الإرسال بناءً على send_type في EventUsers
-     * meta => old_send
-     * link => new_send
+     * جلب phone_numer_id من NewSetting
      */
-    private function getSendingType(EventUsers $eventUser): string
+    private function getPhoneId($id)
     {
-        if ($eventUser->send_type === 'meta') {
-            return 'old_send';
+        $data = NewSetting::where('id', $id)->first();
+
+        if (empty($data)) {
+            return Setting::first()?->phone_numer_id ?? null;
         }
 
-        // link أو أي قيمة أخرى
-        return 'new_send';
+        return $data->phone_numer_id;
     }
 }

@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Api\CustomEvent;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Events\ChatEvent;
 use App\Events\CustomChatEvent;
-use App\Traits\imageTrait;
-
-use App\Models\Qr_Code;
-use App\Models\CustomEventUsers;
+use App\Http\Controllers\Controller;
 use App\Models\CustomChat;
+use App\Models\CustomEventUsers;
+use App\Models\EventChat;
 use App\Models\EventUsers;
 use App\Models\EventVoice;
+use App\Models\Qr_Code;
+use App\Traits\imageTrait;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {

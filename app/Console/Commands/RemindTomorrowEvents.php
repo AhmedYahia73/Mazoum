@@ -104,7 +104,7 @@ class RemindTomorrowEvents extends Command
             // تحديد اسم اليوم بالعربي
             $dayNameEnglish = Carbon::parse($event->date)->format('l');
             $dayNameArabic  = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
-            $dateWithDay    = $event->date . ' ' . $dayNameArabic;
+            $dateWithDay    = $dayNameArabic . ' ' . $event->date;
 
             // إعداد بيانات الإرسال (مطابقة تماماً لـ remember_users_to_event)
             $whatsSetting   = get_whats_setting($event);

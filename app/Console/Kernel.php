@@ -24,8 +24,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // تذكير المستخدمين بأحداث الغد - يعمل يومياً الساعة 4 عصراً
-        $schedule->command('events:remind-tomorrow')->dailyAt('16:00');
+        // تذكير المستخدمين بأحداث الغد - يعمل يومياً الساعة 4 عصراً (بتوقيت القاهرة والخليج)
+        $schedule->command('events:remind-tomorrow')
+            ->dailyAt('16:00')
+            ->timezone('Africa/Cairo')
+            ->appendOutputTo(storage_path('logs/cron.log'));
     }
 
     /**

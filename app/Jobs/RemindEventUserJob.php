@@ -90,6 +90,16 @@ class RemindEventUserJob implements ShouldQueue
 
         $template_name = 'car_msg3_';
 
+        // تنسيق الوقت إلى نظام 12 ساعة مع AM / PM
+        $formattedTime = $this->time;
+        if (!empty($this->time)) {
+            try {
+                $formattedTime = Carbon::parse($this->time)->format('g:i A');
+            } catch (\Throwable $e) {
+                $formattedTime = $this->time;
+            }
+        }
+
         if ($this->sendingType === 'old_send') {
 
             // إرسال عبر Meta (Cloud API)
@@ -99,7 +109,7 @@ class RemindEventUserJob implements ShouldQueue
             $phone_numer_id = $this->getPhoneId($this->phoneSettingId);
 
             $param_1 = $this->message;
-            $param_2 = $this->time;
+            $param_2 = $formattedTime;
             $param_3 = $this->date;
 
             $url_button = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
@@ -167,7 +177,7 @@ class RemindEventUserJob implements ShouldQueue
             $referenceId = "SDK";
             $nocache = true;
 
-            $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم " . $this->date . " في تمــام الساعة " . $this->time . "  تشرفينــا لحضور " . $this->message . ' 🌺🌺 ';
+            $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم " . $this->date . " في تمــام الساعة " . $formattedTime . "  تشرفينــا لحضور " . $this->message . ' 🌺🌺 ';
 
             try {
                 $api = $client->sendImageMessage($to, $url_image, $caption, $priority, $referenceId, $nocache);

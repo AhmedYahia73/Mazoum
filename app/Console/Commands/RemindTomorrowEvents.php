@@ -106,6 +106,16 @@ class RemindTomorrowEvents extends Command
             $dayNameArabic  = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
             $dateWithDay    = $dayNameArabic . ' ' . $event->date;
 
+            // تنسيق الوقت إلى نظام 12 ساعة مع AM / PM
+            $formattedTime = $event->time;
+            if (!empty($event->time)) {
+                try {
+                    $formattedTime = Carbon::parse($event->time)->format('g:i A');
+                } catch (\Throwable $e) {
+                    $formattedTime = $event->time;
+                }
+            }
+
             // إعداد بيانات الإرسال (مطابقة تماماً لـ remember_users_to_event)
             $whatsSetting   = get_whats_setting($event);
             $token          = $whatsSetting['token'];
@@ -123,7 +133,7 @@ class RemindTomorrowEvents extends Command
                 'url_image'        => $url_image,
                 'url_button'       => $url_button,
                 'date_param'       => $dateWithDay,
-                'time_param'       => $event->time,
+                'time_param'       => $formattedTime,
             ]);
 
             $sentCount = 0;
@@ -149,9 +159,9 @@ class RemindTomorrowEvents extends Command
                             $template_name,
                             $language,
                             $url_image,
-                            $event->name,  // {{1}} اسم المناسبة
-                            $event->time,  // {{2}} الوقت
-                            $dateWithDay,  // {{3}} التاريخ + اليوم
+                            $event->name,    // {{1}} اسم المناسبة
+                            $formattedTime,  // {{2}} الوقت بنظام 12 ساعة AM / PM
+                            $dateWithDay,    // {{3}} التاريخ + اليوم
                             $phone_numer_id,
                             $token,
                             $url_button
@@ -207,7 +217,7 @@ class RemindTomorrowEvents extends Command
                     $client         = new \UltraMsg\WhatsAppApi($ultramsg_token, $instance_id);
 
                     $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم " . $dateWithDay
-                        . " في تمــام الساعة " . $event->time
+                        . " في تمــام الساعة " . $formattedTime
                         . "  تشرفينــا لحضور " . $event->name . ' 🌺🌺 ';
 
                     try {

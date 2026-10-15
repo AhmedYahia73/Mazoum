@@ -353,3 +353,6 @@ Route::match(['get', 'post'], 'wedding_data_v11_ar', 'Admin\ExtraTemplateControl
 Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
 Route::match(['get', 'post'], 'send_flow', 'Admin\ExtraTemplateController@send_flow');
 
+Route::post('send-custom-media-message', [EventUersController::class, 'send_custom_media_message']);
+Route::post('send-media-message', [EventUersController::class, 'send_custom_media_message']);
+

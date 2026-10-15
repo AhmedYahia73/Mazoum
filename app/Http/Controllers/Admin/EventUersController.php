@@ -4947,6 +4947,260 @@ class EventUersController extends Controller
         ]);
     }
 
+    /**
+     * إرسال رسالة ميديا (صورة / فيديو / ملف PDF) مع 5 متغيرات وزرين تفاعليين (reply__message و price_quote)
+     */
+    public function send_custom_media_message(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'type'    => 'required|in:video,pdf,image',
+            'users'   => 'required|array',
+            'users.*' => 'required|exists:event_users,id',
+            'param1'  => 'required',
+            'param2'  => 'required',
+            'param3'  => 'required',
+            'param4'  => 'required',
+            'param5'  => 'required',
+            'file'    => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validation error',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // التحقق من نوع الملف المرفوع إذا تم إرساله كملف
+        if ($request->hasFile('file')) {
+            $fileRule = match ($request->type) {
+                'video' => 'mimes:mp4,3gp,mov,m4v',
+                'pdf'   => 'mimes:pdf',
+                'image' => 'mimes:jpeg,jpg,png,webp,gif',
+                default => '',
+            };
+
+            if ($fileRule) {
+                $fileValidator = Validator::make($request->all(), [
+                    'file' => $fileRule,
+                ]);
+
+                if ($fileValidator->fails()) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Invalid file format for type: ' . $request->type,
+                        'errors'  => $fileValidator->errors(),
+                    ], 422);
+                }
+            }
+        }
+
+        // رفع الملف أو استخراج الرابط
+        $file_url = '';
+        if ($request->hasFile('file')) {
+            $uploadedFile = $request->file('file');
+            $extension = $uploadedFile->getClientOriginalExtension() ?: match ($request->type) {
+                'video' => 'mp4',
+                'pdf'   => 'pdf',
+                default => 'png',
+            };
+            $filename = uniqid('media_', true) . '.' . $extension;
+            $targetDir = public_path('uploads/events_media');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+            $uploadedFile->move($targetDir, $filename);
+            $file_url = asset('uploads/events_media/' . $filename);
+        } elseif (is_string($request->file)) {
+            $file_url = $request->file;
+        }
+
+        // استبدال localhost للرابط لضمان وصوله إلى خوادم ميتا
+        $file_url = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $file_url);
+
+        // تحديد اسم التمبلت ونوع الهيدر حسب الـ type
+        $template_name = match ($request->type) {
+            'video' => 'vide_message',
+            'pdf'   => 'pdf_message',
+            'image' => 'custom_message',
+        };
+
+        $header_type = match ($request->type) {
+            'video' => 'video',
+            'pdf'   => 'document',
+            'image' => 'image',
+        };
+
+        $language = $request->input('language', $request->input('lang', 'ar'));
+
+        // إعدادات الواتساب الافتراضية
+        $setting = Setting::first();
+        $defaultToken = $setting?->access_token ?: $setting?->sa_access_token;
+        $defaultPhoneId = $setting?->phone_numer_id ?: $setting?->sa_phone_numer_id;
+
+        $requestPhoneId = null;
+        if ($request->filled('phone_setting_id')) {
+            $requestPhoneId = $this->get_phone_id($request->phone_setting_id);
+        }
+
+        $results = [];
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($request->users as $userItem) {
+            $id = is_array($userItem) ? ($userItem['id'] ?? null) : $userItem;
+            if (!$id) {
+                continue;
+            }
+
+            $user_event = EventUsers::with('event')->find($id);
+            if (!$user_event) {
+                $results[] = [
+                    'id'      => $id,
+                    'status'  => 'error',
+                    'message' => 'Event user not found',
+                ];
+                $failCount++;
+                continue;
+            }
+
+            $mobile = $user_event->mobile ?: $user_event->phone_number;
+            if (empty($mobile)) {
+                $results[] = [
+                    'id'      => $id,
+                    'name'    => $user_event->name,
+                    'status'  => 'error',
+                    'message' => 'No mobile number',
+                ];
+                $failCount++;
+                continue;
+            }
+
+            // تنظيف رقم الهاتف وإرساله كأرقام فقط
+            $to = preg_replace('/[^0-9]/', '', (string)$mobile);
+
+            $token = $defaultToken;
+            $phone_numer_id = $requestPhoneId ?: $defaultPhoneId;
+
+            if ($user_event->event) {
+                $whats = get_whats_setting($user_event->event);
+                if (!empty($whats['token'])) {
+                    $token = $whats['token'];
+                }
+                if (!$requestPhoneId && !empty($user_event->event->phone_setting_id)) {
+                    $pId = $this->get_phone_id($user_event->event->phone_setting_id);
+                    if ($pId) {
+                        $phone_numer_id = $pId;
+                    }
+                }
+            }
+
+            try {
+                $response = SendCustomMediaMsgTemplate(
+                    $to,
+                    $template_name,
+                    $language,
+                    $file_url,
+                    $header_type,
+                    $request->param1,
+                    $request->param2,
+                    $request->param3,
+                    $request->param4,
+                    $request->param5,
+                    $phone_numer_id,
+                    $token
+                );
+
+                $statusCode = $response ? $response->getStatusCode() : 500;
+                $body = $response ? json_decode($response->getBody()->getContents(), true) : null;
+
+                if ($statusCode == 200) {
+                    $sent_message_id = $body['messages'][0]['id'] ?? null;
+
+                    $updateData = [
+                        'status'    => 'sent',
+                        'is_sent'   => 'yes',
+                        'send_type' => 'meta',
+                    ];
+                    if ($sent_message_id) {
+                        $updateData['message_id'] = $sent_message_id;
+                    }
+                    $user_event->update($updateData);
+
+                    WattsChatModel::create([
+                        'phone'          => $to,
+                        'name'           => 'Admin',
+                        'message'        => $template_name,
+                        'is_sent_by_me'  => true,
+                        'message_id'     => $sent_message_id ?? 0,
+                        'from'           => 'Admin',
+                        'template_name'  => $template_name,
+                        'event_user_id'  => $user_event->id,
+                        'event_id'       => $user_event->event_id ?? 0,
+                        'phone_numer_id' => $phone_numer_id,
+                    ]);
+
+                    $results[] = [
+                        'id'         => $id,
+                        'name'       => $user_event->name,
+                        'mobile'     => $to,
+                        'status'     => 'success',
+                        'message_id' => $sent_message_id,
+                    ];
+                    $successCount++;
+                } else {
+                    $user_event->update([
+                        'status'    => 'failed-v2',
+                        'send_type' => 'meta',
+                    ]);
+
+                    $results[] = [
+                        'id'       => $id,
+                        'name'     => $user_event->name,
+                        'mobile'   => $to,
+                        'status'   => 'failed',
+                        'response' => $body,
+                    ];
+                    $failCount++;
+                }
+            } catch (\Throwable $e) {
+                Log::error("SendCustomMediaMsgTemplate Exception for user {$id}: " . $e->getMessage());
+                $user_event->update([
+                    'status'    => 'failed-v2',
+                    'send_type' => 'meta',
+                ]);
+                $results[] = [
+                    'id'     => $id,
+                    'name'   => $user_event->name,
+                    'mobile' => $to,
+                    'status' => 'error',
+                    'error'  => $e->getMessage(),
+                ];
+                $failCount++;
+            }
+        }
+
+        return response()->json([
+            'status'        => true,
+            'message'       => 'Processed ' . count($request->users) . ' users.',
+            'total'         => count($request->users),
+            'sent_count'    => $successCount,
+            'failed_count'  => $failCount,
+            'template_name' => $template_name,
+            'file_url'      => $file_url,
+            'results'       => $results,
+        ], 200);
+    }
+
+    /**
+     * Alias for send_custom_media_message
+     */
+    public function send_media_message(Request $request)
+    {
+        return $this->send_custom_media_message($request);
+    }
+
     private function get_phone_id($id){
         $data = NewSetting::
         where("id", $id)

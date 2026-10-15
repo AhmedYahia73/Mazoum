@@ -2216,3 +2216,179 @@ if (! function_exists('SendArFlowV10Template')) {
     }
 }
 
+if (! function_exists('SendCustomMediaMsgTemplate')) {
+
+    function SendCustomMediaMsgTemplate($to, $template_name, $language, $file_url, $type, $param1, $param2, $param3, $param4, $param5, $phone_numer_id, $token)
+    {
+        // تحويل القيم إلى نصوص وتنظيفها من السطور الجديدة أو المسافات المتعددة وضمان عدم إرسال نصوص فارغة لميتا
+        $cleanParam = function ($val) {
+            if (empty($val)) {
+                return '-';
+            }
+            $str = is_array($val) ? json_encode($val, JSON_UNESCAPED_UNICODE) : (string) $val;
+            $str = preg_replace('/[\r\n\t]+/', ' ', $str);
+            $str = trim(preg_replace('/\s{2,}/u', ' ', $str));
+            return $str !== '' ? $str : '-';
+        };
+
+        $p1 = $cleanParam($param1);
+        $p2 = $cleanParam($param2);
+        $p3 = $cleanParam($param3);
+        $p4 = $cleanParam($param4);
+        $p5 = $cleanParam($param5);
+
+        // التأكد من وجود رابط ملف صالح للرأس وإصلاح مشكلة http://localhost عند التشغيل من الـ Cron Job / CLI
+        $headerFileUrl = !empty($file_url) ? $file_url : asset('11.png');
+        $headerFileUrl = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $headerFileUrl);
+
+        // تحديد نوع الهيدر المناسب لميتا (image, video, document)
+        $headerType = match (strtolower((string)$type)) {
+            'video' => 'video',
+            'pdf', 'document' => 'document',
+            default => 'image',
+        };
+
+        $headerParameter = [
+            'type' => $headerType,
+            $headerType => [
+                'link' => $headerFileUrl,
+            ],
+        ];
+
+        // في حال كان المستند PDF يمكن تمرير اسم الملف بصورة اختيارية
+        if ($headerType === 'document') {
+            $parsedPath = parse_url($headerFileUrl, PHP_URL_PATH);
+            $docName = $parsedPath ? basename($parsedPath) : 'document.pdf';
+            $headerParameter[$headerType]['filename'] = $docName;
+        }
+
+        $components = [
+            [
+                'type' => 'header',
+                'parameters' => [
+                    $headerParameter
+                ],
+            ],
+            [
+                'type' => 'body',
+                'parameters' => [
+                    [
+                        'type' => 'text',
+                        'text' => $p1
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p2
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p3
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p4
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $p5
+                    ]
+                ],
+            ],
+            [
+                'type' => 'button',
+                'sub_type' => 'quick_reply',
+                'index' => '0',
+                'parameters' => [
+                    [
+                        'type' => 'payload',
+                        'payload' => 'reply__message'
+                    ]
+                ],
+            ],
+            [
+                'type' => 'button',
+                'sub_type' => 'quick_reply',
+                'index' => '1',
+                'parameters' => [
+                    [
+                        'type' => 'payload',
+                        'payload' => 'price_quote'
+                    ]
+                ],
+            ]
+        ];
+
+        $arr = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'template',
+            'template' => [
+                'name' => $template_name,
+                'language' => [
+                    'code' => $language
+                ],
+                'components' => $components
+            ],
+        ];
+
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
+
+        $client = new \GuzzleHttp\Client();
+
+        $response = $client->post($fullUrl, [
+            'http_errors' => false,
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Content-Type'   => 'application/json',
+            ],
+            'json' => $arr,
+        ]);
+
+        if ($response->getStatusCode() != 200) {
+            \Illuminate\Support\Facades\Log::error('SendCustomMediaMsgTemplate Error: ' . $response->getBody()->getContents());
+        }
+
+        return $response;
+    }
+}
+
+if (! function_exists('SendSimpleTemplateMsg')) {
+
+    function SendSimpleTemplateMsg($to, $template_name, $language, $phone_numer_id, $token)
+    {
+        $arr = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'template',
+            'template' => [
+                'name' => $template_name,
+                'language' => [
+                    'code' => $language
+                ]
+            ],
+        ];
+
+        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
+
+        $client = new \GuzzleHttp\Client();
+
+        $response = $client->post($fullUrl, [
+            'http_errors' => false,
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Content-Type'   => 'application/json',
+            ],
+            'json' => $arr,
+        ]);
+
+        if ($response->getStatusCode() != 200) {
+            \Illuminate\Support\Facades\Log::error("SendSimpleTemplateMsg ({$template_name}) Error: " . $response->getBody()->getContents());
+        }
+
+        return $response;
+    }
+}
+
+

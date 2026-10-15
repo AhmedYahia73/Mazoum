@@ -383,6 +383,8 @@ Route::get('event-chat/{id}', 'EventUersController@event_chat_details');
 
 
 Route::post('send-custom-message', 'EventUersController@send_custom_message');
+Route::post('send-custom-media-message', 'EventUersController@send_custom_media_message');
+Route::post('send-media-message', 'EventUersController@send_custom_media_message');
 Route::post('delete_event_users', 'EventUersController@delete_event_users');
 
 Route::get('send-congratulation-messages', function () {

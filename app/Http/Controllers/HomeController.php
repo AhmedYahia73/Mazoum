@@ -335,16 +335,45 @@ class HomeController extends Controller
         // -------------------------------------------------------------
         // 3. التفاعل مع الأزرار (Interactive Buttons)
         // -------------------------------------------------------------
-        $buttonPayload = data_get($value, 'messages.0.button.payload');
+        $buttonPayload = data_get($value, 'messages.0.button.payload')
+            ?? data_get($value, 'messages.0.interactive.button_reply.id')
+            ?? data_get($value, 'messages.0.button.text');
         $contextId = data_get($value, 'messages.0.context.id');
 
-        if ($buttonPayload && $contextId) {
-            $message_id = $contextId;
+        if ($buttonPayload) {
+            $message_id = $contextId ?? data_get($value, 'messages.0.id');
             $status = $buttonPayload;
 
-            $log->update(['message_id' => $message_id]);
+            if ($message_id) {
+                $log->update(['message_id' => $message_id]);
+            }
 
-            $user_event = EventUsers::where('message_id', $message_id)->first();
+            $user_event = null;
+            if ($contextId) {
+                $user_event = EventUsers::where('message_id', $contextId)->first();
+            }
+            if (!$user_event && $message_id) {
+                $user_event = EventUsers::where('message_id', $message_id)->first();
+            }
+            if (!$user_event) {
+                $fromPhone = data_get($value, 'messages.0.from');
+                $customerPhone = preg_replace('/[^0-9]/', '', (string)$fromPhone);
+                if ($customerPhone) {
+                    $user_event = EventUsers::where(function ($q) use ($customerPhone, $fromPhone) {
+                        $q->where('mobile', $fromPhone)
+                          ->orWhere('mobile', $customerPhone)
+                          ->orWhere('mobile', '+' . $customerPhone)
+                          ->orWhere('phone_number', $customerPhone)
+                          ->orWhere('phone_number', '+' . $customerPhone);
+                    })->orderByDesc('id')->first();
+                }
+            }
+
+            $fromPhone = data_get($value, 'messages.0.from');
+            $to = $user_event?->mobile ?? $fromPhone;
+            if ($to) {
+                $to = preg_replace('/[^0-9]/', '', (string)$to);
+            }
 
             if ($user_event) {
                 $user_event->update(['log' => json_encode($data)]);
@@ -358,7 +387,10 @@ class HomeController extends Controller
                 ]);
 
                 $event = Events::find($user_event->event_id);
-                $to = $user_event->mobile;
+                $to = $user_event->mobile ?: $to;
+                if ($to) {
+                    $to = preg_replace('/[^0-9]/', '', (string)$to);
+                }
 
                 // أداء الزر: تفاصيل المناسبة
                 if ($status === 'event_details' && $event) {
@@ -445,11 +477,53 @@ class HomeController extends Controller
                     }
                 }
 
-                // تحديث حالة المعازيم (تجنب تغيير الحالة للأزرار التفاعلية مثل التهاني والاعتذار)
-                if (!in_array($status, ['location', 'yes-congrato', 'no-congrato', 'yes-apologize', 'no-apologize'])) {
+                // أداء الزر: reply__message
+                if ($status === 'reply__message') {
+                    $template_name = 'reply__message';
+                    try {
+                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyR = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('Send reply__message Error in webhook: ' . $e->getMessage());
+                    }
+                }
+
+                // أداء الزر: price_quote
+                if ($status === 'price_quote') {
+                    $template_name = 'price_quote';
+                    try {
+                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyR = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('Send price_quote Error in webhook: ' . $e->getMessage());
+                    }
+                }
+
+                // تحديث حالة المعازيم (تجنب تغيير الحالة للأزرار التفاعلية مثل التهاني والاعتذار والردود)
+                if (!in_array($status, ['location', 'yes-congrato', 'no-congrato', 'yes-apologize', 'no-apologize', 'reply__message', 'price_quote'])) {
                     $user_event->update(['status' => $status]);
                 } elseif ($status === 'location') {
                     $user_event->update(['get_location' => 'yes']);
+                }
+            } else {
+                // إذا لم يوجد سجل لمستخدم المناسبة وكان الزر reply__message أو price_quote
+                if (in_array($status, ['reply__message', 'price_quote']) && $to) {
+                    $template_name = $status;
+                    try {
+                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyR = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, null, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Send {$template_name} Error in webhook: " . $e->getMessage());
+                    }
                 }
             }
 
@@ -530,6 +604,20 @@ class HomeController extends Controller
 
         if ($textBody && $textFrom && !$is_invitation_sent && !$isMazoum) {
             $customerPhone = preg_replace('/[^0-9]/', '', $textFrom);
+
+            $cleanIncoming = trim($textBody);
+            if (in_array($cleanIncoming, ['reply__message', 'price_quote'])) {
+                try {
+                    $response = SendMessageTemplate($textFrom, $cleanIncoming, $language, $phone_numer_id, $token);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $bodyR = json_decode($response->getBody()->getContents(), true);
+                        log_sent_watts_message($textFrom, $cleanIncoming, $bodyR['messages'][0]['id'] ?? null, null, $phone_numer_id);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Send {$cleanIncoming} Error from text in webhook: " . $e->getMessage());
+                }
+                $is_invitation_sent = true;
+            }
 
             $user_event = EventUsers::where(function ($q) use ($customerPhone, $textFrom) {
                 $q->where('mobile', $textFrom)

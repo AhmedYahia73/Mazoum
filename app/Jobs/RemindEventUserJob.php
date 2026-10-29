@@ -84,6 +84,11 @@ class RemindEventUserJob implements ShouldQueue
             return;
         }
 
+        if (($eventUser->accept_count ?? 0) <= 0) {
+            Log::info("RemindEventUserJob: تم التخطي لأن accept_count ليس أكبر من 0 - EventUser ID: {$this->eventUserId}");
+            return;
+        }
+
         $to = str_replace("+", "", $mobile);
 
         $url_image = $event->file;

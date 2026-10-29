@@ -89,12 +89,14 @@ class RemindTomorrowEvents extends Command
             Log::info("RemindTomorrowEvents: معالجة الحدث: {$event->name} (ID: {$event->id})");
             $this->info("معالجة الحدث: {$event->name} (ID: {$event->id})");
 
-            // جلب جميع المستخدمين في هذا الحدث (نفس سلوك remember_users_to_event)
-            $eventUsers = EventUsers::where('event_id', $event->id)->get();
+            // جلب المستخدمين الذين أكدوا الحضور فقط (accept_count > 0)
+            $eventUsers = EventUsers::where('event_id', $event->id)
+                ->where('accept_count', '>', 0)
+                ->get();
 
             if ($eventUsers->isEmpty()) {
-                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين في الحدث ID: {$event->id}");
-                $this->warn("لا يوجد مستخدمين في الحدث ID: {$event->id}");
+                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في الحدث ID: {$event->id}");
+                $this->warn("لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في الحدث ID: {$event->id}");
                 continue;
             }
 

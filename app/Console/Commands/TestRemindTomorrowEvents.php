@@ -62,10 +62,12 @@ class TestRemindTomorrowEvents extends Command
             $this->info("   📱 phone_setting_id: {$event->phone_setting_id}");
             $this->info("");
 
-            $eventUsers = EventUsers::where('event_id', $event->id)->get();
+            $eventUsers = EventUsers::where('event_id', $event->id)
+                ->where('accept_count', '>', 0)
+                ->get();
 
             if ($eventUsers->isEmpty()) {
-                $this->warn("   ⚠️ لا يوجد مستخدمين في هذا الحدث");
+                $this->warn("   ⚠️ لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في هذا الحدث");
                 continue;
             }
 

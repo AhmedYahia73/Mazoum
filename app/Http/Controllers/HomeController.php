@@ -415,14 +415,55 @@ class HomeController extends Controller
                     if ($event->showing_qr === 'yes') {
                         $this->createNotification($user_event, 'accept_event');
                         $available = min(max(1, (int)$user_event->users_count), 10);
-                        $template_name6 = 'flow_' . $available;
-                        $func = 'SendArFlowV' . $available . 'Template';
 
-                        if (function_exists($func)) {
-                            $response6 = $func($to, $template_name6, $language, $phone_numer_id, $token);
-                            if ($response6 && $response6->getStatusCode() == 200) {
-                                $body6 = json_decode($response6->getBody()->getContents(), true);
-                                log_sent_watts_message($to, $template_name6, $body6['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        if ($available == 1) {
+                            $user_event->update([
+                                'accept_count' => 1,
+                                'confirmed_at' => now(),
+                                'status'       => 'attend',
+                            ]);
+
+                            EventUserActions::updateOrCreate(
+                                ['event_id' => $user_event->event_id, 'event_user_id' => $user_event->id, 'action' => 'accept_event'],
+                                ['mobile' => $user_event->mobile, 'users_count' => 1]
+                            );
+
+                            $uu_id = $this->unique_uu_id();
+                            $image_name = $uu_id . '-test-qr.png';
+
+                            Qr_Code::updateOrCreate(
+                                ['event_user_id' => $user_event->id],
+                                ['event_id' => $user_event->event_id, 'qr' => $image_name, 'uu_id' => $uu_id, 'counter' => 0]
+                            );
+
+                            $this->update_qr($event, $uu_id, $user_event, $image_name);
+
+                            $template_name = 'wedding_data_v2_ar';
+                            $url_image = asset('qr_code/' . $image_name);
+
+                            $response = SendWeddingDataV2ArTemplate($to, $template_name, $language, 1, $url_image, $phone_numer_id, $token);
+                            if ($response && $response->getStatusCode() == 200) {
+                                $user_event->update(['qr_sent' => 'yes']);
+                                $body = json_decode($response->getBody()->getContents(), true);
+                                log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                                EventUserLogs::create([
+                                    'log' => "تم ارسال ال QR Code",
+                                    'event_id' => $user_event->event_id,
+                                    'event_user_id' => $user_event->id,
+                                    'message_id' => $user_event->message_id,
+                                    'status' => 'attend',
+                                ]);
+                            }
+                        } else {
+                            $template_name6 = 'flow_' . $available;
+                            $func = 'SendArFlowV' . $available . 'Template';
+
+                            if (function_exists($func)) {
+                                $response6 = $func($to, $template_name6, $language, $phone_numer_id, $token);
+                                if ($response6 && $response6->getStatusCode() == 200) {
+                                    $body6 = json_decode($response6->getBody()->getContents(), true);
+                                    log_sent_watts_message($to, $template_name6, $body6['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                                }
                             }
                         }
                     } else {

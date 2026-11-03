@@ -505,11 +505,46 @@ class EventsController extends Controller
             ],400);
         }  
 
-        $Item = Model::withTrashed()->create($this->gteInput($request, null));
+        if ($request->filled('scan_assistant_id')) {
+            $scan_assistant_id = $request->scan_assistant_id;
+            $email = null;
+            $password = null;
+        } else {
+            do {
+                $var = rand(0, 10000);
+            } while (User::where('mobile', (string)$var)->orWhere('email', "employee" . $var . "@mazoom.online")->exists());
 
-        return response()->json([
-            "success" => "You add data success"
-        ]);
+            $password = (string)rand(1000000, 9999999);
+
+            $scanEmployee = User::create([
+                'name'            => "employee" . $var,
+                'mobile'          => $var,
+                'email'           => "employee" . $var . "@mazoom.online",
+                'password'        => bcrypt($password),
+                'pass'            => $password,
+                'user_type'       => "scan_employee",
+                'employee_gender' => "male",
+            ]);
+
+            $scan_assistant_id = $scanEmployee->id;
+            $email = $scanEmployee->email;
+        }
+
+        $input = $this->gteInput($request, null);
+        $input['scan_assistant_id'] = $scan_assistant_id;
+
+        $Item = Model::withTrashed()->create($input);
+
+        $responseData = [
+            "success" => "You add data success",
+        ];
+
+        if ($email) {
+            $responseData['email'] = $email;
+            $responseData['password'] = $password;
+        }
+
+        return response()->json($responseData);
 
     }
 

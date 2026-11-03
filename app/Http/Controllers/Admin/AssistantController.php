@@ -19,7 +19,7 @@ class AssistantController extends Controller
             'id', 'name', 'mobile', 'email', 'status',
             'employee_gender', 'mobile_code', 'user_type',
             'salary', 'appointment_from', 'appointment_to',
-            "holiday", "negotation_status",
+            "holiday", "negotation_status", "pass"
         ]);
         return response()->json([
             'assistants' => $Item

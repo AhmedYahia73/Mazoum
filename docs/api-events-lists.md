@@ -58,8 +58,14 @@ Base URL: `{{base_url}}/admin`
         "time": "20:00",
         "image": "https://mazoom.online/images/xxx.jpg",
         "assistant_id": null,
+        "scan_assistant_id": 10,
         "user": { "id": 5, "name": "محمد علي", "mobile": "0501234567" },
-        "employee": null
+        "employee": null,
+        "scan_employee": {
+          "id": 10,
+          "email": "employee10@mazoom.online",
+          "pass": "7654321"
+        }
       }
     ],
     "current_page": 1,

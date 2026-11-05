@@ -1407,171 +1407,25 @@ class EventsController extends Controller
 
     public function all_events(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'country_id'   => 'sometimes|exists:countries,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
-        } 
-        // اللغة
-        $lang = $this->get_lang();
-
-        if (!$lang) {
-            $lang = 'ar';
-            app()->setLocale('ar');
-            session()->put('admin_lang', 'ar');
-        } else {
-            app()->setLocale($lang);
-        }
-
-        // بداية الـ query
-        $query = Model::where('is_open', 'yes')
-                    ->with("user:id,name,mobile", "employee:id,name")
-                    ->select([
-                        'id','title','address','file','user_id',
-                        'first_name','last_name','date','time', 'image',
-                        'assistant_id', 'send_type'
-                    ]);
-        if ($request->country_id) {
-            $query->where('country_id', $request->country_id);
-        }
-
-        // ✔️ search
-        if ($request->search) {
-            $s = $request->search;
-
-            $query->where(function($q) use ($s) {
-                $q->where('title', 'like', "%$s%")
-                ->orWhere('address', 'like', "%$s%")
-                ->orWhere('first_name', 'like', "%$s%")
-                ->orWhere('last_name', 'like', "%$s%")
-                ->orWhereHas("user", function($q2) use($s){
-                    $q2->where("name", "like", "%$s%")
-                    ->orWhere('mobile', 'like', "%$s%");
-                });
-            });
-        }
-
-        // ✔️ pagination
-        $Item = $query->paginate(20);
-
-        return response()->json([
-            "Items" => $Item
-        ]);
+        return $this->get_events_paginated($request, 'yes');
     }
 
     public function all_current_events(Request $request)
     { 
-        $validator = Validator::make($request->all(), [
-            'country_id'   => 'sometimes|exists:countries,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
-        } 
-        // اللغة
-        $lang = $this->get_lang();
-
-        if (!$lang) {
-            $lang = 'ar';
-            app()->setLocale('ar');
-            session()->put('admin_lang', 'ar');
-        } else {
-            app()->setLocale($lang);
-        }
-
-        // بداية الـ query
-        $query = Model::where('is_open', 'current')
-                    ->with("user:id,name,mobile", "employee:id,name")
-                    ->select([
-                        'id','title','address','file','user_id',
-                        'first_name','last_name','date','time', 'image',
-                        'assistant_id', 'send_type'
-                    ]);
-
-        if ($request->country_id) {
-            $query->where('country_id', $request->country_id);
-        }
-
-        // ✔️ search
-        if ($request->search) {
-            $s = $request->search;
-
-            $query->where(function($q) use ($s) {
-                $q->where('title', 'like', "%$s%")
-                ->orWhere('address', 'like', "%$s%")
-                ->orWhere('first_name', 'like', "%$s%")
-                ->orWhere('last_name', 'like', "%$s%")
-                ->orWhereHas("user", function($q2) use($s){
-                    $q2->where("name", "like", "%$s%")
-                    ->orWhere('mobile', 'like', "%$s%");
-                });
-            });
-        }
-
-        // ✔️ pagination
-        $Item = $query->paginate(20);
-
-        return response()->json([
-            "Items" => $Item
-        ]);
+        return $this->get_events_paginated($request, 'current');
     }
 
   	public function all_closed_events(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'country_id'   => 'sometimes|exists:countries,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
-        } 
-        // اللغة
-        $lang = $this->get_lang();
-
-        if (!$lang) {
-            $lang = 'ar';
-            app()->setLocale('ar');
-            session()->put('admin_lang', 'ar');
-        } else {
-            app()->setLocale($lang);
-        }
-
-        // بداية الـ query
-        $query = Model::where('is_open', 'no')
-                    ->with("user:id,name,mobile", "employee:id,name")
-                    ->select([
-                        'id','title','address','file','user_id',
-                        'first_name','last_name','date','time', 'image',
-                        'assistant_id', 'send_type'
-                    ]);
-
-        if ($request->country_id) {
-            $query->where('country_id', $request->country_id);
-        }
-        // ✔️ search
-        if ($request->search) {
-            $s = $request->search;
-
-            $query->where(function($q) use ($s) {
-                $q->where('title', 'like', "%$s%")
-                ->orWhere('address', 'like', "%$s%")
-                ->orWhere('first_name', 'like', "%$s%")
-                ->orWhere('last_name', 'like', "%$s%")
-                ->orWhereHas("user", function($q2) use($s){
-                    $q2->where("name", "like", "%$s%")
-                    ->orWhere('mobile', 'like', "%$s%");
-                });
-            });
-        }
-
-        // ✔️ pagination
-        $Item = $query->paginate(20);
-
-        return response()->json([
-            "Items" => $Item
-        ]); 
+        return $this->get_events_paginated($request, 'no');
     }
 
     public function all_deleted_events(Request $request)
+    {
+        return $this->get_events_paginated($request, null, true);
+    }
+
+    private function get_events_paginated(Request $request, $isOpen = 'yes', $onlyTrashed = false)
     {
         $validator = Validator::make($request->all(), [
             'country_id'   => 'sometimes|exists:countries,id',
@@ -1591,17 +1445,18 @@ class EventsController extends Controller
         }
 
         // بداية الـ query
-        $query = Model::onlyTrashed()
-                    ->with("user:id,name,mobile", "employee:id,name")
-                    ->select([
-                        'id','title','address','file','user_id',
-                        'first_name','last_name','date','time', 'image',
-                        'assistant_id', 'send_type'
-                    ]);
+        $query = $onlyTrashed ? Model::onlyTrashed() : Model::where('is_open', $isOpen);
+        $query->with("user:id,name,mobile", "employee:id,name", "scan_employee:id,email,pass")
+            ->select([
+                'id','title','address','file','user_id',
+                'first_name','last_name','date','time', 'image',
+                'assistant_id', 'scan_assistant_id', 'send_type'
+            ]);
 
         if ($request->country_id) {
             $query->where('country_id', $request->country_id);
         }
+
         // ✔️ search
         if ($request->search) {
             $s = $request->search;
@@ -1621,9 +1476,20 @@ class EventsController extends Controller
         // ✔️ pagination
         $Item = $query->paginate(20);
 
+        $Item->getCollection()->transform(function ($item) {
+            if ($item->scan_employee) {
+                $item->setRelation('scan_employee', collect([
+                    'id'    => $item->scan_employee->id,
+                    'email' => $item->scan_employee->email,
+                    'pass'  => $item->scan_employee->pass,
+                ]));
+            }
+            return $item;
+        });
+
         return response()->json([
             "Items" => $Item
-        ]);  
+        ]);
     }
 
     public function delete_voice_msgs(Request $request, $id){

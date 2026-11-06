@@ -454,6 +454,18 @@ class HomeController extends Controller
                                     'status' => 'attend',
                                 ]);
                             }
+
+                            sleep(3);
+                            $template_name2 = 'send_congratulation_ar_new';
+                            try {
+                                $response2 = SendCongratulationArNewTemplate($to, $template_name2, $language, $phone_numer_id, $token);
+                                if ($response2 && $response2->getStatusCode() == 200) {
+                                    $body2 = json_decode($response2->getBody()->getContents(), true);
+                                    log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                                }
+                            } catch (\Throwable $e) {
+                                Log::error("Send send_congratulation_ar_new Error in attend (available==1): " . $e->getMessage());
+                            }
                         } else {
                             $template_name6 = 'flow_' . $available;
                             $func = 'SendArFlowV' . $available . 'Template';
@@ -629,6 +641,17 @@ class HomeController extends Controller
                         $response = SendWeddingDataV2ArTemplate($mobile, $template_name, $language, $users_count, $url_image, $phone_numer_id, $token);
                         if ($response && $response->getStatusCode() == 200) {
                             $user_event->update(['qr_sent' => 'yes']);
+                        }
+
+                        sleep(3);
+                        try {
+                            $response2 = SendCongratulationArNewTemplate($mobile, 'send_congratulation_ar_new', $language, $phone_numer_id, $token);
+                            if ($response2 && $response2->getStatusCode() == 200) {
+                                $body2 = json_decode($response2->getBody()->getContents(), true);
+                                log_sent_watts_message($mobile, 'send_congratulation_ar_new', $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                            }
+                        } catch (\Throwable $e) {
+                            Log::error("Send send_congratulation_ar_new Error in nfm_reply: " . $e->getMessage());
                         }
                     } else {
                         SendCongratulationArNewTemplate($mobile, 'send_congratulation_ar_new', $language, $phone_numer_id, $token);

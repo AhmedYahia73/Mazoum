@@ -30,9 +30,9 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Cairo')
             ->appendOutputTo(storage_path('logs/cron.log'));
 
-        // تنظيف وحذف موظفي المسح المنتهية مناسباتهم - يعمل يومياً الساعة 2 ظهراً
+        // تنظيف وحذف موظفي المسح المنتهية مناسباتهم - يعمل يومياً الساعة 8 صباحاً
         $schedule->command('scan-employees:clean')
-            ->dailyAt('14:00')
+            ->dailyAt('08:00')
             ->timezone('Africa/Cairo')
             ->appendOutputTo(storage_path('logs/cron.log'));
     }

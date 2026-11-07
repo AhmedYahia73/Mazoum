@@ -23,7 +23,7 @@ class CleanScanEmployees extends Command
      *
      * @var string
      */
-    protected $description = 'حذف موظفي المسح الذين ليس لديهم مناسبات ميعادها لم يمر منذ أكثر من يومين';
+    protected $description = 'حذف موظفي المسح الذين ليس لديهم مناسبات ميعادها لم ينتهِ بعد (بعد الحفلة بيوم أو بدون مناسبات)';
 
     /**
      * Execute the console command.
@@ -32,12 +32,14 @@ class CleanScanEmployees extends Command
      */
     public function handle()
     {
-        $cutoffDate = Carbon::today()->subDays(2)->toDateString();
+        // المناسبات الصالحة هي التي تاريخها اليوم أو في المستقبل
+        // أي مناسبة قبل اليوم تكون قد انتهت بالأمس وتُحذف في صباح اليوم التالي (الساعة 8 صباحاً)
+        $cutoffDate = Carbon::today()->toDateString();
 
-        Log::info("CleanScanEmployees: بدء فحص موظفي المسح لتاريخ فاصل: {$cutoffDate}");
-        $this->info("CleanScanEmployees: بدء فحص موظفي المسح لتاريخ فاصل: {$cutoffDate}");
+        Log::info("CleanScanEmployees: بدء فحص موظفي المسح للمناسبات التي تبدأ من: {$cutoffDate}");
+        $this->info("CleanScanEmployees: بدء فحص موظفي المسح للمناسبات التي تبدأ من: {$cutoffDate}");
 
-        // 1. جلب ID موظفي المسح المرتبطين بمناسبات لم يمر عليها أكثر من يومين
+        // 1. جلب ID موظفي المسح المرتبطين بمناسبات اليوم أو قادمة
         $activeEventsIds = Events::withoutGlobalScopes()
             ->whereNotNull('scan_assistant_id')
             ->where('date', '>=', $cutoffDate)

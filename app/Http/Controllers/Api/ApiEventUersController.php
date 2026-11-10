@@ -232,11 +232,11 @@ class ApiEventUersController extends Controller
         $title = $user_event?->event?->title;
         $address = $user_event?->event?->address;
         $time = $user_event?->event?->time;
-        $date   = Carbon::parse($user_event?->event?->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
+        $date   = Carbon::parse($user_event?->event?->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
         $users_count = $user_event->users_count;
                 $param_1 = $user_event->name;
                 $param_2 = $event->title;
-                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
+                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                 // التأكد من أن التاريخ كائن DateTime أو Carbon
                 $date = $event->date instanceof DateTime 
                     ? $event->date 
@@ -697,7 +697,7 @@ class ApiEventUersController extends Controller
 
                                 $param_1   = $user_name;
                                 $param_2   = $event->title;
-                                $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
+                                $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                                 
                                 // التأكد من أن التاريخ كائن DateTime أو Carbon
                                 $date = $event->date instanceof DateTime 
@@ -1002,7 +1002,7 @@ class ApiEventUersController extends Controller
                         $title = $user_event?->event?->title;
                         $address = $user_event?->event?->address;
                         $time = $user_event?->event?->time;
-                        $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
+                        $date   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                         $users_count = $user_event->users_count;
                         $phone_number = $this->get_phone_number($request->phone_setting_id);
                         $header_type = "image";

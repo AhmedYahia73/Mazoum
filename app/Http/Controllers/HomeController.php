@@ -176,7 +176,7 @@ class HomeController extends Controller
             if ($user_event && $event) {
                 $param_1 = $user_event->name;
                 $param_2 = $event->title;
-                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
+                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                 // التأكد من أن التاريخ كائن DateTime أو Carbon
                 $date = $event->date instanceof DateTime 
                     ? $event->date 

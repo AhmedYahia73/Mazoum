@@ -621,4 +621,146 @@ class ExtraTemplateController extends Controller
             'error' => $body ?? $e->getMessage(),
         ], $statusCode);
     }
+
+    /**
+     * إرسال رسالة تفاعلية تجريبية بأزرار بدون الحاجة لقالب معتمد في ميتا
+     * النص الافتراضي: مرحبا بك استاذ سعيد فى التمبلت الجديد
+     * الأزرار الافتراضية: [ تم بنجاح , الله ينورر ]
+     * يدعم إرسال لرقم واحد أو مصفوفة أرقام
+     */
+    public function test_interactive_template(Request $request): JsonResponse
+    {
+        // 1. استخراج الأرقام المستهدفة (يدعم phone مفرد أو phones كمصفوفة أو مفصولة بفواصل)
+        $rawPhones = [];
+        if ($request->filled('phones')) {
+            $rawPhones = is_array($request->input('phones'))
+                ? $request->input('phones')
+                : explode(',', (string)$request->input('phones'));
+        } elseif ($request->filled('phone') || $request->filled('to') || $request->filled('mobile')) {
+            $rawPhones[] = $request->input('phone') ?? $request->input('to') ?? $request->input('mobile');
+        }
+
+        $phones = array_filter(array_map(function ($p) {
+            return preg_replace('/[^0-9]/', '', (string)$p);
+        }, $rawPhones));
+
+        if (empty($phones)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'يرجى تزويد رقم هاتف واحد على الأقل في حقل phone أو phones',
+            ], 422);
+        }
+
+        // 2. تجهيز النص والاسم والأزرار
+        $name = $request->input('name', 'استاذ سعيد');
+        $bodyText = $request->input('message')
+            ?: $request->input('body')
+            ?: "مرحبا بك {$name} فى التمبلت الجديد";
+
+        $buttons = $request->input('buttons');
+        if (empty($buttons) || !is_array($buttons)) {
+            $buttons = [
+                ['id' => 'btn_success', 'title' => 'تم بنجاح'],
+                ['id' => 'btn_well_done', 'title' => 'الله ينورر'],
+            ];
+        }
+
+        // 3. تحديد بيانات الاعتماد (phone_number_id و token)
+        $credentials = \App\Services\WhatsApp\WhatsAppInteractiveService::resolveCredentials(
+            $request->input('phone_numer_id'),
+            $request->input('token')
+        );
+
+        if (empty($credentials['phone_number_id']) || empty($credentials['token'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'بيانات الاعتماد الخاصة بواتساب (phone_numer_id أو access_token) غير متوفرة في الطلب أو الإعدادات',
+                'credentials' => [
+                    'phone_number_id' => $credentials['phone_number_id'],
+                    'has_token' => !empty($credentials['token']),
+                ],
+            ], 400);
+        }
+
+        // 4. إرسال الرسالة التفاعلية لكل رقم وتجميع النتائج
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+
+        foreach ($phones as $phone) {
+            try {
+                $response = \App\Services\WhatsApp\WhatsAppInteractiveService::sendInteractiveButtons(
+                    $phone,
+                    $bodyText,
+                    $buttons,
+                    $credentials['phone_number_id'],
+                    $credentials['token'],
+                    $request->input('header'),
+                    $request->input('footer')
+                );
+
+                $statusCode = $response ? $response->getStatusCode() : 500;
+                $body = $response ? json_decode($response->getBody()->getContents(), true) : null;
+                $isSuccess = ($statusCode >= 200 && $statusCode < 300);
+
+                if ($isSuccess) {
+                    $successCount++;
+                    $messageId = $body['messages'][0]['id'] ?? null;
+                    $results[] = [
+                        'phone' => $phone,
+                        'status' => 'success',
+                        'message_id' => $messageId,
+                        'response' => $body,
+                    ];
+                } else {
+                    $failedCount++;
+                    $metaErrorCode = $body['error']['code'] ?? null;
+                    $metaErrorMsg = $body['error']['message'] ?? 'فشل الإرسال عبر ميتا';
+                    $hint = null;
+
+                    // في حال كان الخطأ 131047 (انتهاء نافذة الـ 24 ساعة للرسائل الحرة)
+                    if ($metaErrorCode == 131047) {
+                        $hint = 'تنبيه: مرت أكثر من 24 ساعة منذ آخر رسالة من هذا الرقم. في ميتا، الرسائل غير المسجلة كقوالب (Interactive Messages) تتطلب أن يرسل الرقم أي رسالة لرقم الواتساب أولاً لفتح نافذة الـ 24 ساعة.';
+                    }
+
+                    $results[] = [
+                        'phone' => $phone,
+                        'status' => 'failed',
+                        'status_code' => $statusCode,
+                        'error_code' => $metaErrorCode,
+                        'error_message' => $metaErrorMsg,
+                        'hint' => $hint,
+                        'response' => $body,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                $failedCount++;
+                $results[] = [
+                    'phone' => $phone,
+                    'status' => 'error',
+                    'error_message' => $e->getMessage(),
+                ];
+            }
+        }
+
+        $allSucceeded = ($failedCount === 0);
+
+        return response()->json([
+            'status' => $allSucceeded ? 'success' : ($successCount > 0 ? 'partial_success' : 'error'),
+            'message' => $allSucceeded ? 'تم إرسال الرسالة التفاعلية بنجاح لجميع الأرقام' : 'تم الانتهاء مع وجود بعض الملاحظات',
+            'type' => 'interactive_button',
+            'details' => [
+                'body' => $bodyText,
+                'buttons' => $buttons,
+                'phone_number_id_used' => $credentials['phone_number_id'],
+            ],
+            'summary' => [
+                'total' => count($phones),
+                'success' => $successCount,
+                'failed' => $failedCount,
+            ],
+            'results' => $results,
+        ], $allSucceeded ? 200 : ($successCount > 0 ? 207 : 400));
+    }
 }
+

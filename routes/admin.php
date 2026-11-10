@@ -15,6 +15,7 @@ Route::get('profile', 'ProfileController@profile');
 Route::post('update_profile', 'ProfileController@update_profile');
 
 Route::post('send_watt_message', 'AdminWattsChatController@sendMessage');
+Route::match(['get', 'post'], 'test_interactive_template', 'ExtraTemplateController@test_interactive_template');
 
 Route::get('manager/destroy/{id}', 'AdminController@destroy');
 

@@ -343,6 +343,7 @@ Route::prefix('extra-templates')->group(function () {
     Route::match(['get', 'post'], 'wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
     Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
     Route::match(['get', 'post'], 'send_flow', 'Admin\ExtraTemplateController@send_flow');
+    Route::match(['get', 'post'], 'test_interactive_template', 'Admin\ExtraTemplateController@test_interactive_template');
 });
 
 Route::match(['get', 'post'], 'send_congratulation_ar_new', 'Admin\ExtraTemplateController@send_congratulation_ar_new');
@@ -352,6 +353,7 @@ Route::match(['get', 'post'], 'wedding_data_v3_ar', 'Admin\ExtraTemplateControll
 Route::match(['get', 'post'], 'wedding_data_v11_ar', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
 Route::match(['get', 'post'], 'wedding_data_v11_ar_', 'Admin\ExtraTemplateController@wedding_data_v11_ar');
 Route::match(['get', 'post'], 'send_flow', 'Admin\ExtraTemplateController@send_flow');
+Route::match(['get', 'post'], 'test_interactive_template', 'Admin\ExtraTemplateController@test_interactive_template');
 
 Route::post('send-custom-media-message', [EventUersController::class, 'send_custom_media_message']);
 Route::post('send-media-message', [EventUersController::class, 'send_custom_media_message']);

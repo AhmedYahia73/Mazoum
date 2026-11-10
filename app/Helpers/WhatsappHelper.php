@@ -2392,3 +2392,40 @@ if (! function_exists('SendSimpleTemplateMsg')) {
 }
 
 
+
+if (! function_exists('SendInteractiveButtonsMsg')) {
+
+    /**
+     * إرسال رسالة تفاعلية تحتوي على أزرار بدون الحاجة لقالب معتمد في ميتا
+     */
+    function SendInteractiveButtonsMsg($to, $body_text, array $buttons, $phone_numer_id = null, $token = null, $header_text = null, $footer_text = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppInteractiveService::sendInteractiveButtons(
+            $to,
+            $body_text,
+            $buttons,
+            $phone_numer_id,
+            $token,
+            $header_text,
+            $footer_text
+        );
+    }
+}
+
+if (! function_exists('SendCustomTestInteractiveMsg')) {
+
+    /**
+     * إرسال رسالة الاختبار:
+     * النص: مرحبا بك استاذ سعيد فى التمبلت الجديد
+     * الأزرار: [ تم بنجاح , الله ينورر ]
+     */
+    function SendCustomTestInteractiveMsg($to, $phone_numer_id = null, $token = null, $name = 'استاذ سعيد')
+    {
+        return \App\Services\WhatsApp\WhatsAppInteractiveService::sendTestInteractiveMessage(
+            $to,
+            $phone_numer_id,
+            $token,
+            $name
+        );
+    }
+}

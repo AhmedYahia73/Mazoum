@@ -149,7 +149,7 @@ Route::get('test-send-message-v1', function () {
     // $token = 'EAAMsejfnW3YBO8Dyx2A33sCNgtAcJ4TNlOBrQ3LWP32viFq2ZB2UCR7w1NF5iCOxCsn5DNZAoK9qwCISeDDA7C91bjdfVzLau1pze5huMjn0d9FFW8ri1k33o8kQelh32ayQZBvDwJtcJNJiebk7BAGT34kUUe3E0YutgnHPbafP3IZCx14OQqNp4TAfCR6o';
     // $sender_id = '344115548775193';
     // $phone = '201008478014';
-    // $template_name = 'wedding_data_v1_ar';
+    // $template_name = 'wedding_data_v25';
     // $param_1 = 'ندعوك لحضور حفل زفاف السيد والاء';
     // $param_2 = 'ي سيد';
     // $url_image = 'https://6gphones.ae/mazoom/public/logo/mazoom.png?2106217949';
@@ -204,7 +204,7 @@ Route::get('test-send-message-v1', function () {
     $token = 'EAAMsejfnW3YBO8Dyx2A33sCNgtAcJ4TNlOBrQ3LWP32viFq2ZB2UCR7w1NF5iCOxCsn5DNZAoK9qwCISeDDA7C91bjdfVzLau1pze5huMjn0d9FFW8ri1k33o8kQelh32ayQZBvDwJtcJNJiebk7BAGT34kUUe3E0YutgnHPbafP3IZCx14OQqNp4TAfCR6o';
     $sender_id = '344115548775193';
     $phone = '201008478014';
-    $template_name = 'wedding_data_v1_ar';
+    $template_name = 'wedding_data_v25';
     $param_1 = 'ندعوك لحضور حفل زفاف السيد والاء';
     $param_2 = 'ي سيد';
     $url_image = 'https://6gphones.ae/mazoom/public/logo/mazoom.png?2106217949';

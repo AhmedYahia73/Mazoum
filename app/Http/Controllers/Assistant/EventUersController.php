@@ -325,7 +325,7 @@ class EventUersController extends Controller
                             $to = $mobile;
                             $to = str_replace("+","",$to);
 
-                            $template_name = 'wedding_data_v1_ar';
+                            $template_name = 'wedding_data_v25';
                             $language = 'ar';
                             $image_url = $image_path;
                             $user_name = $user_event->name;

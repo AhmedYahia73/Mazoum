@@ -176,7 +176,7 @@ class HomeController extends Controller
             if ($user_event && $event) {
                 $param_1 = $user_event->name;
                 $param_2 = $event->title;
-                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                 // التأكد من أن التاريخ كائن DateTime أو Carbon
                 $date = $event->date instanceof DateTime 
                     ? $event->date 
@@ -196,7 +196,7 @@ class HomeController extends Controller
                 $param_5 = $event->address;
                 $param_6 = $event->time ? $event->time . ' مساءً ' : '07:00 مساءً';
                 $param_7 = $user_event->users_count;
-                $template_name = 'wedding_data_v1_ar';
+                $template_name = 'wedding_data_v25';
                 $image_url = $event->file;
 
                 try {

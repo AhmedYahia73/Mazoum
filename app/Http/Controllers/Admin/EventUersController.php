@@ -1710,7 +1710,7 @@ class EventUersController extends Controller
                             // $to = $mobile;
                             // $to = str_replace("+","",$to);
 
-                            // $template_name = 'wedding_data_v1_ar';
+                            // $template_name = 'wedding_data_v25';
                             // $language = 'ar';
                             // $user_name = $user_event->name;
 
@@ -1743,7 +1743,7 @@ class EventUersController extends Controller
                                 $send_buttons = false;
                             } 
                             else{
-                                $template_name = 'wedding_data_v1_ar';
+                                $template_name = 'wedding_data_v25';
                                 $image_path = $event->file;
                                 $header_type = 'image';
                                 $send_buttons = true;
@@ -1757,7 +1757,7 @@ class EventUersController extends Controller
 
                             $param_1   = $user_name;
                             $param_2   = $event->title;
-                            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                             // التأكد من أن التاريخ كائن DateTime أو Carbon
                             $date = $event->date instanceof DateTime 
                                 ? $event->date 
@@ -4365,7 +4365,7 @@ class EventUersController extends Controller
 
                 $user_name   = $user->name;
                 $event_title   = $event->title;
-                $event_day   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . $event->date;
+                $event_day   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' الموافق ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
                 $event_address   = $event->address;
                 $event_time   = $event->time != null ? $event->time .' مساءً ' : '07:00 مساءً';
                 $users_count = $user->users_count;

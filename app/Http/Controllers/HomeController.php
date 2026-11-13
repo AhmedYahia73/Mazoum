@@ -20,6 +20,7 @@ use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\WattsChat as WattsChatModel;
 use App\Models\WebDesgins;
+use App\Services\WhatsApp\WhatsAppFreeMessageService;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
@@ -200,9 +201,20 @@ class HomeController extends Controller
                 $image_url = $event->file;
 
                 try {
-                    $response = SendWeddingDataV1ArTemplate(
-                        $customerPhone, $template_name, $language, $param_1, $param_2, 
-                        $param_3, $param_4, $param_5, $param_6, $param_7, $image_url, $phone_numer_id, $token, 'image'
+                    $response = WhatsAppFreeMessageService::sendInvitationMessage(
+                        $customerPhone,
+                        [
+                            'param_1' => $param_1,
+                            'param_2' => $param_2,
+                            'param_3' => $param_3,
+                            'param_4' => $param_4,
+                            'param_5' => $param_5,
+                            'param_6' => $param_6,
+                            'param_7' => $param_7,
+                            'image_url' => $image_url,
+                        ],
+                        $phone_numer_id,
+                        $token
                     );
 
                     if ($response && $response->getStatusCode() == 200) {
@@ -337,6 +349,7 @@ class HomeController extends Controller
         // -------------------------------------------------------------
         $buttonPayload = data_get($value, 'messages.0.button.payload')
             ?? data_get($value, 'messages.0.interactive.button_reply.id')
+            ?? data_get($value, 'messages.0.interactive.list_reply.id')
             ?? data_get($value, 'messages.0.button.text');
         $contextId = data_get($value, 'messages.0.context.id');
 
@@ -395,16 +408,14 @@ class HomeController extends Controller
                 // أداء الزر: تفاصيل المناسبة
                 if ($status === 'event_details' && $event) {
                     $template_name = 'wedding___details';
-                    $param_1 = $event->address;
-                    $param_2 = $event->date;
-                    $param_3 = Carbon::parse($event->date)->locale('ar')->translatedFormat('l');
-                    $param_4 = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], Carbon::createFromFormat('H:i', $event->time)->format('g:i A'));
-                    $mapUrl = "https://www.google.com/maps?q={$event->lat},{$event->long}";
-
-                    $response = SendEventDetailsArTemplate($template_name, $language, $param_1, $param_2, $param_3, $param_4, $mapUrl, $phone_numer_id, $token, $to);
-                    if ($response && $response->getStatusCode() == 200) {
-                        $bodyL = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    try {
+                        $response = WhatsAppFreeMessageService::sendEventDetailsMessage($to, $event, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyL = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('Send free event_details Error in webhook: ' . $e->getMessage());
                     }
                 }
 
@@ -441,49 +452,57 @@ class HomeController extends Controller
                             $template_name = 'wedding_data_v2_ar';
                             $url_image = asset('qr_code/' . $image_name);
 
-                            $response = SendWeddingDataV2ArTemplate($to, $template_name, $language, 1, $url_image, $phone_numer_id, $token);
-                            if ($response && $response->getStatusCode() == 200) {
-                                $user_event->update(['qr_sent' => 'yes']);
-                                $body = json_decode($response->getBody()->getContents(), true);
-                                log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
-                                EventUserLogs::create([
-                                    'log' => "تم ارسال ال QR Code",
-                                    'event_id' => $user_event->event_id,
-                                    'event_user_id' => $user_event->id,
-                                    'message_id' => $user_event->message_id,
-                                    'status' => 'attend',
-                                ]);
+                            try {
+                                $response = WhatsAppFreeMessageService::sendQrCodeMessage($to, $url_image, 1, $user_event->name, $phone_numer_id, $token);
+                                if ($response && $response->getStatusCode() == 200) {
+                                    $user_event->update(['qr_sent' => 'yes']);
+                                    $body = json_decode($response->getBody()->getContents(), true);
+                                    log_sent_watts_message($to, $template_name, $body['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                                    EventUserLogs::create([
+                                        'log' => "تم ارسال ال QR Code",
+                                        'event_id' => $user_event->event_id,
+                                        'event_user_id' => $user_event->id,
+                                        'message_id' => $user_event->message_id,
+                                        'status' => 'attend',
+                                    ]);
+                                }
+                            } catch (\Throwable $e) {
+                                Log::error("Send free QR code error in attend (available==1): " . $e->getMessage());
                             }
 
-                            sleep(3);
+                            sleep(2);
                             $template_name2 = 'send_congratulation_ar_new';
                             try {
-                                $response2 = SendCongratulationArNewTemplate($to, $template_name2, $language, $phone_numer_id, $token);
+                                $response2 = WhatsAppFreeMessageService::sendCongratulationPromptMessage($to, $phone_numer_id, $token);
                                 if ($response2 && $response2->getStatusCode() == 200) {
                                     $body2 = json_decode($response2->getBody()->getContents(), true);
                                     log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                                 }
                             } catch (\Throwable $e) {
-                                Log::error("Send send_congratulation_ar_new Error in attend (available==1): " . $e->getMessage());
+                                Log::error("Send free send_congratulation_ar_new Error in attend (available==1): " . $e->getMessage());
                             }
                         } else {
                             $template_name6 = 'flow_' . $available;
-                            $func = 'SendArFlowV' . $available . 'Template';
-
-                            if (function_exists($func)) {
-                                $response6 = $func($to, $template_name6, $language, $phone_numer_id, $token);
+                            try {
+                                $response6 = WhatsAppFreeMessageService::sendAttendeesCountSelectionMessage($to, $available, $phone_numer_id, $token);
                                 if ($response6 && $response6->getStatusCode() == 200) {
                                     $body6 = json_decode($response6->getBody()->getContents(), true);
                                     log_sent_watts_message($to, $template_name6, $body6['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                                 }
+                            } catch (\Throwable $e) {
+                                Log::error("Send free attendees count selection error: " . $e->getMessage());
                             }
                         }
                     } else {
                         $template_name2 = 'send_congratulation_ar_new';
-                        $response2 = SendCongratulationArNewTemplate($to, $template_name2, $language, $phone_numer_id, $token);
-                        if ($response2 && $response2->getStatusCode() == 200) {
-                            $body2 = json_decode($response2->getBody()->getContents(), true);
-                            log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        try {
+                            $response2 = WhatsAppFreeMessageService::sendCongratulationPromptMessage($to, $phone_numer_id, $token);
+                            if ($response2 && $response2->getStatusCode() == 200) {
+                                $body2 = json_decode($response2->getBody()->getContents(), true);
+                                log_sent_watts_message($to, $template_name2, $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                            }
+                        } catch (\Throwable $e) {
+                            Log::error("Send free congratulation error in attend: " . $e->getMessage());
                         }
                     }
                 }
@@ -503,30 +522,42 @@ class HomeController extends Controller
                     ]);
 
                     $template_name = 'wedding_data_v3_ar';
-                    $response = SendApologizedTemplate($to, $template_name, $language, $phone_numer_id, $token);
-                    if ($response && $response->getStatusCode() == 200) {
-                        $bodyR = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    try {
+                        $response = WhatsAppFreeMessageService::sendApologyPromptMessage($to, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyR = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Send free apology prompt error: " . $e->getMessage());
                     }
                 }
 
                 // أداء الزر: الموقع والتاريخ
                 if ($status === 'location' && $event) {
                     $template_name = 'wedding_data_v7_ar';
-                    $location = '?q=' . $event->lat . ',' . $event->long;
-                    $response = SendWeddingDataV7ATemplate($to, $template_name, $language, $user_event->name, $location, $phone_numer_id, $token);
-                    if ($response && $response->getStatusCode() == 200) {
-                        $bodyL = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    try {
+                        $response = WhatsAppFreeMessageService::sendLocationMessage($to, $event, $user_event->name, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyL = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyL['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Send free location error: " . $e->getMessage());
                     }
                 }
 
                 if ($status === 'date' && $event) {
                     $template_name = 'wedding_data_v9_ar';
-                    $response = SendWeddingDataV9ArTemplate($to, $template_name, $language, $event->date, $phone_numer_id, $token);
-                    if ($response && $response->getStatusCode() == 200) {
-                        $bodyD = json_decode($response->getBody()->getContents(), true);
-                        log_sent_watts_message($to, $template_name, $bodyD['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                    try {
+                        $dateMsg = "📅 تاريخ المناسبة: " . $event->date;
+                        $response = WhatsAppFreeMessageService::sendText($to, $dateMsg, $phone_numer_id, $token);
+                        if ($response && $response->getStatusCode() == 200) {
+                            $bodyD = json_decode($response->getBody()->getContents(), true);
+                            log_sent_watts_message($to, $template_name, $bodyD['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Send free date error: " . $e->getMessage());
                     }
                 }
 
@@ -534,13 +565,14 @@ class HomeController extends Controller
                 if ($status === 'reply__message') {
                     $template_name = 'reply__message';
                     try {
-                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        $replyText = "أهلاً بك، يرجى كتابة استفسارك أو رسالتك وسنقوم بالرد عليك في أقرب وقت 💬";
+                        $response = WhatsAppFreeMessageService::sendText($to, $replyText, $phone_numer_id, $token);
                         if ($response && $response->getStatusCode() == 200) {
                             $bodyR = json_decode($response->getBody()->getContents(), true);
                             log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                         }
                     } catch (\Throwable $e) {
-                        Log::error('Send reply__message Error in webhook: ' . $e->getMessage());
+                        Log::error('Send free reply__message Error in webhook: ' . $e->getMessage());
                     }
                 }
 
@@ -548,13 +580,14 @@ class HomeController extends Controller
                 if ($status === 'price_quote') {
                     $template_name = 'price_quote';
                     try {
-                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        $quoteText = "مرحباً بك، يسعدنا تزويدك بعرض الأسعار والتفاصيل. يرجى تزويدنا بمتطلبات مناسبتك وسيتواصل معك فريق العمل فوراً 📋";
+                        $response = WhatsAppFreeMessageService::sendText($to, $quoteText, $phone_numer_id, $token);
                         if ($response && $response->getStatusCode() == 200) {
                             $bodyR = json_decode($response->getBody()->getContents(), true);
                             log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
                         }
                     } catch (\Throwable $e) {
-                        Log::error('Send price_quote Error in webhook: ' . $e->getMessage());
+                        Log::error('Send free price_quote Error in webhook: ' . $e->getMessage());
                     }
                 }
 
@@ -569,7 +602,10 @@ class HomeController extends Controller
                 if (in_array($status, ['reply__message', 'price_quote']) && $to) {
                     $template_name = $status;
                     try {
-                        $response = SendMessageTemplate($to, $template_name, $language, $phone_numer_id, $token);
+                        $msgText = ($status === 'price_quote')
+                            ? "مرحباً بك، يسعدنا تزويدك بعرض الأسعار والتفاصيل. يرجى تزويدنا بمتطلباتك وسيتواصل معك فريق العمل فوراً 📋"
+                            : "أهلاً بك، يرجى كتابة استفسارك أو رسالتك وسنقوم بالرد عليك في أقرب وقت 💬";
+                        $response = WhatsAppFreeMessageService::sendText($to, $msgText, $phone_numer_id, $token);
                         if ($response && $response->getStatusCode() == 200) {
                             $bodyR = json_decode($response->getBody()->getContents(), true);
                             log_sent_watts_message($to, $template_name, $bodyR['messages'][0]['id'] ?? null, null, $phone_numer_id);
@@ -638,14 +674,18 @@ class HomeController extends Controller
                         $template_name = 'wedding_data90';
                         $url_image = asset('qr_code/' . $image_name);
 
-                        $response = SendWeddingDataV2ArTemplate($mobile, $template_name, $language, $users_count, $url_image, $phone_numer_id, $token);
-                        if ($response && $response->getStatusCode() == 200) {
-                            $user_event->update(['qr_sent' => 'yes']);
+                        try {
+                            $response = WhatsAppFreeMessageService::sendQrCodeMessage($mobile, $url_image, $users_count, $user_event->name, $phone_numer_id, $token);
+                            if ($response && $response->getStatusCode() == 200) {
+                                $user_event->update(['qr_sent' => 'yes']);
+                            }
+                        } catch (\Throwable $e) {
+                            Log::error("Send free QR Code Error in nfm_reply: " . $e->getMessage());
                         }
 
-                        sleep(3);
+                        sleep(2);
                         try {
-                            $response2 = SendCongratulationArNewTemplate($mobile, 'send_congratulation_ar_new', $language, $phone_numer_id, $token);
+                            $response2 = WhatsAppFreeMessageService::sendCongratulationPromptMessage($mobile, $phone_numer_id, $token);
                             if ($response2 && $response2->getStatusCode() == 200) {
                                 $body2 = json_decode($response2->getBody()->getContents(), true);
                                 log_sent_watts_message($mobile, 'send_congratulation_ar_new', $body2['messages'][0]['id'] ?? null, $user_event->name, $phone_numer_id);
@@ -654,7 +694,11 @@ class HomeController extends Controller
                             Log::error("Send send_congratulation_ar_new Error in nfm_reply: " . $e->getMessage());
                         }
                     } else {
-                        SendCongratulationArNewTemplate($mobile, 'send_congratulation_ar_new', $language, $phone_numer_id, $token);
+                        try {
+                            WhatsAppFreeMessageService::sendCongratulationPromptMessage($mobile, $phone_numer_id, $token);
+                        } catch (\Throwable $e) {
+                            Log::error("Send congratulation prompt error in nfm_reply: " . $e->getMessage());
+                        }
                     }
                 }
             }
@@ -672,13 +716,16 @@ class HomeController extends Controller
             $cleanIncoming = trim($textBody);
             if (in_array($cleanIncoming, ['reply__message', 'price_quote'])) {
                 try {
-                    $response = SendMessageTemplate($textFrom, $cleanIncoming, $language, $phone_numer_id, $token);
+                    $replyMsg = ($cleanIncoming === 'price_quote')
+                        ? "مرحباً بك، يسعدنا تزويدك بعرض الأسعار والتفاصيل. يرجى تزويدنا بمتطلبات مناسبتك وسيتواصل معك فريق العمل فوراً 📋"
+                        : "أهلاً بك، يرجى كتابة استفسارك أو رسالتك وسنقوم بالرد عليك في أقرب وقت 💬";
+                    $response = WhatsAppFreeMessageService::sendText($textFrom, $replyMsg, $phone_numer_id, $token);
                     if ($response && $response->getStatusCode() == 200) {
                         $bodyR = json_decode($response->getBody()->getContents(), true);
                         log_sent_watts_message($textFrom, $cleanIncoming, $bodyR['messages'][0]['id'] ?? null, null, $phone_numer_id);
                     }
                 } catch (\Throwable $e) {
-                    Log::error("Send {$cleanIncoming} Error from text in webhook: " . $e->getMessage());
+                    Log::error("Send free {$cleanIncoming} Error from text in webhook: " . $e->getMessage());
                 }
                 $is_invitation_sent = true;
             }
@@ -751,15 +798,16 @@ class HomeController extends Controller
             }
 
             if ($isReplyToV16) {
-                Log::info("Sending wedding_data_v4_ar to {$textFrom} in response to wedding_data_v16_ar");
+                Log::info("Sending wedding_data_v4_ar (free message) to {$textFrom} in response to wedding_data_v16_ar");
                 try {
-                    $response = SendMessageTemplate($textFrom, 'wedding_data_v4_ar', $language, $phone_numer_id, $token);
+                    $thankText = "تم إرسال رسالتك لصاحب المناسبة بنجاح 🌷";
+                    $response = WhatsAppFreeMessageService::sendText($textFrom, $thankText, $phone_numer_id, $token);
 
                     if ($response && $response->getStatusCode() == 200) {
                         $body = json_decode($response->getBody()->getContents(), true);
                         log_sent_watts_message($textFrom, 'wedding_data_v4_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
                         Cache::put($dailyCacheKey, true, now()->endOfDay());
-                        Log::info("wedding_data_v4_ar successfully sent to {$textFrom}");
+                        Log::info("wedding_data_v4_ar free message successfully sent to {$textFrom}");
                     } else {
                         Log::error("Failed sending wedding_data_v4_ar to {$textFrom}: status " . ($response ? $response->getStatusCode() : 'no response'));
                     }
@@ -767,7 +815,7 @@ class HomeController extends Controller
                     Log::error("Error sending wedding_data_v4_ar to {$textFrom}: " . $e->getMessage());
                 }
             } else {
-                // في الحالات الأخرى: التأكد من إرسال تمبلت message مرة واحدة فقط في اليوم لنفس الرقم
+                // في الحالات الأخرى: التأكد من إرسال رسالة الترحيب message مرة واحدة فقط في اليوم لنفس الرقم
                 $alreadySentToday = Cache::has($dailyCacheKey) || WattsChatModel::where(function ($q) use ($customerPhone, $textFrom) {
                         $q->where('phone', $customerPhone)
                           ->orWhere('phone', $textFrom);
@@ -783,9 +831,10 @@ class HomeController extends Controller
                     ->exists();
 
                 if (!$alreadySentToday) {
-                    Log::info("Sending message template to {$textFrom}");
+                    Log::info("Sending message (free reply) to {$textFrom}");
                     try {
-                        $response = SendMessageTemplate($textFrom, 'message', $language, $phone_numer_id, $token);
+                        $welcomeText = "أهلاً بك، تم استلام رسالتك وسنقوم بالرد عليك في أقرب وقت ✨";
+                        $response = WhatsAppFreeMessageService::sendText($textFrom, $welcomeText, $phone_numer_id, $token);
 
                         if ($response && $response->getStatusCode() == 200) {
                             $body = json_decode($response->getBody()->getContents(), true);
@@ -814,7 +863,9 @@ class HomeController extends Controller
                     'text' => $messageData['text']['body'] ?? '',
                     'button' => $messageData['button']['text'] ?? '',
                     'interactive' => $messageData['interactive']['nfm_reply']['body'] 
-                        ?? $messageData['interactive']['button_reply']['title'] ?? '',
+                        ?? $messageData['interactive']['button_reply']['title'] 
+                        ?? $messageData['interactive']['list_reply']['title'] 
+                        ?? '',
                     default => '[' . $type . ']',
                 };
 
@@ -891,25 +942,39 @@ class HomeController extends Controller
             $Qr_Code = Qr_Code::where('event_user_id', $user_event->id)->first();
             if ($Qr_Code) {
                 $url_image = asset('qr_code/' . $Qr_Code->uu_id . '-test-qr.png');
-                SendWeddingDataV2ArTemplate($mobile, 'wedding_data_v2_ar', $language, $user_event->accept_count, $url_image, $phone_numer_id, $token);
+                try {
+                    WhatsAppFreeMessageService::sendQrCodeMessage($mobile, $url_image, $user_event->accept_count, $user_event->name, $phone_numer_id, $token);
+                } catch (\Throwable $e) {
+                    Log::error("handleContactActions resend QR error: " . $e->getMessage());
+                }
             }
         }
 
         // عند الرد بـ "لا" على التهنئة أو الاعتذار
         if (in_array($status, ['no-congrato', 'no-apologize'])) {
-            $response = SendMessageTemplate($mobile, 'wedding_data_v11_ar_', $language, $phone_numer_id, $token);
-            if ($response && $response->getStatusCode() == 200) {
-                $body = json_decode($response->getBody()->getContents(), true);
-                log_sent_watts_message($mobile, 'wedding_data_v11_ar_', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+            try {
+                $thanksMsg = "شكراً لك، يسعـدنـا أن نراكـم في مناسبات قادمة 🌷";
+                $response = WhatsAppFreeMessageService::sendText($mobile, $thanksMsg, $phone_numer_id, $token);
+                if ($response && $response->getStatusCode() == 200) {
+                    $body = json_decode($response->getBody()->getContents(), true);
+                    log_sent_watts_message($mobile, 'wedding_data_v11_ar_', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                }
+            } catch (\Throwable $e) {
+                Log::error("handleContactActions no-congrato error: " . $e->getMessage());
             }
         }
 
-        // عند الرد بـ "نعم" على رسالة التهنئة (أو الاعتذار) يتم إرسال تمبلت wedding_data_v16_ar
+        // عند الرد بـ "نعم" على رسالة التهنئة (أو الاعتذار) يتم إرسال طلب كتابة الرسالة
         if (in_array($status, ['yes-congrato', 'yes-apologize', 'yes'])) {
-            $response = SendMessageTemplate($mobile, 'wedding_data_v16_ar', $language, $phone_numer_id, $token);
-            if ($response && $response->getStatusCode() == 200) {
-                $body = json_decode($response->getBody()->getContents(), true);
-                log_sent_watts_message($mobile, 'wedding_data_v16_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+            try {
+                $writeMsg = "اكتب رسالتك الآن وسنقوم بإيصالها لصاحب المناسبة ✍️";
+                $response = WhatsAppFreeMessageService::sendText($mobile, $writeMsg, $phone_numer_id, $token);
+                if ($response && $response->getStatusCode() == 200) {
+                    $body = json_decode($response->getBody()->getContents(), true);
+                    log_sent_watts_message($mobile, 'wedding_data_v16_ar', $body['messages'][0]['id'] ?? null, $user_event?->name, $phone_numer_id);
+                }
+            } catch (\Throwable $e) {
+                Log::error("handleContactActions yes-congrato error: " . $e->getMessage());
             }
         }
 
@@ -945,22 +1010,30 @@ class HomeController extends Controller
                 $this->update_qr($user_event->event, $uu_id, $user_event, $image_name);
                 $url_image = asset('qr_code/' . $image_name);
 
-                $response = SendWeddingDataV2ArTemplate($mobile, 'wedding_data_v2_ar', $language, $usersCount, $url_image, $phone_numer_id, $token);
+                try {
+                    $response = WhatsAppFreeMessageService::sendQrCodeMessage($mobile, $url_image, $usersCount, $user_event->name, $phone_numer_id, $token);
 
-                if ($response && $response->getStatusCode() == 200) {
-                    $user_event->update(['qr_sent' => 'yes']);
-                    EventUserLogs::create([
-                        'log' => "تم ارسال ال QR Code",
-                        'event_id' => $user_event->event_id,
-                        'event_user_id' => $user_event->id,
-                        'message_id' => $user_event->message_id,
-                        'status' => 'attend',
-                    ]);
+                    if ($response && $response->getStatusCode() == 200) {
+                        $user_event->update(['qr_sent' => 'yes']);
+                        EventUserLogs::create([
+                            'log' => "تم ارسال ال QR Code",
+                            'event_id' => $user_event->event_id,
+                            'event_user_id' => $user_event->id,
+                            'message_id' => $user_event->message_id,
+                            'status' => 'attend',
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("handleContactActions send QR error: " . $e->getMessage());
                 }
             }
 
-            sleep(3);
-            SendCongratulationArNewTemplate($mobile, 'send_congratulation_ar_new', $language, $phone_numer_id, $token);
+            sleep(2);
+            try {
+                WhatsAppFreeMessageService::sendCongratulationPromptMessage($mobile, $phone_numer_id, $token);
+            } catch (\Throwable $e) {
+                Log::error("handleContactActions congratulation prompt error: " . $e->getMessage());
+            }
         }
     } 
 

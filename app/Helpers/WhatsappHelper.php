@@ -2429,3 +2429,109 @@ if (! function_exists('SendCustomTestInteractiveMsg')) {
         );
     }
 }
+
+if (! function_exists('SendFreeInvitationMsg')) {
+    /**
+     * إرسال كارت الدعوة التفاعلي المجاني بدون تمبلت معتمد
+     */
+    function SendFreeInvitationMsg($to, array $params, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendInvitationMessage(
+            $to,
+            $params,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeEventDetailsMsg')) {
+    /**
+     * إرسال تفاصيل المناسبة المجانية مع رابط خريطة جوجل
+     */
+    function SendFreeEventDetailsMsg($to, $event, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendEventDetailsMessage(
+            $to,
+            $event,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeQrCodeMsg')) {
+    /**
+     * إرسال صورة الـ QR Code مع نص توضيحي مجاني
+     */
+    function SendFreeQrCodeMsg($to, $qrImageUrl, $attendCount = 1, $userName = null, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendQrCodeMessage(
+            $to,
+            $qrImageUrl,
+            $attendCount,
+            $userName,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeCongratulationPromptMsg')) {
+    /**
+     * إرسال سؤال التهنئة التفاعلي المجاني بأزرار نعم / لا
+     */
+    function SendFreeCongratulationPromptMsg($to, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendCongratulationPromptMessage(
+            $to,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeApologyPromptMsg')) {
+    /**
+     * إرسال سؤال الاعتذار التفاعلي المجاني بأزرار نعم / لا
+     */
+    function SendFreeApologyPromptMsg($to, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendApologyPromptMessage(
+            $to,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeAttendeesCountMsg')) {
+    /**
+     * إرسال خيارات تحديد عدد الحضور بأزرار أو قائمة مجانية بدون Flow Template
+     */
+    function SendFreeAttendeesCountMsg($to, $available, $phone_numer_id = null, $token = null)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendAttendeesCountSelectionMessage(
+            $to,
+            (int)$available,
+            $phone_numer_id,
+            $token
+        );
+    }
+}
+
+if (! function_exists('SendFreeTextMsg')) {
+    /**
+     * إرسال رسالة نصية مجانية بدون تمبلت
+     */
+    function SendFreeTextMsg($to, $text, $phone_numer_id = null, $token = null, $previewUrl = true)
+    {
+        return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendText(
+            $to,
+            $text,
+            $phone_numer_id,
+            $token,
+            $previewUrl
+        );
+    }
+}

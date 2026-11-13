@@ -91,7 +91,7 @@ class RemindEventUserJob implements ShouldQueue
 
         $to = str_replace("+", "", $mobile);
 
-        $url_image = $event->file;
+        $url_image = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::getOptimizedEventHeaderImage($event);
 
         $template_name = 'car_msg3_';
 

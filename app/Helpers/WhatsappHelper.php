@@ -26,9 +26,9 @@ if (! function_exists('SendCarMsgTemplate')) {
         $p2 = $cleanParam($param2);
         $p3 = $cleanParam($param3);
 
-        // التأكد من وجود رابط صورة صالح للرأس وإصلاح مشكلة http://localhost عند التشغيل من الـ Cron Job / CLI
+        // التأكد من وجود رابط صورة صالح للرأس وتحسين أبعاده وضغطه لمتطلبات ميتا لتجنب تشوه الصورة وظهور خلفية شفافة
         $headerImageUrl = !empty($image_url) ? $image_url : asset('11.png');
-        $headerImageUrl = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $headerImageUrl);
+        $headerImageUrl = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($headerImageUrl);
 
         $components = [
             [

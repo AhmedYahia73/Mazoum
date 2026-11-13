@@ -122,8 +122,7 @@ class RemindTomorrowEvents extends Command
             $whatsSetting   = get_whats_setting($event);
             $token          = $whatsSetting['token'];
             $phone_numer_id = $this->getPhoneId($event->phone_setting_id, $whatsSetting['phone_numer_id'] ?? null);
-            $url_image      = $event->file;
-            $url_image      = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $url_image);
+            $url_image      = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::getOptimizedEventHeaderImage($event);
             $url_button     = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
             $template_name  = 'car_msg3_';
             $language       = 'ar';

@@ -331,7 +331,7 @@ class WhatsAppFreeMessageService
         ?string $phoneNumberId = null,
         ?string $token = null
     ): ResponseInterface {
-        $nameText = !empty($userName) ? "* {$userName}*\n" : '';
+        $nameText = !empty($userName) ? " *{$userName}*\n" : '';
         $caption = "🎫 *رمز الدخول الخاص بك (QR Code)*\n"
                  . $nameText
                  . " عدد الأفراد المصرح لهم: *{$attendCount}*\n\n"

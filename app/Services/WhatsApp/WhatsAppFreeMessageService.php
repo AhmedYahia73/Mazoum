@@ -331,10 +331,10 @@ class WhatsAppFreeMessageService
         ?string $phoneNumberId = null,
         ?string $token = null
     ): ResponseInterface {
-        $nameText = !empty($userName) ? "👤 الاسم: {$userName}\n" : '';
+        $nameText = !empty($userName) ? "* {$userName}*\n" : '';
         $caption = "🎫 *رمز الدخول الخاص بك (QR Code)*\n"
                  . $nameText
-                 . "👥 عدد الأفراد المصرح لهم: {$attendCount}\n\n"
+                 . " عدد الأفراد المصرح لهم: *{$attendCount}*\n\n"
                  . "يرجى إبراز هذا الرمز عند بوابة الدخول 🌷";
 
         return self::sendImage($to, $qrImageUrl, $caption, $phoneNumberId, $token);

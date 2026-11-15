@@ -1108,36 +1108,45 @@ class EventUersController extends Controller
 
                                 $param1 = $user_event->name;
                                 $param2 = $message;
+                                $param3 = $event->title ?? '-';
+                                $param4 = $event->date ?? '-';
+                                $param5 = $event->address ?? '-';
                                 $image_url = $url_image;
 
-                                // $response = SendCustomMessageTemplate($to,$template_name,$language,$user_name,$message,$number,$phone_numer_id,$token);
-                                $response = SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $type);
-                              	// dd($response);
-
-                                //$response = SendTemplateV10($to,$template_name,$language,$message,$phone_numer_id,$token);
+                                $response = SendCustomMessageV2ArTemplate($to, $template_name, $language, $param1, $param2, $image_url, $phone_numer_id, $token, $type, $param3, $param4, $param5);
 
                                 if ($response != null && $response->getStatusCode() == 200) {
 
-                                    $message = WattsChatModel::create([
+                                    $body = (string) $response->getBody();
+                                    $data = json_decode($body, true);
+                                    $sent_message_id = $data['messages'][0]['id'] ?? 0;
+
+                                    $wattsMessage = WattsChatModel::create([
                                         'phone'        => $to,
                                         'name'         => "Admin",
                                         'message'      => $template_name,
                                         'is_sent_by_me'=> true,
-                                        'message_id'   => 0,
+                                        'message_id'   => $sent_message_id,
                                         'from'         => "Admin",
                                         "template_name" => $template_name,
                                         "event_user_id" => $user_event->id,
                                         "event_id" => $event->id,
                                         "phone_numer_id" => $phone_numer_id,
                                     ]);
-                                    $body = $response->getBody();
-                                    $data = json_decode($body, true);
+
+                                    $user_event->update([
+                                        'status'    => 'sent',
+                                        'is_sent'   => 'yes',
+                                        'send_type' => 'meta',
+                                        'message_id'=> $sent_message_id,
+                                    ]);
 
                                 } else {
                                     $user_event->update([
                                         'status' => 'failed-v2',
                                         "send_type" => "meta",
                                     ]);
+                                    $errors = $errors + 1;
                                 }
 
                             } else {
@@ -1181,16 +1190,35 @@ class EventUersController extends Controller
 
                 }
 
+                if ($errors > 0) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'تم الإرسال، ولكن فشل الإرسال لعدد (' . $errors . ') من المستخدمين. يرجى مراجعة سجلات النظام.',
+                        'errors_count' => $errors,
+                    ], 200);
+                }
+
                 return response()->json([
+                    'status' => true,
                     'success' => 'تم الأرسال بنجاح', 
                 ]);
             }
 
-        } catch(\Exception $e) {
-            dd($e->getMessage(), $e->getLine());
+        } catch(\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("send_custom_message Exception: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            return response()->json([
+                'status' => false,
+                'errors' => $e->getMessage(),
+            ], 500);
         }
 
-        dd('error-v2');
+        return response()->json([
+            'status' => false,
+            'errors' => 'لم يتم تحديد أي مستخدمين للإرسال',
+        ], 400);
 
     }
 

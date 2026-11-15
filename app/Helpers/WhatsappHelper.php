@@ -1164,80 +1164,256 @@ if (! function_exists('SendWeddingDataV9ArTemplate')) {
 
 if (! function_exists('SendCustomMessageV2ArTemplate')) {
 
-    function SendCustomMessageV2ArTemplate($to,$template_name,$language,$param1,$param2,$image_url,$phone_numer_id,$token, $type = "image")
+    function SendCustomMessageV2ArTemplate($to, $template_name, $language, $param1, $param2, $image_url, $phone_numer_id, $token, $type = "image", $param3 = null, $param4 = null, $param5 = null)
     {
+        // 1. تنظيف النصوص والتأكد من عدم إرسال نصوص فارغة لميتا
+        $cleanParam = function ($val, $fallback = '-') {
+            if ($val === null || $val === '') {
+                return $fallback;
+            }
+            $str = is_array($val) ? json_encode($val, JSON_UNESCAPED_UNICODE) : (string) $val;
+            $str = preg_replace('/[\r\n\t]+/', ' ', $str);
+            $str = trim(preg_replace('/\s{2,}/u', ' ', $str));
+            return $str !== '' ? $str : $fallback;
+        };
 
-        $arr = [
-          'messaging_product' => 'whatsapp',
-          'recipient_type' => 'individual',
-          'to' => $to,
-          'type' => 'template',
-          'template' => [
-                'name' => $template_name,
-                'language' => [
-                    'code' => $language
-                ],
-                'components' => [
-                    [
-                        'type' => 'header',
-                        'parameters' => [
-                            [
-                                'type' => $type,
-                                $type => [
-                                    'link' => $image_url,
-                                ],
-                            ]
-                        ],
-                    ],
-                    [
-                        'type' => 'body',
-                        'parameters' => [
-                            [
-                                'type' => 'text',
-                                'text' => $param1
-                            ],
-                            [
-                                'type' => 'text',
-                                'text' => $param2
-                            ]
-                        ],
-                    ],
-                    // [
-                    //     'type' => ody',
-                    //     'parameters' => [
-                    //         [
-                    //             'type' => 'text',
-                    //             'text' => $param1
-                    //         ]
-                    //     ]
-                    // ],
-                    // [
-                    //     'type' => 'body',
-                    //     'parameters' => [
-                    //         [
-                    //             'type' => 'text',
-                    //             'text' => $param2
-                    //         ]
-                    //     ]
-                    // ]
-                ]
-           ],
+        $p1 = $cleanParam($param1, 'ضيفنا العزيز');
+        $p2 = $cleanParam($param2, '-');
+        $p3 = $cleanParam($param3, '-');
+        $p4 = $cleanParam($param4, '-');
+        $p5 = $cleanParam($param5, '-');
+
+        // 2. تجهيز رابط الميديا والتأكد من استبدال localhost وضبط الامتداد
+        $headerFileUrl = !empty($image_url) ? $image_url : asset('11.png');
+        $headerFileUrl = preg_replace('#^https?://(localhost|127\.0\.0\.1)(:\d+)?#i', 'https://mazoom.online', $headerFileUrl);
+
+        $headerType = match (strtolower((string)$type)) {
+            'video' => 'video',
+            'pdf', 'document' => 'document',
+            default => 'image',
+        };
+
+        if ($headerType === 'image' && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $headerFileUrl = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($headerFileUrl);
+        }
+
+        $headerParameter = [
+            'type' => $headerType,
+            $headerType => [
+                'link' => $headerFileUrl,
+            ],
         ];
 
-        $fullUrl = 'https://graph.facebook.com/v18.0/'.$phone_numer_id.'/messages';
+        if ($headerType === 'document') {
+            $parsedPath = parse_url($headerFileUrl, PHP_URL_PATH);
+            $docName = $parsedPath ? basename($parsedPath) : 'document.pdf';
+            $headerParameter[$headerType]['filename'] = $docName;
+        }
 
-        $client = new Client();
+        $fullUrl = 'https://graph.facebook.com/v18.0/' . $phone_numer_id . '/messages';
+        $client = new \GuzzleHttp\Client();
 
-        $response = $client->post($fullUrl, [
-            'headers' => [
-                'Authorization' => 'Bearer '.$token,
-                'key_id' => 123,
+        $sendPayload = function ($components) use ($client, $fullUrl, $to, $template_name, $language, $token) {
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type'    => 'individual',
+                'to'                => $to,
+                'type'              => 'template',
+                'template'          => [
+                    'name'       => $template_name,
+                    'language'   => ['code' => $language],
+                    'components' => $components,
+                ],
+            ];
+
+            return $client->post($fullUrl, [
+                'http_errors' => false,
+                'headers'     => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'        => $payload,
+            ]);
+        };
+
+        // المحاولة 1: التنسيق المعتمد في ميتا (هيدر ميديا + 5 متغيرات body + زرين تفاعليين reply__message و price_quote)
+        $attempt1 = [
+            [
+                'type' => 'header',
+                'parameters' => [$headerParameter],
             ],
-            'json' => $arr,
-        ]);
+            [
+                'type' => 'body',
+                'parameters' => [
+                    ['type' => 'text', 'text' => $p1],
+                    ['type' => 'text', 'text' => $p2],
+                    ['type' => 'text', 'text' => $p3],
+                    ['type' => 'text', 'text' => $p4],
+                    ['type' => 'text', 'text' => $p5],
+                ],
+            ],
+            [
+                'type' => 'button',
+                'sub_type' => 'quick_reply',
+                'index' => '0',
+                'parameters' => [
+                    ['type' => 'payload', 'payload' => 'reply__message']
+                ],
+            ],
+            [
+                'type' => 'button',
+                'sub_type' => 'quick_reply',
+                'index' => '1',
+                'parameters' => [
+                    ['type' => 'payload', 'payload' => 'price_quote']
+                ],
+            ],
+        ];
+
+        $response = $sendPayload($attempt1);
+        if ($response && $response->getStatusCode() === 200) {
+            return $response;
+        }
+
+        $bodyRaw = $response ? (string) $response->getBody() : '';
+        $bodyData = json_decode($bodyRaw, true);
+        $errorCode = $bodyData['error']['code'] ?? null;
+
+        // إذا كان الخطأ 132000 (عدم تطابق عدد المتغيرات)، نجرب البدائل تباعاً
+        if ($errorCode == 132000) {
+            \Illuminate\Support\Facades\Log::warning("SendCustomMessageV2ArTemplate #132000 for {$template_name}, trying fallbacks. Meta error: " . $bodyRaw);
+
+            // البديل 1: هيدر ميديا + متغيرين body + زرين تفاعليين
+            $fallback1 = [
+                [
+                    'type' => 'header',
+                    'parameters' => [$headerParameter],
+                ],
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => $p1],
+                        ['type' => 'text', 'text' => $p2],
+                    ],
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'quick_reply',
+                    'index' => '0',
+                    'parameters' => [
+                        ['type' => 'payload', 'payload' => 'reply__message']
+                    ],
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'quick_reply',
+                    'index' => '1',
+                    'parameters' => [
+                        ['type' => 'payload', 'payload' => 'price_quote']
+                    ],
+                ],
+            ];
+            $res = $sendPayload($fallback1);
+            if ($res && $res->getStatusCode() === 200) {
+                return $res;
+            }
+
+            // البديل 2: هيدر ميديا + متغيرين body بدون أزرار
+            $fallback2 = [
+                [
+                    'type' => 'header',
+                    'parameters' => [$headerParameter],
+                ],
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => $p1],
+                        ['type' => 'text', 'text' => $p2],
+                    ],
+                ],
+            ];
+            $res = $sendPayload($fallback2);
+            if ($res && $res->getStatusCode() === 200) {
+                return $res;
+            }
+
+            // البديل 3: بدون هيدر + متغيرين + 3 أزرار سريعة (attend, not-attend, event_details)
+            $fallback3 = [
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => $p1],
+                        ['type' => 'text', 'text' => $p2],
+                    ],
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'quick_reply',
+                    'index' => '0',
+                    'parameters' => [
+                        ['type' => 'payload', 'payload' => 'attend']
+                    ],
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'quick_reply',
+                    'index' => '1',
+                    'parameters' => [
+                        ['type' => 'payload', 'payload' => 'not-attend']
+                    ],
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'quick_reply',
+                    'index' => '2',
+                    'parameters' => [
+                        ['type' => 'payload', 'payload' => 'event_details']
+                    ],
+                ],
+            ];
+            $res = $sendPayload($fallback3);
+            if ($res && $res->getStatusCode() === 200) {
+                return $res;
+            }
+
+            // البديل 4: بدون هيدر + متغير واحد ($message)
+            $fallback4 = [
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => $p2],
+                    ],
+                ],
+            ];
+            $res = $sendPayload($fallback4);
+            if ($res && $res->getStatusCode() === 200) {
+                return $res;
+            }
+
+            // البديل 5: هيدر ميديا + متغير واحد ($message)
+            $fallback5 = [
+                [
+                    'type' => 'header',
+                    'parameters' => [$headerParameter],
+                ],
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => $p2],
+                    ],
+                ],
+            ];
+            $res = $sendPayload($fallback5);
+            if ($res && $res->getStatusCode() === 200) {
+                return $res;
+            }
+        }
+
+        if ($response && $response->getStatusCode() !== 200) {
+            \Illuminate\Support\Facades\Log::error("SendCustomMessageV2ArTemplate final error for {$template_name}: " . $bodyRaw);
+        }
 
         return $response;
-
     }
 }
 

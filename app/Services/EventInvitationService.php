@@ -195,6 +195,13 @@ class EventInvitationService
         // Send via WhatsApp Helper
         try {
             if ($header_type === 'image') {
+                $optimizedImage = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::getOptimizedEventHeaderImage($event);
+                if (!empty($optimizedImage)) {
+                    $image_path = $optimizedImage;
+                } elseif (!empty($image_path)) {
+                    $image_path = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_path);
+                }
+
                 $response = SendWeddingDataV1ArImageTemplate(
                     $to,
                     $template_name,

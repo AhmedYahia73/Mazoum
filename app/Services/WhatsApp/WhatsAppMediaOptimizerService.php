@@ -22,7 +22,7 @@ class WhatsAppMediaOptimizerService
     /**
      * جودة صورة الـ JPEG المحسنة (من 0 إلى 100)
      */
-    public const DEFAULT_QUALITY = 85;
+    public const DEFAULT_QUALITY = 92;
 
     /**
      * الحصول على رابط صورة هيدر مُحسّن ومطابق لمتطلبات ميتا وواتساب لحدث معين
@@ -139,7 +139,9 @@ class WhatsAppMediaOptimizerService
 
         // اسم الملف المحسّن يعتمد على الاسم الأصلي والأبعاد لضمان الكاش
         $cleanBaseName = pathinfo($baseName, PATHINFO_FILENAME);
-        $targetFilename = "opt_{$maxWidth}_{$cleanBaseName}.jpg";
+        $isAlphaFormat = in_array($ext, ['png', 'webp', 'gif']);
+        $targetExt = $isAlphaFormat ? 'png' : 'jpg';
+        $targetFilename = "opt_{$maxWidth}_{$cleanBaseName}.{$targetExt}";
         $targetPath = $optimizedDir . DIRECTORY_SEPARATOR . $targetFilename;
 
         // إذا كانت الصورة المحسنة موجودة مسبقاً، نرجع رابطها مباشرة بدون إعادة معالجة
@@ -185,23 +187,41 @@ class WhatsAppMediaOptimizerService
             // إنشاء الكانفاس الجديد
             $targetCanvas = imagecreatetruecolor($targetWidth, $targetHeight);
 
-            // تعبئة الخلفية باللون الأبيض الممتلئ لتجنب مشكلة الشفافية التي تظهر بلون فقاعة واتساب الخضراء
-            $white = imagecolorallocate($targetCanvas, 255, 255, 255);
-            imagefill($targetCanvas, 0, 0, $white);
+            if ($isAlphaFormat) {
+                // الحفاظ الكامل على الشفافية (عدم تعبئتها بالأبيض) بناءً على رغبة المستخدم
+                imagealphablending($targetCanvas, false);
+                imagesavealpha($targetCanvas, true);
+                $transparent = imagecolorallocatealpha($targetCanvas, 0, 0, 0, 127);
+                imagefilledrectangle($targetCanvas, 0, 0, $targetWidth, $targetHeight, $transparent);
 
-            // نسخ وتنعيم الصورة بدقة عالية
-            imagecopyresampled(
-                $targetCanvas,
-                $srcImage,
-                0, 0, 0, 0,
-                $targetWidth,
-                $targetHeight,
-                $srcWidth,
-                $srcHeight
-            );
+                // نسخ وتنعيم الصورة بدقة عالية مع الحفاظ على الشفافية
+                imagecopyresampled(
+                    $targetCanvas,
+                    $srcImage,
+                    0, 0, 0, 0,
+                    $targetWidth,
+                    $targetHeight,
+                    $srcWidth,
+                    $srcHeight
+                );
 
-            // حفظ الصورة كـ JPEG محسّن عالي الجودة
-            imagejpeg($targetCanvas, $targetPath, $quality);
+                // حفظ كـ PNG للمحافظة على الشفافية الأصلية ودقة النصوص
+                imagepng($targetCanvas, $targetPath, 6);
+            } else {
+                // للصور الممتلئة (JPEG): نسخ الصورة وتنعيمها
+                imagecopyresampled(
+                    $targetCanvas,
+                    $srcImage,
+                    0, 0, 0, 0,
+                    $targetWidth,
+                    $targetHeight,
+                    $srcWidth,
+                    $srcHeight
+                );
+
+                // حفظ الصورة كـ JPEG محسّن عالي الجودة
+                imagejpeg($targetCanvas, $targetPath, max(90, $quality));
+            }
 
             // تحرير الذاكرة فوراً
             imagedestroy($srcImage);
@@ -297,18 +317,24 @@ class WhatsAppMediaOptimizerService
     {
         $clean = parse_url($filenameOrUrl, PHP_URL_PATH);
         $cleanName = $clean ? basename($clean) : basename($filenameOrUrl);
+        $relativeClean = $clean ? ltrim($clean, '/') : '';
 
         $candidates = [
+            public_path($relativeClean),
+            base_path($relativeClean),
             public_path('images/' . $cleanName),
+            public_path('uploads/events_media/' . $cleanName),
+            public_path('uploads/' . $cleanName),
             public_path('public/images/' . $cleanName),
             base_path('public/images/' . $cleanName),
             public_path($cleanName),
             base_path($cleanName),
             storage_path('app/public/images/' . $cleanName),
+            storage_path('app/public/' . $cleanName),
         ];
 
         foreach ($candidates as $path) {
-            if (File::exists($path)) {
+            if (!empty($path) && File::exists($path) && !is_dir($path)) {
                 return $path;
             }
         }

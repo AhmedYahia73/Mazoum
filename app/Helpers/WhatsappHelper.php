@@ -262,6 +262,9 @@ if (! function_exists('SendWeddingDataV1ArImageTemplate')) {
 
     function SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
+        if ($header_type === 'image' && !empty($image_url) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $image_url = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_url);
+        }
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -377,6 +380,10 @@ if (! function_exists('SendWeddingDataV1ArTemplate')) {
     {
         if (func_num_args() >= 12 && function_exists('SendWeddingDataV1ArImageTemplate') && !$status) {
             return SendWeddingDataV1ArImageTemplate(...func_get_args());
+        }
+
+        if ($header_type === 'image' && !empty($image_url) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $image_url = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_url);
         }
 
         $arr = [
@@ -590,6 +597,9 @@ if (! function_exists('SendWeddingUtilityV1ArTemplate')) {
 
     function SendWeddingUtilityV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$image_url,$phone_numer_id,$token, $header_type = "image")
     {
+        if ($header_type === 'image' && !empty($image_url) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $image_url = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_url);
+        }
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -685,6 +695,9 @@ if (! function_exists('SendWeddingDataV2ArTemplate')) {
 
     function SendWeddingDataV2ArTemplate($to,$template_name,$language,$user_name,$image_url,$phone_numer_id,$token)
     {
+        if (!empty($image_url) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $image_url = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_url);
+        }
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -744,6 +757,9 @@ if (! function_exists('SendWeddingDataAr10Template')) {
 
     function SendWeddingDataAr10Template($to,$template_name,$language,$image_url,$phone_numer_id,$token)
     {
+        if (!empty($image_url) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $image_url = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($image_url);
+        }
 
         $arr = [
           'messaging_product' => 'whatsapp',
@@ -2423,6 +2439,10 @@ if (! function_exists('SendCustomMediaMsgTemplate')) {
             'pdf', 'document' => 'document',
             default => 'image',
         };
+
+        if ($headerType === 'image' && !empty($headerFileUrl) && class_exists('\App\Services\WhatsApp\WhatsAppMediaOptimizerService')) {
+            $headerFileUrl = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($headerFileUrl);
+        }
 
         $headerParameter = [
             'type' => $headerType,

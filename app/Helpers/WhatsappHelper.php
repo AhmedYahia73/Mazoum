@@ -2434,13 +2434,14 @@ if (! function_exists('SendFreeInvitationMsg')) {
     /**
      * إرسال كارت الدعوة التفاعلي المجاني بدون تمبلت معتمد
      */
-    function SendFreeInvitationMsg($to, array $params, $phone_numer_id = null, $token = null)
+    function SendFreeInvitationMsg($to, array $params, $phone_numer_id = null, $token = null, $customBody = null)
     {
         return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendInvitationMessage(
             $to,
             $params,
             $phone_numer_id,
-            $token
+            $token,
+            $customBody
         );
     }
 }
@@ -2464,7 +2465,7 @@ if (! function_exists('SendFreeQrCodeMsg')) {
     /**
      * إرسال صورة الـ QR Code مع نص توضيحي مجاني
      */
-    function SendFreeQrCodeMsg($to, $qrImageUrl, $attendCount = 1, $userName = null, $phone_numer_id = null, $token = null)
+    function SendFreeQrCodeMsg($to, $qrImageUrl, $attendCount = 1, $userName = null, $phone_numer_id = null, $token = null, $customCaption = null)
     {
         return \App\Services\WhatsApp\WhatsAppFreeMessageService::sendQrCodeMessage(
             $to,
@@ -2472,7 +2473,8 @@ if (! function_exists('SendFreeQrCodeMsg')) {
             $attendCount,
             $userName,
             $phone_numer_id,
-            $token
+            $token,
+            $customCaption
         );
     }
 }

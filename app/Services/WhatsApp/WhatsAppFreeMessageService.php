@@ -241,7 +241,8 @@ class WhatsAppFreeMessageService
         string $to,
         array $params,
         ?string $phoneNumberId = null,
-        ?string $token = null
+        ?string $token = null,
+        ?string $customBody = null
     ): ResponseInterface {
         $guestName = $params['param_1'] ?? ($params['name'] ?? 'ضيفنا الكريم');
         $eventTitle = $params['param_2'] ?? ($params['title'] ?? 'حفل زفاف');
@@ -252,14 +253,70 @@ class WhatsAppFreeMessageService
         $seatsCount = $params['param_7'] ?? ($params['users_count'] ?? 1);
         $imageUrl = $params['image_url'] ?? null;
 
-        $body = "مرحباً بك يا {$guestName} 🌸\n"
-              . "يسرنا دعوتكم لحضور: *{$eventTitle}*\n\n"
-              . (!empty($dateAr) ? "📅 *اليوم*: {$dateAr}\n" : '')
-              . (!empty($hijriDate) ? "🌙 *الموافق*: {$hijriDate}\n" : '')
-              . (!empty($address) ? "🏛 *المكان*: {$address}\n" : '')
-              . (!empty($time) ? "⏰ *الوقت*: {$time}\n" : '')
-              . "👥 *عدد المقاعد*: {$seatsCount}\n\n"
-              . "يسعدنا ويشرفنا حضوركم ومشاركتكم فرحتنا 🌹";
+        if (!empty($customBody)) {
+            $body = $customBody;
+        } else {
+            // 1. اسم الضيف
+            $guestHeader = !empty($guestName) ? "{$guestName} ✨\n\n" : '';
+
+            // 2. نص الدعوة / عنوان المناسبة
+            $titleBody = !empty($eventTitle) ? "{$eventTitle}\n\n" : '';
+
+            // 3. التواريخ (ميلادي وهجري)
+            $dateLines = '';
+            if (!empty($dateAr)) {
+                $cleanDateAr = rtrim(trim($dateAr), ',');
+                $dateLines .= "📅 {$cleanDateAr} ,\n";
+            }
+            if (!empty($hijriDate)) {
+                $cleanHijri = rtrim(trim($hijriDate), '.');
+                $dateLines .= "📅 {$cleanHijri}.\n";
+            }
+            if (!empty($dateLines)) {
+                $dateLines .= "\n";
+            }
+
+            // 4. الموقع
+            $locationLine = '';
+            if (!empty($address)) {
+                $cleanAddress = rtrim(trim($address), '.');
+                $locationLine = "📍الموقع/ {$cleanAddress} .\n\n";
+            }
+
+            // 5. الوقت (تحويل لصيغة 12 ساعة بنظام صباحاً/مساءً إذا لزم)
+            $timeLine = '';
+            if (!empty($time)) {
+                $timeStr = trim($time);
+                if (preg_match('/(\d{1,2}):(\d{2})/', $timeStr, $matches)) {
+                    $h = (int) $matches[1];
+                    $m = $matches[2];
+                    $period = (str_contains($timeStr, 'صباح') || str_contains($timeStr, 'AM') || str_contains($timeStr, 'am')) ? 'صباحاً' : 'مساءً';
+                    if ($h > 12) {
+                        $h -= 12;
+                    } elseif ($h === 0) {
+                        $h = 12;
+                    }
+                    $formattedTime = sprintf('%02d:%s %s', $h, $m, $period);
+                } else {
+                    $formattedTime = $timeStr;
+                }
+                $timeLine = "⏱ {$formattedTime}\n\n";
+            }
+
+            // 6. عدد الدعوات
+            $seatsLine = "عدد الدعوات {$seatsCount} ,\n\n";
+
+            // 7. خاتمة الدعوة
+            $closingLine = "حضورك وتشريفك لنا يزيد مناسبتنا بهجة وسروراً";
+
+            $body = $guestHeader
+                  . $titleBody
+                  . $dateLines
+                  . $locationLine
+                  . $timeLine
+                  . $seatsLine
+                  . $closingLine;
+        }
 
         $buttons = [
             ['id' => 'attend', 'title' => 'تأكيد الحضور'],
@@ -282,7 +339,7 @@ class WhatsAppFreeMessageService
             $phoneNumberId,
             $token,
             $header,
-            'منصة معزوم'
+            null
         );
     }
 
@@ -329,13 +386,17 @@ class WhatsAppFreeMessageService
         int|string $attendCount = 1,
         ?string $userName = null,
         ?string $phoneNumberId = null,
-        ?string $token = null
+        ?string $token = null,
+        ?string $customCaption = null
     ): ResponseInterface {
-        $nameText = !empty($userName) ? " *{$userName}*\n" : '';
-        $caption = "🎫 *رمز الدخول الخاص بك (QR Code)*\n"
-                 . $nameText
-                 . " عدد الأفراد المصرح لهم: *{$attendCount}*\n\n"
-                 . "يرجى إبراز هذا الرمز عند بوابة الدخول 🌷";
+        if (!empty($customCaption)) {
+            $caption = $customCaption;
+        } else {
+            $count = $attendCount ?: 1;
+            $caption = "*كود دخـــــــول المناسبة*\n"
+                     . "🌺 *عدد الضيوف : ( {$count} )*\n"
+                     . "الدخول بالباركود فقط";
+        }
 
         return self::sendImage($to, $qrImageUrl, $caption, $phoneNumberId, $token);
     }
@@ -348,7 +409,7 @@ class WhatsAppFreeMessageService
         ?string $phoneNumberId = null,
         ?string $token = null
     ): ResponseInterface {
-        $body = "تهانينا! تم تأكيد حضورك بنجاح 🎉\n\nهل ترغب في إرسال رسالة تهنئة لصاحب المناسبة؟";
+        $body = " 🎉\n\n*هل ترغب في إرسال رسالة تهنئة لصاحب المناسبة؟*";
 
         $buttons = [
             ['id' => 'yes-congrato', 'title' => 'نعم'],
@@ -374,7 +435,7 @@ class WhatsAppFreeMessageService
         ?string $phoneNumberId = null,
         ?string $token = null
     ): ResponseInterface {
-        $body = "نأسف لعدم تمكنك من الحضور، ونتمنى أن نراك في مناسبات قادمة بإذن الله 🌸\n\nهل ترغب في ترك رسالة اعتذار لصاحب المناسبة؟";
+        $body = "نأسف لعدم تمكنك من الحضور، ونتمنى أن نراك في مناسبات قادمة 🌸\n\n*هل ترغب في ترك رسالة اعتذار لصاحب المناسبة؟*";
 
         $buttons = [
             ['id' => 'yes-apologize', 'title' => 'نعم'],
@@ -425,7 +486,7 @@ class WhatsAppFreeMessageService
                 $buttons,
                 $phoneNumberId,
                 $token,
-                'تحديد عدد الحضور',
+                null,
                 'منصة معزوم'
             );
         }
@@ -452,7 +513,7 @@ class WhatsAppFreeMessageService
             $rows,
             $phoneNumberId,
             $token,
-            'تحديد عدد الحضور',
+            null,
             'منصة معزوم',
             'خيارات عدد الحضور'
         );
@@ -473,7 +534,7 @@ class WhatsAppFreeMessageService
             ? "https://www.google.com/maps?q={$event->lat},{$event->long}"
             : '';
 
-        $text = "{$nameText}موقع المناسبة على خريطة جوجل:\n{$mapUrl}";
+        $text = "📍موقع المناسبة على خريطة جوجل:\n{$mapUrl}";
 
         return self::sendText($to, $text, $phoneNumberId, $token, true);
     }

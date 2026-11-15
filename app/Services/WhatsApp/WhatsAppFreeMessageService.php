@@ -260,7 +260,16 @@ class WhatsAppFreeMessageService
             $guestHeader = !empty($guestName) ? "{$guestName} ✨\n\n" : '';
 
             // 2. نص الدعوة / عنوان المناسبة
-            $titleBody = !empty($eventTitle) ? "{$eventTitle}\n\n" : '';
+            // إذا كان العنوان قصيراً (أقل من 45 حرفاً ولا يحتوي صيغة دعوة)، نضيف عبارة دعوة أنيقة لتوسيع الكارت ومنع انكماشه في واتساب
+            $titleBody = '';
+            if (!empty($eventTitle)) {
+                $trimmedTitle = trim($eventTitle);
+                if (mb_strlen($trimmedTitle) < 45 && !str_contains($trimmedTitle, 'دعوتكم') && !str_contains($trimmedTitle, 'تتشرف')) {
+                    $titleBody = "يسرنا ويشرفنا دعوتكم الكريمة لمشاركتنا فرحتنا بمناسبة:\n*{$trimmedTitle}*\n\n";
+                } else {
+                    $titleBody = "{$trimmedTitle}\n\n";
+                }
+            }
 
             // 3. التواريخ (ميلادي وهجري)
             $dateLines = '';
@@ -304,7 +313,7 @@ class WhatsAppFreeMessageService
             }
 
             // 6. عدد الدعوات
-            $seatsLine = "عدد الدعوات {$seatsCount} ,\n\n";
+            $seatsLine = "*عدد الدعوات {$seatsCount} *,\n\n";
 
             // 7. خاتمة الدعوة
             $closingLine = "حضورك وتشريفك لنا يزيد مناسبتنا بهجة وسروراً";
@@ -326,9 +335,10 @@ class WhatsAppFreeMessageService
 
         $header = null;
         if (!empty($imageUrl)) {
+            $optimizedImageUrl = WhatsAppMediaOptimizerService::optimizeHeaderImageUrl($imageUrl);
             $header = [
                 'type' => 'image',
-                'link' => $imageUrl,
+                'link' => $optimizedImageUrl,
             ];
         }
 

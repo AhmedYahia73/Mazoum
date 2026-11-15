@@ -200,6 +200,16 @@
             @endif
         </div>
 
+        <div class="col-sm-6 {{ $errors->has('send_date') ? ' has-error' : '' }}">
+            <label> موعد الإرسال (تاريخ ووقت) </label>
+            <input type="text" name="send_date" class="form-control m-input" value="{{ old('send_date', $Item->send_date ? \Carbon\Carbon::parse($Item->send_date)->format('Y-m-d H:i') : '') }}" placeholder="YYYY-MM-DD HH:MM" id="flatpickr-send-date">
+            @if ($errors->has('send_date'))
+                 <span class="help-block" style="color:red">
+                      <strong>{{ $errors->first('send_date') }} </strong>
+                 </span>
+            @endif
+        </div>
+
 
         
 

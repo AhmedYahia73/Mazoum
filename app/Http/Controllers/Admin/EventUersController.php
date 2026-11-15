@@ -20,6 +20,7 @@ use App\Models\Qr_Code;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\WattsChat as WattsChatModel;
+use App\Services\EventInvitationService;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
@@ -1673,235 +1674,41 @@ class EventUersController extends Controller
 
             $errors = 0;
 
-            if($request->users != null && ! empty($request->users)) {
+            if ($request->users != null && ! empty($request->users)) {
 
-                foreach($request->users as $arr) {
+                foreach ($request->users as $arr) {
 
-                    if(array_key_exists('id', $arr)) {
+                    if (array_key_exists('id', $arr)) {
 
                         $user_event = Model::withTrashed()->find($arr['id']);
 
-                        if($user_event != null) {
-                            $was_sent = $user_event->is_sent == 'yes';
-
-                          	if(array_key_exists('users_count', $arr)) {
-                                $users_count = $arr['users_count'];
-                            } else {
-								                $users_count = $user_event->users_count;
+                        if ($user_event != null) {
+                            if (array_key_exists('users_count', $arr)) {
+                                $user_event->users_count = $arr['users_count'];
                             }
 
-                            $user_event->update([
-                                'status' => 'hold',
-                                'users_count' => $users_count,
-                                'scan' => null,
-                                'scan_at' => null,
-                                'get_location' => null,
-                              	'message_id' => null,
-                              	'is_sent' => null,
-                                'sent_from' => null,
-                                'is_delivered' => null,
-                                'is_read' => null,
-                                'qr_sent' => null,
-                                'is_accepted' => null,
-                                'is_refused' => null,
-                                'error_title' => null,
-                                'error' => null,
-                                'log' => null,
-                            ]);
-
-                            // get or create QR record
-                            $qr_record = Qr_Code::where('event_user_id', $user_event->id)->latest()->first();
-                            if ($qr_record) {
-                                $uu_id      = $qr_record->uu_id;
-                                $image_name = $qr_record->qr;
-                            } else {
-                                $uu_id      = $this->unique_uu_id();
-                                $image_name = $uu_id . '-test-qr.png';
-                                Qr_Code::create([
-                                    'event_user_id' => $user_event->id,
-                                    'event_id'      => $user_event->event_id,
-                                    'qr'            => $image_name,
-                                    'uu_id'         => $uu_id,
-                                    'counter'       => 0,
-                                ]);
-                            }
-
-                            // $this->update_qr($event, $uu_id, $user_event, $image_name);
-
-                            // $qr_code_path = 'qr_code/' . $uu_id . '-test-qr.png';
-                            // $image_url    = asset($qr_code_path);
-                            // //$code = $user_event->mobile_code->code;
-                            // //$mobile = substr($user_event->mobile, 1);
-                            // $mobile = $user_event->mobile;
-
-                            // //$to = $code.$mobile;
-                            // $to = $mobile;
-                            // $to = str_replace("+","",$to);
-
-                            // $template_name = 'wedding_data_v25';
-                            // $language = 'ar';
-                            // $user_name = $user_event->name;
-
-                            // $token          = get_whats_setting($event)['token'];
-                            // $sender_id      = $this->get_phone_id($request->phone_setting_id);
-                            // $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
-
-                          	//dd($token,$sender_id,$phone_numer_id);
-                            // $response = SendTemplateV1($to, $template_name, $language, $image_url, $user_name, $event->title, $phone_numer_id, $token);
-
-
-                            //$code = $user_event->mobile_code->code;
-                            //$mobile = substr($user_event->mobile, 1);
-                            $mobile = $user_event->mobile;
-
-                            //$to = $code.$mobile;
-                            $to = $mobile;
-                            $to = str_replace("+","",$to);
-
-                            if($request->type && $request->type == "video"){
-                                $template_name = 'wedding__video';
-                                $image_path = $event->video;
-                                $header_type = 'video';
-                                $send_buttons = false;
-                            }
-                            elseif($request->type && $request->type == "pdf"){
-                                $template_name = 'wedding__pdf';
-                                $image_path = $event->pdf;
-                                $header_type = 'document';
-                                $send_buttons = false;
-                            } 
-                            else{
-                                $template_name = 'wedding_data_v25';
-                                $image_path = $event->file;
-                                $header_type = 'image';
-                                $send_buttons = true;
-                            }
-                            $language = 'ar';
-                            $image_url = $image_path;
-                            $user_name = $user_event->name;
-
-                            $token          = get_whats_setting($event)['token']; 
-                            $phone_numer_id = $this->get_phone_id($request->phone_setting_id);
-
-                            $param_1   = $user_name;
-                            $param_2   = $event->title;
-                            $param_3   = Carbon::parse($event->date)->locale('ar')->translatedFormat('l') . ' ' . Carbon::parse($event->date)->locale('ar')->translatedFormat('j F Y');
-                            // التأكد من أن التاريخ كائن DateTime أو Carbon
-                            $date = $event->date instanceof DateTime 
-                                ? $event->date 
-                                : new DateTime($event->date);
-
-                            // إعداد المنسق للتقويم الهجري مع اللغة العربية
-                            $formatter = new IntlDateFormatter(
-                                'ar_SA@calendar=islamic-umalqura', // تقويم أم القرى باللغة العربية
-                                IntlDateFormatter::FULL,
-                                IntlDateFormatter::NONE,
-                                'Asia/Riyadh',                     // المنطقة الزمنية المناسبة للتقويم
-                                IntlDateFormatter::TRADITIONAL,
-                                'd MMMM yyyy'                      // d: اليوم، MMMM: اسم الشهر كاملاً بالعربي، yyyy: السنة
+                            $sendResult = EventInvitationService::sendInvitationToUser(
+                                $user_event,
+                                $event,
+                                $request->phone_setting_id,
+                                $request->type,
+                                'dashboard'
                             );
 
-                            $param_4 = $formatter->format($date) . "هـ";
-                            $param_5   = $event->address;
-                            $param_6 = $event->time != null 
-                            ? date('h:i', strtotime($event->time)) . ' ' . (date('a', strtotime($event->time)) == 'am' ? 'صباحاً' : 'مساءً') 
-                            : '07:00 مساءً';
-							$param_7   = $users_count > 10 ? 10 : $users_count;
-                            $phone_number = $this->get_phone_number($request->phone_setting_id);
-                            
-                            $user_event->update([
-                                "phone_number" => $phone_number
-                            ]);
-                          	/*
-                          	$phone_numer_id = '746157308570599';
-                            $sender_id      = '746157308570599';
-                            $token          = 'EABIy7zT1dfYBO304MlaYIQZBalGto0d1oPSCKHXEosSCsaLIdxE6QgftNNSLuhG37zirzBTMpK8HprkTRtlLyQZB1evrzBItZBW8y8LgZAYQ1pd6y64GtnMmKUZCjlY0QAZBhvu0VErD7fPzO8iz0cg0OrZBC8ovZA1F5ZCLzWa85nwaL1jWP8WYaa8yI1Ffkmvsy0QHjRrU5bSMJLS8b9bt7ZA2c0Ys8WYvlTMufprZCQ5ZCiAGTqGfzO9LcVY8S9CdpuY1PZBD1phEneQZDZD';
-                          	*/
- 
-                            if($header_type == 'image'){
-                                $response = SendWeddingDataV1ArImageTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7, $image_url,$phone_numer_id,$token, $header_type);
-                            }
-                            else{
-                                $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6, $param_7,$image_url,$phone_numer_id,$token, $header_type, true); 
-                            }
-
-                            // if($event->country_code == 'kw') {
-
-                            //   //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&image='.$image_url;
-                            //   //$url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&image='.$image_url;
-                            //   $url = 'https://api.karzoun.app/CloudApi.php?token='.$token.'&sender_id='.$sender_id.'&phone='.$to.'&template='.$template_name.'&param_1='.$param_1.'&param_2='.$param_2.'&param_3='.$param_3.'&param_4='.$param_4.'&param_5='.$param_5.'&param_6='.$param_6.'&image='.$image_url;
-
-                            //   $response = SendNewTemplateCodeV1($url);
-
-                            // } else {
-
-                            //   $response = SendWeddingDataV1ArTemplate($to,$template_name,$language,$param_1,$param_2,$param_3,$param_4,$param_5,$param_6,$image_url,$phone_numer_id,$token);
-
-                            // }
-
-                          	//dd($response,$response->getStatusCode());
-                            //dd($response->getBody());
-                            if ($response != null && $response->getStatusCode() == 200) {
-                                $message = WattsChatModel::create([
-                                    'phone'        => $to,
-                                    'name'         => "Admin",
-                                    'message'      => $template_name,
-                                    'is_sent_by_me'=> true,
-                                    'message_id'   => 0,
-                                    'from'         => "Admin",
-                                    "template_name" => $template_name,
-                                    "event_user_id" => $user_event->id,
-                                    "event_id" => $event->id,
-                                    "phone_numer_id" => $phone_numer_id,
-                                ]);
-                                if($user_event->status == "hold" || $user_event->status == "failed"){
-                                    $update_data = [
-                                        'balance' => $user->balance - $users_count
-                                    ];
-                                }
-                                if (!$was_sent) {
-                                    $update_data['send_custom_invetaion'] = $user->send_custom_invetaion + $users_count;
-                                }
-                                $user->update($update_data);
-                                // $body = $response->getBody();
-                                // $data = json_decode($body, true);
-
-                                $response_data = $response->getBody()->getContents();
-                                $data = json_decode($response_data, true);
-
-                                //dd($data);
-                                // dd(11,$response_data,json_decode($response_data,true));
-
-                                if(array_key_exists('messages', $data) && count($data['messages']) >= 0 && array_key_exists('id', $data['messages'][0])) {
-                                    $message_id = $data['messages'][0]['id'];
-                                } else {
-                                    $message_id = 0;
-                                }
-
-                                $user_event->update([
-                                    'is_sent' => 'yes',
-                                    'sent_from' => 'dashboard',
-                                    'status' => 'sent',
-                                    'message_id' => $message_id,
-                                    "send_type" => "meta"
-                                ]);
-
-                            } else {
-                                $user_event->update([
-                                    'status' => 'failed',
-                                ]);
+                            if (!$sendResult['status']) {
+                                $errors++;
                             }
 
                         } else {
-                            $errors = $errors + 1;
+                            $errors++;
                         }
 
                     } else {
-                        $errors = $errors + 1;
+                        $errors++;
                     }
 
                 }
-                
+
                 if ($errors > 0) {
                     return response()->json([
                         'status' => false,

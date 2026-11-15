@@ -25,8 +25,17 @@ class Events extends Model
         'name_qr', 'number_qr', 'qr_height', 'qr_width', 'qr_x', 'qr_y', 'resend_qr',
         'image_height', 'image_width', 'text_color', 'pdf', 'country_id',
         'pdf_bottom', 'show_data_pdf', "phone_setting_id", "name", "scan_gender",
-        "send_type",
+        "send_type", "send_date",
     ];
+
+    protected $casts = [
+        'send_date' => 'datetime',
+    ];
+
+    public function event_users()
+    {
+        return $this->hasMany('App\Models\EventUsers', 'event_id');
+    }
 
     public function sub_user(){
         return $this->hasMany('App\Models\User', 'event_id');

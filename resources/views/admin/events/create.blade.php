@@ -248,6 +248,16 @@
                         @endif
                     </div>
 
+                    <div class="col-sm-6 {{ $errors->has('send_date') ? ' has-error' : '' }}">
+                        <label> موعد الإرسال (تاريخ ووقت) </label>
+                        <input type="text" name="send_date" class="form-control m-input" value="{{ old('send_date') }}" placeholder="YYYY-MM-DD HH:MM" id="flatpickr-send-date">
+                        @if ($errors->has('send_date'))
+                             <span class="help-block" style="color:red">
+                                  <strong>{{ $errors->first('send_date') }} </strong>
+                             </span>
+                        @endif
+                    </div>
+
                     <div class="col-lg-12 col-sm-12 {{ $errors->has('color') ? ' has-error' : '' }}">
                         <label> اللون  </label>
                         <input type="color" name="color" required class="form-control m-input" value="{{ old('color') }}"  placeholder=" اللون ">
@@ -338,6 +348,14 @@
                 flatpickrDateTime.flatpickr({
                     enableTime: false,
                     dateFormat: 'Y-m-d'
+                });
+            }
+
+            const flatpickrSendDate = document.querySelector('#flatpickr-send-date');
+            if (flatpickrSendDate) {
+                flatpickrSendDate.flatpickr({
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
                 });
             }
 

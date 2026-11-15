@@ -24,6 +24,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // إرسال الدعوات المجدولة عند حلول موعد الإرسال send_date (يفحص كل دقيقة بدون تداخل)
+        $schedule->command('events:send-scheduled-invitations')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/cron.log'));
+
         // تذكير المستخدمين بأحداث الغد - يعمل يومياً الساعة 4 عصراً (بتوقيت القاهرة والخليج)
         $schedule->command('events:remind-tomorrow')
             ->dailyAt('16:00')

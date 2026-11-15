@@ -272,6 +272,14 @@
                 });
             }
 
+            const flatpickrSendDate = document.querySelector('#flatpickr-send-date');
+            if (flatpickrSendDate) {
+                flatpickrSendDate.flatpickr({
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                });
+            }
+
         })();
 
     </script>

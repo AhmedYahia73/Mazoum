@@ -54,6 +54,7 @@ class Events extends FormRequest
                 'phone_setting_id' => ['required', 'exists:new_settings,id'],
                 "scan_gender" => "sometimes|in:male,female",
                 "send_type" => "sometimes|in:image,video,pdf",
+                "send_date" => "nullable|date",
             ];
         }
 
@@ -90,6 +91,7 @@ class Events extends FormRequest
                 'phone_setting_id' => ['required', 'exists:new_settings,id'],
                 "scan_gender" => "sometimes|in:male,female",
                 "send_type" => "sometimes|in:image,video,pdf",
+                "send_date" => "nullable|date",
             ];
         }
 

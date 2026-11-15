@@ -115,6 +115,7 @@
                             <th> أسم الحدث </th>
                             <th> موقع الحدث </th>
                             <th> تاريخ الحدث </th>
+                            <th> موعد الإرسال </th>
                             <th> أسم المستخدم </th>
                             <th> صوره  </th>
                             <th> {{ trans('home.tools') }} </th>
@@ -137,6 +138,7 @@
                             <td> {{ $value->title }} </td>
                             <td> {{ $value->address }} </td>
                             <td> {{ $value->date }} </td>
+                            <td> {{ $value->send_date ?? '-' }} </td>
                             <td> {{ $value->user != null ? $value->user->name : '' }} </td>
                             <td> <img src="{{ $value->file }}?{{rand()}}" style="width: 130px;display: block;margin: auto;"> </td>
                             <td>

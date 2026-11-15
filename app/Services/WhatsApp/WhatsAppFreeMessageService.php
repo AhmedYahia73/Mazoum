@@ -265,11 +265,11 @@ class WhatsAppFreeMessageService
             // 3. التواريخ (ميلادي وهجري)
             $dateLines = '';
             if (!empty($dateAr)) {
-                $cleanDateAr = rtrim(trim($dateAr), ',');
+                $cleanDateAr = rtrim(trim($dateAr), " ,\t\n\r\0\x0B");
                 $dateLines .= "📅 {$cleanDateAr} ,\n";
             }
             if (!empty($hijriDate)) {
-                $cleanHijri = rtrim(trim($hijriDate), '.');
+                $cleanHijri = rtrim(trim($hijriDate), " .\t\n\r\0\x0B");
                 $dateLines .= "📅 {$cleanHijri}.\n";
             }
             if (!empty($dateLines)) {
@@ -279,7 +279,7 @@ class WhatsAppFreeMessageService
             // 4. الموقع
             $locationLine = '';
             if (!empty($address)) {
-                $cleanAddress = rtrim(trim($address), '.');
+                $cleanAddress = rtrim(trim($address), " .\t\n\r\0\x0B");
                 $locationLine = "📍الموقع/ {$cleanAddress} .\n\n";
             }
 
@@ -409,7 +409,7 @@ class WhatsAppFreeMessageService
         ?string $phoneNumberId = null,
         ?string $token = null
     ): ResponseInterface {
-        $body = " 🎉\n\n*هل ترغب في إرسال رسالة تهنئة لصاحب المناسبة؟*";
+        $body = "\n\n*هل ترغب في إرسال رسالة تهنئة لصاحب المناسبة؟*";
 
         $buttons = [
             ['id' => 'yes-congrato', 'title' => 'نعم'],

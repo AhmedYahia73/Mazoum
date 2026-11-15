@@ -295,7 +295,9 @@ class EventsController extends Controller
             'last_name',
             'date',
             'time', 
-            'assistant_id'
+            'assistant_id',
+            'send_type',
+            'send_date',
         ]);
 
         return response()->json($Items);
@@ -318,7 +320,7 @@ class EventsController extends Controller
         $Item = Model::where('country_code','kw')
         ->with("user:id,name", "employee:id,name")->where('is_open','no')
         ->get(['id','title','address', 'image', 'file','user_id',
-        'first_name' , 'last_name','date','time', 'assistant_id']);
+        'first_name' , 'last_name','date','time', 'assistant_id', 'send_type', 'send_date']);
          
         return response()->json([
             "Items" => $Item
@@ -340,7 +342,7 @@ class EventsController extends Controller
         ->with("user:id,name", "employee:id,name")
         ->where('is_open','current')
         ->get(['id','title','address','file','user_id','first_name' , 
-        'last_name','date','time', 'image', 'assistant_id']);
+        'last_name','date','time', 'image', 'assistant_id', 'send_type', 'send_date']);
          
         return response()->json([
             "Items" => $Item
@@ -361,7 +363,7 @@ class EventsController extends Controller
         ->with("user:id,name")->where('country_code','kw')->get([
             'id','title','address','file',
             'user_id','first_name' , 'last_name',
-            'date','time', 'image']);
+            'date','time', 'image', 'send_type', 'send_date']);
         
         return response()->json([
             "deleted_items" => $Item
@@ -385,7 +387,7 @@ class EventsController extends Controller
         ->where('is_open','no')->get([
             'id','title','address','file',
             'user_id','first_name' , 'last_name',
-            'date','time', 'image', 'assistant_id']);
+            'date','time', 'image', 'assistant_id', 'send_type', 'send_date']);
         
         return response()->json([
             "closed_events" => $Item
@@ -406,7 +408,7 @@ class EventsController extends Controller
         $Item = Model::where('country_code','sa')->where('is_open','current')
         ->with("user:id,name", "employee:id,name")
         ->get(['id','title','address','file','user_id',
-        'date','time', 'image', 'assistant_id']);
+        'date','time', 'image', 'assistant_id', 'send_type', 'send_date']);
         
         return response()->json([
             "current_events" => $Item
@@ -428,7 +430,7 @@ class EventsController extends Controller
         ->get([
             'id','title','address','file',
             'user_id','first_name' , 'last_name',
-            'date','time', 'image']);
+            'date','time', 'image', 'send_type', 'send_date']);
        
         return response()->json([
             "sa_deleted_items" => $Item

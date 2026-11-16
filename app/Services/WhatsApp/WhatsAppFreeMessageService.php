@@ -403,9 +403,9 @@ class WhatsAppFreeMessageService
             $caption = $customCaption;
         } else {
             $count = $attendCount ?: 1;
-            $caption = "*كود دخـــــــول المناسبة*\n"
-                     . "🌺 *عدد الضيوف : ( {$count} )*\n"
-                     . "الدخول بالباركود فقط";
+            $caption = "كود QR الدخول الخاص بالمناسبة\n\n"
+                     . "*عدد الضيوف : ( {$count} ) 🌺*\n"
+                     . "لم يسمح بالدخول بدون الباركود";
         }
 
         return self::sendImage($to, $qrImageUrl, $caption, $phoneNumberId, $token);

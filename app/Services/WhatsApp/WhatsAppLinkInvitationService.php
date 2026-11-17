@@ -426,9 +426,13 @@ class WhatsAppLinkInvitationService
 
         // تحديث رقم الهاتف في سجل المدعو إن وُجد في NewSetting
         if (!empty($targetPhoneSettingId)) {
-            $phoneSetting = NewSetting::find($targetPhoneSettingId);
-            if ($phoneSetting && !empty($phoneSetting->phone_number)) {
-                $eventUser->update(['phone_number' => $phoneSetting->phone_number]);
+            try {
+                $phoneSetting = NewSetting::find($targetPhoneSettingId);
+                if ($phoneSetting && !empty($phoneSetting->phone_number)) {
+                    $eventUser->update(['phone_number' => $phoneSetting->phone_number]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('WhatsAppLinkInvitationService: Failed to update phone_number: ' . $e->getMessage());
             }
         }
 
@@ -446,18 +450,36 @@ class WhatsAppLinkInvitationService
         );
 
         if ($result['success']) {
-            $eventUser->update([
-                'status'     => 'hold',
-                'is_sent'    => 'yes',
-                'sent_from'  => 'api_link_template',
-                'message_id' => $result['message_id'] ?? null,
-                'send_type'  => $sendType,
-            ]);
+            try {
+                $eventUser->update([
+                    'status'     => 'sent',
+                    'is_sent'    => 'yes',
+                    'sent_from'  => 'api_link_template',
+                    'message_id' => $result['message_id'] ?? null,
+                    'send_type'  => 'meta',
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('WhatsAppLinkInvitationService: Failed to update event_users with send_type: ' . $e->getMessage());
+                try {
+                    $eventUser->update([
+                        'status'     => 'sent',
+                        'is_sent'    => 'yes',
+                        'sent_from'  => 'api_link_template',
+                        'message_id' => $result['message_id'] ?? null,
+                    ]);
+                } catch (\Throwable $ex) {
+                    Log::error('WhatsAppLinkInvitationService: Fallback update failed: ' . $ex->getMessage());
+                }
+            }
         } else {
-            $eventUser->update([
-                'status' => 'failed',
-                'error'  => $result['message'] ?? 'فشل إرسال الدعوة',
-            ]);
+            try {
+                $eventUser->update([
+                    'status' => 'failed',
+                    'error'  => $result['message'] ?? 'فشل إرسال الدعوة',
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('WhatsAppLinkInvitationService: Failed to mark user as failed: ' . $e->getMessage());
+            }
         }
 
         return $result;

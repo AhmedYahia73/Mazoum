@@ -29,7 +29,7 @@ class WhatsAppLinkInvitationController extends Controller
     public function send(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'event_user_id'    => 'required|exists:event_users,id',
+            'event_user_id'    => 'required_without:event_user_ids',
             'type'             => 'required|string|in:image,video,pdf,document',
             'phone_setting_id' => 'required',
         ]);
@@ -43,26 +43,56 @@ class WhatsAppLinkInvitationController extends Controller
         }
 
         // =========================================================
-        // المسار الأول: الإرسال عبر معرف سجل المدعو (event_user_id)
+        // المسار الأول: الإرسال عبر معرف سجل المدعو (event_user_id) يدعم قيمة مفردة أو مصفوفة
         // =========================================================
-        if ($request->filled('event_user_id')) {
-            $eventUser = EventUsers::with('event')->find($request->input('event_user_id'));
+        $rawIds = $request->input('event_user_id', $request->input('event_user_ids'));
+
+        $isArray = is_array($rawIds);
+        if ($isArray) {
+            $userIds = $rawIds;
+        } elseif (is_string($rawIds) && str_contains($rawIds, ',')) {
+            $userIds = array_map('trim', explode(',', $rawIds));
+            $isArray = true;
+        } elseif (!empty($rawIds)) {
+            $userIds = [$rawIds];
+        } else {
+            $userIds = [];
+        }
+
+        $userIds = array_values(array_filter(array_map('intval', $userIds), fn($id) => $id > 0));
+
+        if (empty($userIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'يجب تزويد معرف مدعو واحد على الأقل في event_user_id',
+            ], 422);
+        }
+
+        $type = $request->input('type');
+        $phoneSettingId = $request->input('phone_setting_id');
+
+        // جلب جميع المدعوين دفعة واحدة مع بيانات الحفل المرتبطة
+        $eventUsers = EventUsers::with('event')->whereIn('id', $userIds)->get()->keyBy('id');
+
+        // إذا تم تمرير معرّف واحد فقط ولم يكن مصفوفة
+        if (!$isArray && count($userIds) === 1) {
+            $id = $userIds[0];
+            $eventUser = $eventUsers->get($id);
 
             if (!$eventUser) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'لم يتم العثور على المدعو المطلوب برقم: ' . $request->input('event_user_id'),
+                    'message' => 'لم يتم العثور على المدعو المطلوب برقم: ' . $id,
                 ], 404);
             }
 
-            $type = $request->input('type');
-            $phoneSettingId = $request->input('phone_setting_id');
+            $effectiveSettingId = $phoneSettingId ?: ($eventUser->event?->phone_setting_id);
 
             $result = WhatsAppLinkInvitationService::sendForEventUser(
                 $eventUser,
                 $eventUser->event,
                 $type,
-                $phoneSettingId
+                $effectiveSettingId ? (int)$effectiveSettingId : null
             );
 
             if ($result['success']) {
@@ -78,7 +108,7 @@ class WhatsAppLinkInvitationController extends Controller
                         'message_id'       => $result['message_id'] ?? null,
                         'code'             => $result['code'] ?? $eventUser->code,
                         'login_url'        => $result['login_url'] ?? (WhatsAppLinkInvitationService::BASE_LOGIN_URL . $eventUser->code),
-                        'phone_setting_id' => $result['phone_setting_id'] ?? $phoneSettingId,
+                        'phone_setting_id' => $result['phone_setting_id'] ?? $effectiveSettingId,
                         'phone_number_id'  => $result['phone_number_id'] ?? null,
                     ],
                 ]);
@@ -88,66 +118,84 @@ class WhatsAppLinkInvitationController extends Controller
                 'status'                => 'error',
                 'message'               => $result['message'] ?? 'فشل إرسال الدعوة عبر واتساب',
                 'template'              => $result['template'] ?? null,
-                'phone_setting_id_used' => $result['phone_setting_id_used'] ?? $phoneSettingId,
+                'phone_setting_id_used' => $result['phone_setting_id_used'] ?? $effectiveSettingId,
                 'phone_numer_id_used'   => $result['phone_numer_id_used'] ?? null,
                 'error'                 => $result['error'] ?? null,
             ], 500);
         }
 
         // =========================================================
-        // المسار الثاني: الإرسال بالمتغيرات اليدوية المباشرة
+        // معالجة المصفوفة (Bulk / Array of event_user_id)
         // =========================================================
-        $to = $request->input('to') ?: ($request->input('phone') ?: $request->input('mobile'));
-        $type = $request->input('type', 'image');
-        $code = $request->input('code') ?: strtolower(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 6));
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+        $templateUsed = null;
 
-        // الوسائط
-        $mediaUrl = $request->input('media_url') ?: asset('11.png');
+        foreach ($userIds as $id) {
+            $eventUser = $eventUsers->get($id);
 
-        // المتغيرات السبعة
-        $param1 = $request->input('param_1') ?: ($request->input('name') ?: 'المكرم سعيد البياع');
-        $param2 = $request->input('param_2') ?: ($request->input('title') ?: 'بكل الود والحب نتشرف بدعوتكم لحضور الحفل');
-        $param3 = $request->input('param_3') ?: ($request->input('date') ?: WhatsAppLinkInvitationService::formatGregorianDate(now()));
-        $param4 = $request->input('param_4') ?: ($request->input('hijri_date') ?: WhatsAppLinkInvitationService::formatHijriDate(now()));
-        $param5 = $request->input('param_5') ?: ($request->input('address') ?: ($request->input('hall') ?: 'فندق الجميرا قاعة المسيلة'));
-        $param6 = $request->input('param_6') ?: ($request->input('time') ?: '07:30');
-        $param7 = (string) ($request->input('param_7') ?: ($request->input('users_count') ?: '2'));
+            if (!$eventUser) {
+                $failedCount++;
+                $results[] = [
+                    'event_user_id' => $id,
+                    'status'        => 'failed',
+                    'message'       => 'المدعو غير موجود برقم ' . $id,
+                ];
+                continue;
+            }
 
-        $bodyParams = [$param1, $param2, $param3, $param4, $param5, $param6, $param7];
+            $effectiveSettingId = $phoneSettingId ?: ($eventUser->event?->phone_setting_id);
 
-        $phoneNumberId = $request->input('phone_number_id') ?: $request->input('phone_numer_id');
-        $token = $request->input('token');
+            $result = WhatsAppLinkInvitationService::sendForEventUser(
+                $eventUser,
+                $eventUser->event,
+                $type,
+                $effectiveSettingId ? (int)$effectiveSettingId : null
+            );
 
-        $result = WhatsAppLinkInvitationService::sendMessage(
-            $to,
-            $type,
-            $mediaUrl,
-            $bodyParams,
-            $code,
-            $phoneNumberId,
-            $token
-        );
+            if ($result['success']) {
+                $successCount++;
+                $templateUsed = $result['template'] ?? $templateUsed;
+                $results[] = [
+                    'event_user_id'    => $eventUser->id,
+                    'name'             => $eventUser->name,
+                    'phone'            => $eventUser->mobile,
+                    'status'           => 'sent',
+                    'message_id'       => $result['message_id'] ?? null,
+                    'code'             => $result['code'] ?? $eventUser->code,
+                    'login_url'        => $result['login_url'] ?? (WhatsAppLinkInvitationService::BASE_LOGIN_URL . $eventUser->code),
+                    'phone_setting_id' => $result['phone_setting_id'] ?? $effectiveSettingId,
+                ];
+            } else {
+                $failedCount++;
+                $results[] = [
+                    'event_user_id' => $eventUser->id,
+                    'name'          => $eventUser->name,
+                    'phone'         => $eventUser->mobile,
+                    'status'        => 'failed',
+                    'message'       => $result['message'] ?? 'فشل الإرسال',
+                    'error'         => $result['error'] ?? null,
+                ];
+            }
 
-        if ($result['success']) {
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'تم إرسال دعوة الرابط بنجاح',
-                'data'    => [
-                    'to'          => $to,
-                    'template'    => $result['template'],
-                    'header_type' => $result['header_type'],
-                    'message_id'  => $result['message_id'],
-                    'code'        => $result['code'],
-                    'login_url'   => $result['login_url'],
-                ],
-            ]);
+            if (count($userIds) > 1) {
+                usleep(50000); // 50ms pause between sends
+            }
         }
 
+        $overallStatus = ($failedCount === 0) ? 'success' : (($successCount > 0) ? 'partial' : 'error');
+        $message = "تمت معالجة إرسال {$successCount} من أصل " . count($userIds) . " دعوة بنجاح";
+
         return response()->json([
-            'status'   => 'error',
-            'message'  => $result['message'] ?? 'فشل إرسال الدعوة عبر واتساب',
-            'template' => $result['template'] ?? null,
-            'error'    => $result['error'] ?? null,
-        ], 500);
+            'status'           => $overallStatus,
+            'message'          => $message,
+            'total'            => count($userIds),
+            'success_count'    => $successCount,
+            'failed_count'     => $failedCount,
+            'template'         => $templateUsed,
+            'phone_setting_id' => $phoneSettingId,
+            'data'             => $results,
+        ], $overallStatus === 'error' ? 500 : 200);
     }
 }

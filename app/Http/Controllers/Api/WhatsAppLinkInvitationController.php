@@ -29,11 +29,9 @@ class WhatsAppLinkInvitationController extends Controller
     public function send(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'event_user_id' => 'required_without_all:phone,mobile,to',
-            'phone'         => 'required_without:event_user_id',
-            'type'          => 'nullable|string|in:image,video,pdf,document',
-            'media_url'     => 'nullable|string',
-            'code'          => 'nullable|string',
+            'event_user_id'    => 'required|exists:event_users,id',
+            'type'             => 'required|string|in:image,video,pdf,document',
+            'phone_setting_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -72,23 +70,27 @@ class WhatsAppLinkInvitationController extends Controller
                     'status' => 'success',
                     'message' => 'تم إرسال دعوة الرابط بنجاح',
                     'data' => [
-                        'event_user_id'  => $eventUser->id,
-                        'name'           => $eventUser->name,
-                        'phone'          => $eventUser->mobile,
-                        'template'       => $result['template'] ?? null,
-                        'header_type'    => $result['header_type'] ?? null,
-                        'message_id'     => $result['message_id'] ?? null,
-                        'code'           => $result['code'] ?? $eventUser->code,
-                        'login_url'      => $result['login_url'] ?? (WhatsAppLinkInvitationService::BASE_LOGIN_URL . $eventUser->code),
+                        'event_user_id'    => $eventUser->id,
+                        'name'             => $eventUser->name,
+                        'phone'            => $eventUser->mobile,
+                        'template'         => $result['template'] ?? null,
+                        'header_type'      => $result['header_type'] ?? null,
+                        'message_id'       => $result['message_id'] ?? null,
+                        'code'             => $result['code'] ?? $eventUser->code,
+                        'login_url'        => $result['login_url'] ?? (WhatsAppLinkInvitationService::BASE_LOGIN_URL . $eventUser->code),
+                        'phone_setting_id' => $result['phone_setting_id'] ?? $phoneSettingId,
+                        'phone_number_id'  => $result['phone_number_id'] ?? null,
                     ],
                 ]);
             }
 
             return response()->json([
-                'status'   => 'error',
-                'message'  => $result['message'] ?? 'فشل إرسال الدعوة عبر واتساب',
-                'template' => $result['template'] ?? null,
-                'error'    => $result['error'] ?? null,
+                'status'                => 'error',
+                'message'               => $result['message'] ?? 'فشل إرسال الدعوة عبر واتساب',
+                'template'              => $result['template'] ?? null,
+                'phone_setting_id_used' => $result['phone_setting_id_used'] ?? $phoneSettingId,
+                'phone_numer_id_used'   => $result['phone_numer_id_used'] ?? null,
+                'error'                 => $result['error'] ?? null,
             ], 500);
         }
 

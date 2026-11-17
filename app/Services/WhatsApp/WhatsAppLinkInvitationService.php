@@ -206,7 +206,9 @@ class WhatsAppLinkInvitationService
      * @param string|null $phoneNumberId
      * @param string|null $token
      * @param string $language
-     * @return array ['success' => bool, 'message_id' => string|null, 'response' => mixed, 'template' => string]
+     * @param int|null $phoneSettingId
+     * @param Events|null $event
+     * @return array
      */
     public static function sendMessage(
         string $to,
@@ -216,7 +218,9 @@ class WhatsAppLinkInvitationService
         string $code,
         ?string $phoneNumberId = null,
         ?string $token = null,
-        string $language = 'ar'
+        string $language = 'ar',
+        ?int $phoneSettingId = null,
+        ?Events $event = null
     ): array {
         $resolved = self::resolveTemplateAndHeader($type);
         $templateName = $resolved['template_name'];
@@ -230,15 +234,18 @@ class WhatsAppLinkInvitationService
         $cleanTo = preg_replace('/[^0-9]/', '', $to);
         $cleanCode = self::sanitizeCode($code);
 
-        $credentials = self::resolveCredentials(null, null, $phoneNumberId, $token);
+        // حل بيانات الاعتماد مع إعطاء الأولوية لـ phone_setting_id
+        $credentials = self::resolveCredentials($event, $phoneSettingId, $phoneNumberId, $token);
         $resolvedPhoneId = $credentials['phone_number_id'];
         $resolvedToken   = $credentials['token'];
+        $usedSettingId   = $credentials['phone_setting_id'];
 
         if (empty($resolvedPhoneId) || empty($resolvedToken)) {
             return [
-                'success' => false,
-                'message' => 'بيانات اعتماد واتساب (phone_number_id أو token) غير متوفرة',
-                'template' => $templateName,
+                'success'               => false,
+                'message'               => 'بيانات اعتماد واتساب (phone_number_id أو token) غير متوفرة',
+                'template'              => $templateName,
+                'phone_setting_id_used' => $usedSettingId,
             ];
         }
 
@@ -288,33 +295,39 @@ class WhatsAppLinkInvitationService
                 }
 
                 return [
-                    'success'    => true,
-                    'status_code' => $statusCode,
-                    'message_id' => $messageId,
-                    'template'   => $templateName,
-                    'header_type'=> $headerType,
-                    'code'       => $cleanCode,
-                    'login_url'  => self::BASE_LOGIN_URL . $cleanCode,
-                    'data'       => $body,
+                    'success'          => true,
+                    'status_code'      => $statusCode,
+                    'message_id'       => $messageId,
+                    'template'         => $templateName,
+                    'header_type'      => $headerType,
+                    'code'             => $cleanCode,
+                    'login_url'        => self::BASE_LOGIN_URL . $cleanCode,
+                    'phone_setting_id' => $usedSettingId,
+                    'phone_number_id'  => $resolvedPhoneId,
+                    'data'             => $body,
                 ];
             }
 
             Log::error("WhatsAppLinkInvitationService Error ({$statusCode}): " . json_encode($body, JSON_UNESCAPED_UNICODE));
 
             return [
-                'success'     => false,
-                'status_code' => $statusCode,
-                'message'     => $body['error']['message'] ?? 'فشل إرسال القالب من خلال ميتا',
-                'error'       => $body['error'] ?? $body,
-                'template'    => $templateName,
+                'success'               => false,
+                'status_code'           => $statusCode,
+                'message'               => $body['error']['message'] ?? 'فشل إرسال القالب من خلال ميتا',
+                'error'                 => $body['error'] ?? $body,
+                'template'              => $templateName,
+                'phone_setting_id_used' => $usedSettingId,
+                'phone_numer_id_used'   => $resolvedPhoneId,
             ];
         } catch (\Throwable $e) {
             Log::error("WhatsAppLinkInvitationService Exception: " . $e->getMessage());
 
             return [
-                'success' => false,
-                'message' => $e->getMessage(),
-                'template' => $templateName,
+                'success'               => false,
+                'message'               => $e->getMessage(),
+                'template'              => $templateName,
+                'phone_setting_id_used' => $usedSettingId,
+                'phone_numer_id_used'   => $resolvedPhoneId,
             ];
         }
     }
@@ -409,8 +422,15 @@ class WhatsAppLinkInvitationService
 
         $bodyParams = [$param1, $param2, $param3, $param4, $param5, $param6, $param7];
 
-        // بيانات الاعتماد
-        $credentials = self::resolveCredentials($event, $phoneSettingId);
+        $targetPhoneSettingId = $phoneSettingId ?: ($event->phone_setting_id ?? null);
+
+        // تحديث رقم الهاتف في سجل المدعو إن وُجد في NewSetting
+        if (!empty($targetPhoneSettingId)) {
+            $phoneSetting = NewSetting::find($targetPhoneSettingId);
+            if ($phoneSetting && !empty($phoneSetting->phone_number)) {
+                $eventUser->update(['phone_number' => $phoneSetting->phone_number]);
+            }
+        }
 
         $result = self::sendMessage(
             $mobile,
@@ -418,8 +438,11 @@ class WhatsAppLinkInvitationService
             $mediaUrl,
             $bodyParams,
             $eventUser->code,
-            $credentials['phone_number_id'],
-            $credentials['token']
+            null,
+            null,
+            'ar',
+            $targetPhoneSettingId,
+            $event
         );
 
         if ($result['success']) {
@@ -505,6 +528,7 @@ class WhatsAppLinkInvitationService
 
     /**
      * استخراج بيانات الاعتماد (phone_number_id و token)
+     * يعطي الأولوية القصوى لـ phone_setting_id المحدد ثم إعدادات المناسبة
      */
     public static function resolveCredentials(
         ?Events $event = null,
@@ -515,40 +539,59 @@ class WhatsAppLinkInvitationService
         // 1. استخدام القيم المباشرة إن وُجدت
         if (!empty($phoneNumberId) && !empty($token)) {
             return [
-                'phone_number_id' => $phoneNumberId,
-                'token'           => $token,
+                'phone_number_id'  => $phoneNumberId,
+                'token'            => $token,
+                'phone_setting_id' => $phoneSettingId,
             ];
         }
 
-        // 2. استخراج من المناسبة وإعدادات الواتساب
-        if ($event) {
-            if (function_exists('get_whats_setting')) {
+        // 2. تحديد phone_setting_id المستهدف (إما الممرر صراحة أو من المناسبة)
+        $targetPhoneSettingId = $phoneSettingId ?: ($event?->phone_setting_id);
+
+        // 3. إذا تم تحديد phone_setting_id، نسحب phone_numer_id من NewSetting كأولوية أولى
+        if (empty($phoneNumberId) && $targetPhoneSettingId) {
+            try {
+                $newSetting = NewSetting::find($targetPhoneSettingId);
+                if ($newSetting && !empty($newSetting->phone_numer_id)) {
+                    $phoneNumberId = $newSetting->phone_numer_id;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('WhatsAppLinkInvitationService: NewSetting resolve error: ' . $e->getMessage());
+            }
+        }
+
+        // 4. استخراج الـ Token من إعدادات المناسبة
+        if ($event && function_exists('get_whats_setting')) {
+            try {
                 $whatsSetting = get_whats_setting($event);
                 if (empty($token)) {
                     $token = $whatsSetting['token'] ?? null;
                 }
+                // إذا لم يتحدد phoneNumberId من NewSetting ولم يُمرر، نأخذه كـ fallback من إعدادات المناسبة
                 if (empty($phoneNumberId)) {
                     $phoneNumberId = $whatsSetting['phone_numer_id'] ?? null;
                 }
+            } catch (\Throwable $e) {
+                Log::warning('WhatsAppLinkInvitationService: get_whats_setting resolve error: ' . $e->getMessage());
             }
         }
 
-        // 3. استخراج من phone_setting_id (NewSetting)
-        if (empty($phoneNumberId) && $phoneSettingId) {
-            $newSetting = NewSetting::find($phoneSettingId);
-            if ($newSetting && !empty($newSetting->phone_numer_id)) {
-                $phoneNumberId = $newSetting->phone_numer_id;
-            }
-        }
-
-        // 4. استخراج من Setting أو NewSetting النشط
-        if (empty($phoneNumberId) || empty($token)) {
+        // 5. إذا لم يتحدد phoneNumberId بعد، نبحث عن أول NewSetting نشط (status = 1)
+        if (empty($phoneNumberId)) {
             try {
                 $activeNewSetting = NewSetting::where('status', 1)->first() ?? NewSetting::first();
-                if (empty($phoneNumberId) && $activeNewSetting) {
+                if ($activeNewSetting && !empty($activeNewSetting->phone_numer_id)) {
                     $phoneNumberId = $activeNewSetting->phone_numer_id;
+                    $targetPhoneSettingId = $targetPhoneSettingId ?: $activeNewSetting->id;
                 }
+            } catch (\Throwable $e) {
+                Log::warning('WhatsAppLinkInvitationService: active NewSetting resolve error: ' . $e->getMessage());
+            }
+        }
 
+        // 6. استخراج الـ Token و phoneNumberId من Setting العام كـ fallback
+        if (empty($phoneNumberId) || empty($token)) {
+            try {
                 $setting = Setting::first();
                 if ($setting) {
                     if (empty($token)) {
@@ -559,11 +602,11 @@ class WhatsAppLinkInvitationService
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('WhatsAppLinkInvitationService: resolveCredentials fallback warning: ' . $e->getMessage());
+                Log::warning('WhatsAppLinkInvitationService: Setting fallback warning: ' . $e->getMessage());
             }
         }
 
-        // 5. استخراج من متغيرات البيئة .env
+        // 7. استخراج من متغيرات البيئة .env
         if (empty($token)) {
             $token = env('WHATSAPP_ACCESS_TOKEN');
         }
@@ -572,8 +615,9 @@ class WhatsAppLinkInvitationService
         }
 
         return [
-            'phone_number_id' => $phoneNumberId,
-            'token'           => $token,
+            'phone_number_id'  => $phoneNumberId,
+            'token'            => $token,
+            'phone_setting_id' => $targetPhoneSettingId,
         ];
     }
 }

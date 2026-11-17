@@ -98,19 +98,7 @@ class WhatsAppLinkInvitationController extends Controller
             if ($result['success']) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'تم إرسال دعوة الرابط بنجاح',
-                    'data' => [
-                        'event_user_id'    => $eventUser->id,
-                        'name'             => $eventUser->name,
-                        'phone'            => $eventUser->mobile,
-                        'template'         => $result['template'] ?? null,
-                        'header_type'      => $result['header_type'] ?? null,
-                        'message_id'       => $result['message_id'] ?? null,
-                        'code'             => $result['code'] ?? $eventUser->code,
-                        'login_url'        => $result['login_url'] ?? (WhatsAppLinkInvitationService::BASE_LOGIN_URL . $eventUser->code),
-                        'phone_setting_id' => $result['phone_setting_id'] ?? $effectiveSettingId,
-                        'phone_number_id'  => $result['phone_number_id'] ?? null,
-                    ],
+                    'message' => 'تم إرسال دعوة الرابط بنجاح', 
                 ]);
             }
 
@@ -194,8 +182,7 @@ class WhatsAppLinkInvitationController extends Controller
             'success_count'    => $successCount,
             'failed_count'     => $failedCount,
             'template'         => $templateUsed,
-            'phone_setting_id' => $phoneSettingId,
-            'data'             => $results,
+            'phone_setting_id' => $phoneSettingId, 
         ], $overallStatus === 'error' ? 500 : 200);
     }
 }

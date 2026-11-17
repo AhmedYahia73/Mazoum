@@ -405,4 +405,21 @@ class EventInvitationService
 
         return $results;
     }
+
+    /**
+     * إرسال دعوة الرابط (invitation_link / video_link_invitation / link_invitation_pdf)
+     */
+    public static function sendLinkInvitationToUser(
+        EventUsers $userEvent,
+        ?Events $event = null,
+        ?int $phoneSettingId = null,
+        ?string $type = null
+    ): array {
+        return \App\Services\WhatsApp\WhatsAppLinkInvitationService::sendForEventUser(
+            $userEvent,
+            $event,
+            $type,
+            $phoneSettingId
+        );
+    }
 }

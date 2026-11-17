@@ -56,8 +56,9 @@
 | **`wedding__failed`** / **`message__fashal`** | وسائط أو نص | 2 | 3 Quick Reply | رسالة إشعار بالتعذر أو فشل التأكيد | `SendWeddingUtilityV1ArTemplate` |
 | **`price_quote`** | لا يوجد (نصي) | 0 | رد تلقائي | قالب الرد على طلب عرض الأسعار | `WhatsAppFreeMessageService` |
 | **`reply___message`** | لا يوجد (نصي) | 0 | رد تلقائي | قالب بدء محادثة استفسار | `WhatsAppFreeMessageService` |
-| **`invitation_link`** | صورة / رابط | ديناميكي | أزرار تفاعلية | قالب تسويقي للدعوات برابط خارجي | مخصص |
-| **`video_link_invitation`** | فيديو / رابط | ديناميكي | أزرار تفاعلية | قالب تسويقي لدعوات الفيديو | مخصص |
+| **`invitation_link`** | صورة `image` | 7 | 2 URL + 1 Quick Reply | بطاقة دعوة برابط خارجي وتسجيل دخول بكود المدعو (صورة) | `WhatsAppLinkInvitationService` / `SendLinkInvitationTemplate` |
+| **`video_link_invitation`** | فيديو `video` | 7 | 2 URL + 1 Quick Reply | بطاقة دعوة برابط خارجي وتسجيل دخول بكود المدعو (فيديو) | `WhatsAppLinkInvitationService` / `SendLinkInvitationTemplate` |
+| **`link_invitation_pdf`** | ملف `document` (PDF) | 7 | 2 URL + 1 Quick Reply | بطاقة دعوة برابط خارجي وتسجيل دخول بكود المدعو (PDF) | `WhatsAppLinkInvitationService` / `SendLinkInvitationTemplate` |
 
 ---
 
@@ -97,6 +98,31 @@
 - **عدد المتغيرات:** 7 متغيرات نصية (مطابقة لـ `wedding_data_v25`).
 - **الأزرار:** 3 أزرار رد سريع (`attend`, `not-attend`, `location`).
 - **الدالة:** `SendWeddingDataV1ArTemplate(..., $header_type = 'document')`
+
+---
+
+### 3.4 قوالب دعوات الرابط المباشر (Link Invitations): `invitation_link` / `video_link_invitation` / `link_invitation_pdf`
+- **الهدف:** إرسال بطاقة الدعوة الرسمية (صورة أو فيديو أو PDF) مع توفير زري رابط ديناميكي يفتحان صفحة تسجيل دخول المدعو باستخدام كوده الخاص، بالإضافة لزر رد سريع لتفاصيل المناسبة.
+- **القوالب حسب نوع الوسائط:**
+  - صورة: `invitation_link` (الهيدر `image`)
+  - فيديو: `video_link_invitation` (الهيدر `video`)
+  - ملف: `link_invitation_pdf` (الهيدر `document`)
+- **عدد متغيرات المتن (7 متغيرات):**
+  1. `{{1}}`: اسم الضيف / المدعو (مثل: `المكرم سعيد البياع`).
+  2. `{{2}}`: نص الدعوة وعنوان المناسبة (مثل: `بكل الود والحب نتشرف بدعوتكم لحضور حفل زفاف...`).
+  3. `{{3}}`: اليوم والتاريخ الميلادي (مثل: `السبت الموافق 17/02/2025`).
+  4. `{{4}}`: التاريخ الهجري (مثل: `18 جمادى الآخرة 1448 هـ`).
+  5. `{{5}}`: مكان الحفل والقاعة (مثل: `فندق الجميرا قاعة المسيلة`).
+  6. `{{6}}`: توقيت المناسبة (مثل: `07:30`).
+  7. `{{7}}`: عدد المقاعد / الدعوات (مثل: `2`).
+- **الأزرار (3 أزرار مدمجة):**
+  - **زر 1 (Index 0):** نوع الإجراء رابط ديناميكي (Dynamic URL) بعنوان "قبول الدعوة"، يمرر المتغير `$code` ليفتح `https://www.mazoominvitations.com/event-login/{code}`.
+  - **زر 2 (Index 1):** نوع الإجراء رابط ديناميكي (Dynamic URL) بعنوان "الاعتذار عن الدعوة"، يمرر أيضاً المتغير `$code` ليفتح `https://www.mazoominvitations.com/event-login/{code}`.
+  - **زر 3 (Index 2):** رد سريع (Quick Reply) بعنوان "تفاصيل المناسبة"، بقيمة (payload): `event_details`.
+- **طرق الإرسال في الكود:**
+  - **الخدمة المخصصة:** `\App\Services\WhatsApp\WhatsAppLinkInvitationService::sendMessage(...)` أو `sendForEventUser(...)`.
+  - **الدالة المساعدة:** `SendLinkInvitationTemplate(...)`.
+  - **واجهة برمجة التطبيقات (API Endpoint):** `POST /api/send-link-invitation`.
 
 ---
 

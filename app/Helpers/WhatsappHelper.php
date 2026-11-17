@@ -2733,3 +2733,47 @@ if (! function_exists('SendFreeTextMsg')) {
         );
     }
 }
+
+if (! function_exists('SendLinkInvitationTemplate')) {
+    /**
+     * إرسال قوالب دعوات الرابط المعتمدة في Meta:
+     * - صورة: invitation_link
+     * - فيديو: video_link_invitation
+     * - ملف PDF: link_invitation_pdf
+     *
+     * الأزرار:
+     * 1. زيارة موقع الويب (ديناميكي) -> كود المدعو
+     * 2. زيارة موقع الويب (ديناميكي) -> كود المدعو
+     * 3. رد سريع -> event_details
+     */
+    function SendLinkInvitationTemplate(
+        $to,
+        $type,
+        $media_url,
+        $param_1,
+        $param_2,
+        $param_3,
+        $param_4,
+        $param_5,
+        $param_6,
+        $param_7,
+        $code,
+        $phone_numer_id = null,
+        $token = null,
+        $language = 'ar'
+    ) {
+        $bodyParams = [$param_1, $param_2, $param_3, $param_4, $param_5, $param_6, $param_7];
+
+        return \App\Services\WhatsApp\WhatsAppLinkInvitationService::sendMessage(
+            $to,
+            $type,
+            $media_url,
+            $bodyParams,
+            $code,
+            $phone_numer_id,
+            $token,
+            $language
+        );
+    }
+}
+

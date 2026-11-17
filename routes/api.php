@@ -358,3 +358,7 @@ Route::match(['get', 'post'], 'test_interactive_template', 'Admin\ExtraTemplateC
 Route::post('send-custom-media-message', [EventUersController::class, 'send_custom_media_message']);
 Route::post('send-media-message', [EventUersController::class, 'send_custom_media_message']);
 
+// WhatsApp Link Invitation Templates (invitation_link, video_link_invitation, link_invitation_pdf)
+Route::match(['get', 'post'], 'send-link-invitation', [\App\Http\Controllers\Api\WhatsAppLinkInvitationController::class, 'send']);
+Route::match(['get', 'post'], 'send_link_invitation', [\App\Http\Controllers\Api\WhatsAppLinkInvitationController::class, 'send']);
+

@@ -70,8 +70,11 @@ class WhatsAppLinkInvitationService
         $code = trim($code);
 
         // إذا تم تمرير الرابط كاملاً، نستخرج الكود فقط
-        if (preg_match('#event-login/([^/?#]+)#i', $code, $matches)) {
-            return trim($matches[1]);
+        if (str_contains($code, 'event-login/')) {
+            $parts = explode('event-login/', $code);
+            $after = end($parts);
+            $token = strtok($after, "/?#");
+            return trim($token ?: $after, '/');
         }
 
         return trim($code, '/');

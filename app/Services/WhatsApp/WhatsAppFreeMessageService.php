@@ -281,7 +281,7 @@ class WhatsAppFreeMessageService
             }
             if (!empty($hijriDate)) {
                 $cleanHijri = rtrim(trim($hijriDate), " .\t\n\r\0\x0B");
-                $dateLines .= "📅 {$cleanHijri}.\n";
+                $dateLines .= " {$cleanHijri}.\n";
             }
             if (!empty($dateLines)) {
                 $dateLines .= "\n";

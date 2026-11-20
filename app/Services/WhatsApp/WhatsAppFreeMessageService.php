@@ -256,14 +256,16 @@ class WhatsAppFreeMessageService
         if (!empty($customBody)) {
             $body = $customBody;
         } else {
-            // 1. اسم الضيف
-            $guestHeader = !empty($guestName) ? "{$guestName} ✨\n\n" : '';
+            // 1. اسم الضيف (عدم البدء بـ ✨ وتنظيف أي نجوم أو لمعان في البداية)
+            $cleanGuestName = trim(preg_replace('/^[\s✨]+/u', '', (string) $guestName));
+            $guestHeader = !empty($cleanGuestName) ? "{$cleanGuestName}\n\n" : '';
 
-            // 2. نص الدعوة / عنوان المناسبة
+            // 2. نص الدعوة / عنوان المناسبة (عدم البدء بـ ✨ وتنظيف أي لمعان في البداية)
             // إذا كان العنوان قصيراً (أقل من 45 حرفاً ولا يحتوي صيغة دعوة)، نضيف عبارة دعوة أنيقة لتوسيع الكارت ومنع انكماشه في واتساب
             $titleBody = '';
             if (!empty($eventTitle)) {
-                $trimmedTitle = trim($eventTitle);
+                $cleanTitle = trim(preg_replace('/^[\s✨]+/u', '', (string) $eventTitle));
+                $trimmedTitle = trim($cleanTitle);
                 if (mb_strlen($trimmedTitle) < 45 && !str_contains($trimmedTitle, 'دعوتكم') && !str_contains($trimmedTitle, 'تتشرف')) {
                     $titleBody = "يسرنا ويشرفنا دعوتكم الكريمة لمشاركتنا فرحتنا بمناسبة:\n*{$trimmedTitle}*\n\n";
                 } else {
@@ -312,8 +314,10 @@ class WhatsAppFreeMessageService
                 $timeLine = "⏱ {$formattedTime}\n\n";
             }
 
-            // 6. عدد الدعوات
-            $seatsLine = "*عدد الدعوات {$seatsCount} *,\n\n";
+            // 6. عدد الدعوات (تنسيق bold عريض لواتساب بدون مسافات داخل النجوم وبدون فواصل تعيق التنسيق)
+            $cleanSeatsCount = trim((string) $seatsCount);
+            $cleanSeatsCount = !empty($cleanSeatsCount) ? $cleanSeatsCount : '1';
+            $seatsLine = "*عدد الدعوات {$cleanSeatsCount}*\n\n";
 
             // 7. خاتمة الدعوة
             $closingLine = "حضورك وتشريفك لنا يزيد مناسبتنا بهجة وسروراً";

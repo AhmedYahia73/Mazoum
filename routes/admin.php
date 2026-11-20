@@ -633,9 +633,6 @@ Route::group(['prefix' => 'extra-templates'], function () {
     Route::match(['get', 'post'], 'send_flow', 'ExtraTemplateController@send_flow');
 });
 
-
 // WhatsApp Link Invitation Templates (invitation_link, video_link_invitation, link_invitation_pdf)
 Route::match(['get', 'post'], 'send-link-invitation', [\App\Http\Controllers\Api\WhatsAppLinkInvitationController::class, 'send']);
 Route::match(['get', 'post'], 'send_link_invitation', [\App\Http\Controllers\Api\WhatsAppLinkInvitationController::class, 'send']);
-
-

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Http\Controllers\Admin;
 
 use App\Events\WattsChat as WattsChatEvent;

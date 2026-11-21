@@ -177,10 +177,17 @@ class EventUersController extends Controller
   
         $event_id = $id;
 
-        $not_remember_users = EventUsers::
-        where('event_id',$event_id)
-        ->where('remember',0)
-        ->paginate(20);
+        $not_remember_users = EventUsers::where('event_id', $event_id)
+            ->where('remember', 0)
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('mobile', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(20)
+            ->withQueryString();
 
         return response()->json([
             'not_remember_users' => $not_remember_users, 

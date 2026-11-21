@@ -853,6 +853,10 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where("remember", 1)
         ->sum('users_count');
+        $not_remember = EventUsers::
+        where('event_id',$Item->id)
+        ->where("remember", 0)
+        ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
         ->where("accept_count", 0) 
@@ -894,6 +898,7 @@ class EventsController extends Controller
             "faild_send" => $faild_send,
             "event_host" => $event_host,
             "is_remember" => $is_remember,
+            "not_remember" => $not_remember,
             "congratulation_voice" => $congratulation_voice,
         ]);
     }

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 namespace App\Http\Controllers\Admin;
 
 use App\Events\WattsChat as WattsChatEvent;
@@ -172,6 +172,21 @@ class EventUersController extends Controller
         ]);
 
     } 
+
+    public function not_remeber_users(Request $request, $id) {
+  
+        $event_id = $id;
+
+        $not_remember_users = EventUsers::
+        where('event_id',$event_id)
+        ->where('remember',0)
+        ->paginate(20);
+
+        return response()->json([
+            'not_remember_users' => $not_remember_users, 
+        ]);
+
+    }
 
     // new-send-event-invitation
     public function new_send_event_invitation(Request $request) {

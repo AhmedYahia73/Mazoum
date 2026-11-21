@@ -295,6 +295,9 @@ class HomeController extends Controller
                 $events_users = collect([$check_user_event]);
             }
 
+            $chatRecordForReminder = WattsChatModel::where('message_id', $message_id)->first();
+            $isReminderTemplate = ($chatRecordForReminder && $chatRecordForReminder->template_name === 'car_msg3_');
+
             foreach ($events_users as $user_event) {
                 $user_event->update([
                     'status' => $status,
@@ -319,6 +322,21 @@ class HomeController extends Controller
 
                 if ($status === 'read') {
                     $user_event->update(['is_read' => 'yes']);
+                }
+
+                // عند فشل وصول الرسالة (بسبب بلوك، رقم غير متاح، إلخ): تصفير التذكير فوراً
+                if ($status === 'failed') {
+                    $user_event->update([
+                        'remember'     => 0,
+                        'is_delivered' => null,
+                    ]);
+                    Log::warning("❌ Webhook: فشل وصول الرسالة وتم تصفير remember=0 | EventUser ID: {$user_event->id} | الرقم: {$recipientPhone} | الكود: {$error_code} | السبب: {$error_title}");
+                }
+
+                // تأكيد التذكير (remember = 1) فقط عند وصول رسالة التذكير car_msg3_ فعلياً لجهاز المستخدم
+                if ($isReminderTemplate && ($status === 'delivered' || $status === 'read')) {
+                    $user_event->update(['remember' => 1]);
+                    Log::info("✅ Webhook: تم تأكيد وصول رسالة التذكير للعميل (remember = 1) | EventUser ID: {$user_event->id} | الرقم: {$recipientPhone} | Message ID: {$message_id}");
                 }
             }
 
@@ -1250,6 +1268,15 @@ class HomeController extends Controller
 
               	if($status == 'read') {
                 	$user_event->update([ 'is_read' => 'yes'  ]);
+                }
+
+                if($status == 'failed') {
+                    $user_event->update([ 'remember' => 0, 'is_delivered' => null ]);
+                }
+
+                $chatRecordLegacy = WattsChatModel::where('message_id', $message_id)->first();
+                if ($chatRecordLegacy && $chatRecordLegacy->template_name === 'car_msg3_' && ($status == 'delivered' || $status == 'read')) {
+                    $user_event->update([ 'remember' => 1 ]);
                 }
             }
 

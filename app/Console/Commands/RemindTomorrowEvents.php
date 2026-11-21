@@ -89,14 +89,17 @@ class RemindTomorrowEvents extends Command
             Log::info("RemindTomorrowEvents: معالجة الحدث: {$event->name} (ID: {$event->id})");
             $this->info("معالجة الحدث: {$event->name} (ID: {$event->id})");
 
-            // جلب المستخدمين الذين أكدوا الحضور فقط (accept_count > 0)
+            // جلب المستخدمين الذين أكدوا الحضور فقط ولم يتم تذكيرهم بنجاح بعد (accept_count > 0 و remember != 1)
             $eventUsers = EventUsers::where('event_id', $event->id)
                 ->where('accept_count', '>', 0)
+                ->where(function ($q) {
+                    $q->whereNull('remember')->orWhere('remember', 0);
+                })
                 ->get();
 
             if ($eventUsers->isEmpty()) {
-                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في الحدث ID: {$event->id}");
-                $this->warn("لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في الحدث ID: {$event->id}");
+                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين بحاجة للتذكير (accept_count > 0 و remember = 0) في الحدث ID: {$event->id}");
+                $this->warn("لا يوجد مستخدمين بحاجة للتذكير في الحدث ID: {$event->id}");
                 continue;
             }
 
@@ -175,11 +178,17 @@ class RemindTomorrowEvents extends Command
                         if ($statusCode == 200) {
                             $sentMessageId = $bodyData['messages'][0]['id'] ?? null;
 
-                            $updateData = ['remember' => 1];
+                            // حفظ message_id فقط بدون وضع remember = 1
+                            // استجابة 200 تعني فقط قبول ميتا للطلب في طابور الإرسال (وليس التسليم)
+                            // إذا كان العميل عاملاً بلوك ستصل حالة failed عبر الـ Webhook
+                            // بينما سيتم تعيين remember = 1 تلقائياً عبر الـ Webhook عند تأكيد الوصول الفعلي (delivered أو read)
+                            $updateData = [];
                             if ($sentMessageId) {
                                 $updateData['message_id'] = $sentMessageId;
                             }
-                            $eventUser->update($updateData);
+                            if (!empty($updateData)) {
+                                $eventUser->update($updateData);
+                            }
 
                             WattsChatModel::create([
                                 'phone'          => $to,
@@ -194,12 +203,12 @@ class RemindTomorrowEvents extends Command
                                 'phone_numer_id' => $phone_numer_id,
                             ]);
 
-                            Log::info("RemindTomorrowEvents: 📤 تم قبول التذكير من ميتا بنجاح (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | Message ID: {$sentMessageId} (سيتم تأكيد الوصول الفعلي عبر الـ Webhook)");
-                            $this->info("✅ [{$eventUser->id}] تم الإرسال إلى {$to} (Message ID: {$sentMessageId})");
+                            Log::info("RemindTomorrowEvents: 📤 تم قبول التذكير من ميتا بنجاح (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | Message ID: {$sentMessageId} (بانتظار تأكيد التسليم remember=1 عبر الـ Webhook)");
+                            $this->info("📤 [{$eventUser->id}] تم قبول الطلب من ميتا للرقم {$to} (Message ID: {$sentMessageId}) - بانتظار تأكيد التسليم عبر الـ Webhook");
                         } else {
                             $errorMsg = $bodyData['error']['message'] ?? $bodyRaw;
                             $errorDetails = $bodyData['error']['error_data']['details'] ?? '';
-                            $eventUser->update(['status' => 'failed-v2']);
+                            $eventUser->update(['status' => 'failed-v2', 'remember' => 0]);
                             Log::error("RemindTomorrowEvents: ❌ فشل إرسال الرسالة من ميتا (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | HTTP {$statusCode} | المشكلة: {$errorMsg} | التفاصيل: {$errorDetails}");
                             $this->error("❌ [{$eventUser->id}] فشل الإرسال إلى {$to}: {$errorMsg}");
                         }
@@ -207,7 +216,7 @@ class RemindTomorrowEvents extends Command
                     } catch (\Exception $e) {
                         Log::error("RemindTomorrowEvents: ❌ استثناء أثناء الإرسال (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$e->getMessage()}");
                         $this->error("❌ [{$eventUser->id}] خطأ: {$e->getMessage()}");
-                        $eventUser->update(['status' => 'failed-v2']);
+                        $eventUser->update(['status' => 'failed-v2', 'remember' => 0]);
                     }
 
                 } else {

@@ -51,6 +51,14 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/user_send_event_msg', 'user_send_event_msg');
         Route::post('/event_user_send_event_msg', 'event_user_send_event_msg')->withoutMiddleware(['auth', 'throttle', 'checkPassword','CheckLang', "AuthUser", "CheckUserToken", "IsUser"]);
     });
+
+    Route::controller('UserChatController')
+    ->prefix("user_chat")->group(function () {
+        Route::get('/messages', 'user_messages');
+        Route::post('/send_message', 'user_send_msg');
+        Route::post('/read_all', 'make_user_read');
+        Route::get('/read_all', 'make_user_read');
+    });
     
     Route::controller('Api\CustomEvent\MemoryController')
     ->prefix("memories")->group(function () {
@@ -149,6 +157,22 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
 
 Route::controller(LoginController::class)->group(function () {
     Route::post('login_admin', 'login_admin');
+});
+
+Route::controller('UserChatController')->prefix('admin/user_chat')->group(function () {
+    Route::get('/conversations', 'admin_conversations');
+    Route::get('/messages/{user_id}', 'admin_messages');
+    Route::post('/send_message', 'admin_send_msg');
+    Route::post('/read_all/{user_id?}', 'make_admin_read');
+    Route::get('/read_all/{user_id?}', 'make_admin_read');
+});
+
+Route::controller('UserChatController')->prefix('user_chat')->group(function () {
+    Route::get('/conversations', 'admin_conversations');
+    Route::get('/messages/{user_id?}', 'getMessages');
+    Route::post('/send_message', 'sendMessage');
+    Route::post('/read_all/{user_id?}', 'make_all_read');
+    Route::get('/read_all/{user_id?}', 'make_all_read');
 });
   
 Route::middleware('auth:api')->get('/user', function (Request $request) {

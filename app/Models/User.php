@@ -49,6 +49,10 @@ class User extends Authenticatable
         return $this->hasMany(User::class, "user_id");
     }
 
+    public function user_chats(){
+        return $this->hasMany(UserChat::class, "user_id");
+    }
+
     public function getRoleAttribute(){
         $type = $this->getAttribute('user_type');
         if($type == "employee"){

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserCallEvent;
 use App\Models\Admin;
 use App\Models\User;
+use App\Services\Agora\AgoraService;
 use App\Services\UserChatService;
 use App\Traits\GeneralTrait;
 use App\Traits\imageTrait;
@@ -18,10 +20,12 @@ class UserChatController extends Controller
     use GeneralTrait, imageTrait;
 
     protected $chatService;
+    protected $agoraService;
 
-    public function __construct(UserChatService $chatService)
+    public function __construct(UserChatService $chatService, AgoraService $agoraService)
     {
         $this->chatService = $chatService;
+        $this->agoraService = $agoraService;
     }
 
     /**
@@ -392,5 +396,181 @@ class UserChatController extends Controller
         }
 
         return $this->make_user_read($request);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Voice & Video Calling (Agora.io)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Start a Voice or Video Call session.
+     * Generates Agora channel & token for caller, and broadcasts incoming_call event to receiver.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function startCall(Request $request): JsonResponse
+    {
+        $actor = $this->resolveActor($request);
+        if (!$actor) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'user_id'   => ['nullable', 'exists:users,id'],
+            'call_type' => ['nullable', 'in:voice,video'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $callType = $request->input('call_type', 'voice');
+        $isAdminOrEmployee = $this->isAdminOrEmployee($actor);
+
+        if ($isAdminOrEmployee) {
+            $targetUserId = (int) $request->input('user_id');
+            if (empty($targetUserId)) {
+                return response()->json(['status' => false, 'message' => 'user_id is required when initiating a call as admin/employee.'], 422);
+            }
+
+            // Check employee permission
+            $role = $actor->role ?? ($actor->user_type ?? 'user');
+            if ($role === 'employee' && !$this->chatService->employeeCanAccessUser($actor->id, $targetUserId)) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'غير مصرح لك بالاتصال بهذا المستخدم حيث أنه ليس ضمن الفعاليات المسندة إليك.'
+                ], 403);
+            }
+
+            $receiverId = $targetUserId;
+            $callerRole = $role;
+        } else {
+            $targetUserId = (int) $actor->id;
+            $receiverId = 'admin';
+            $callerRole = 'user';
+        }
+
+        try {
+            $channelName = $this->agoraService->generateChannelName($targetUserId);
+            $callerUid = (int) $actor->id;
+            $token = $this->agoraService->generateToken($channelName, $callerUid);
+
+            // Broadcast incoming call event
+            UserCallEvent::dispatch($targetUserId, 'incoming', [
+                'channel_name' => $channelName,
+                'call_type'    => $callType,
+                'caller_id'    => (int) $actor->id,
+                'caller_name'  => $actor->name ?? 'User',
+                'caller_role'  => $callerRole,
+                'receiver_id'  => $receiverId,
+            ]);
+
+            return response()->json([
+                'status'       => true,
+                'message'      => 'Call session created successfully',
+                'channel_name' => $channelName,
+                'token'        => $token,
+                'app_id'       => $this->agoraService->getAppId(),
+                'uid'          => $callerUid,
+                'call_type'    => $callType,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Agora token to join an ongoing call channel (Accept Call).
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getCallToken(Request $request): JsonResponse
+    {
+        $actor = $this->resolveActor($request);
+        if (!$actor) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'channel_name' => ['required', 'string'],
+            'user_id'      => ['nullable', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $channelName = $request->input('channel_name');
+        $targetUserId = (int) ($request->input('user_id') ?? $actor->id);
+
+        try {
+            $receiverUid = (int) $actor->id;
+            $token = $this->agoraService->generateToken($channelName, $receiverUid);
+
+            // Broadcast accepted event so caller knows receiver picked up
+            UserCallEvent::dispatch($targetUserId, 'accepted', [
+                'channel_name' => $channelName,
+                'accepter_id'  => (int) $actor->id,
+            ]);
+
+            return response()->json([
+                'status'       => true,
+                'token'        => $token,
+                'app_id'       => $this->agoraService->getAppId(),
+                'channel_name' => $channelName,
+                'uid'          => $receiverUid,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * End, reject, or cancel a call session.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function endCall(Request $request): JsonResponse
+    {
+        $actor = $this->resolveActor($request);
+        if (!$actor) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'channel_name' => ['required', 'string'],
+            'reason'       => ['nullable', 'in:ended,rejected,missed,busy,cancelled'],
+            'user_id'      => ['nullable', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $channelName = $request->input('channel_name');
+        $reason = $request->input('reason', 'ended');
+        $targetUserId = (int) ($request->input('user_id') ?? $actor->id);
+
+        UserCallEvent::dispatch($targetUserId, $reason, [
+            'channel_name' => $channelName,
+            'ended_by'     => (int) $actor->id,
+            'reason'       => $reason,
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Call {$reason} successfully",
+        ], 200);
     }
 }

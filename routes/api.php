@@ -58,6 +58,9 @@ Route::group(['middleware' => ['IsUser'], 'prefix' => 'user'], function () {
         Route::post('/send_message', 'user_send_msg');
         Route::post('/read_all', 'make_user_read');
         Route::get('/read_all', 'make_user_read');
+        Route::post('/call/start', 'startCall');
+        Route::post('/call/token', 'getCallToken');
+        Route::post('/call/end', 'endCall');
     });
     
     Route::controller('Api\CustomEvent\MemoryController')
@@ -165,6 +168,9 @@ Route::controller('UserChatController')->prefix('admin/user_chat')->group(functi
     Route::post('/send_message', 'admin_send_msg');
     Route::post('/read_all/{user_id?}', 'make_admin_read');
     Route::get('/read_all/{user_id?}', 'make_admin_read');
+    Route::post('/call/start', 'startCall');
+    Route::post('/call/token', 'getCallToken');
+    Route::post('/call/end', 'endCall');
 });
 
 Route::controller('UserChatController')->prefix('user_chat')->group(function () {
@@ -173,6 +179,9 @@ Route::controller('UserChatController')->prefix('user_chat')->group(function () 
     Route::post('/send_message', 'sendMessage');
     Route::post('/read_all/{user_id?}', 'make_all_read');
     Route::get('/read_all/{user_id?}', 'make_all_read');
+    Route::post('/call/start', 'startCall');
+    Route::post('/call/token', 'getCallToken');
+    Route::post('/call/end', 'endCall');
 });
   
 Route::middleware('auth:api')->get('/user', function (Request $request) {

@@ -391,3 +391,54 @@ function openUserChat(userId) {
     markConversationAsRead(userId);
 }
 ```
+
+---
+
+## 📞 خاصية المكالمات الصوتية والمرئية للأدمن والموظف (Agora.io Calling)
+
+تتيح للأدمن والموظف المصرح له الاتصال بالعميل أو استقبال مكالماته مباشرة عبر الويب أو التطبيق:
+
+### 1. بدء مكالمة من الأدمن / الموظف للعميل (Start Call to User)
+- **Endpoint:** `POST /api/admin/user_chat/call/start`
+- **Body:**
+  - `user_id`: رقم العميل المراد الاتصال به (مطلوب).
+  - `call_type`: `"voice"` أو `"video"` (اختياري - الافتراضي: `"voice"`).
+- **فحص الصلاحية:**
+  - إذا كان المتصل **موظفاً (`employee`)**، يتحقق النظام من شرط:
+    `Events.assistant_id == Auth::id()`
+    إذا كان العميل لا ينتمي لفعالياته، يرفض الطلب فوراً بـ `403 Forbidden`.
+- **الرد (200 OK):**
+  ```json
+  {
+    "status": true,
+    "channel_name": "call_u42_1700000000_123",
+    "token": "006970ca35de60c4464a8038a14ec10882dIAB...",
+    "app_id": "YOUR_AGORA_APP_ID",
+    "uid": 1,
+    "call_type": "voice"
+  }
+  ```
+  *تنضم لوحة التحكم للقناة وتظهر شاشة الرنين بانتظار رد العميل.*
+
+### 2. قبول مكالمة واردة من عميل (Accept Call from User)
+- **Endpoint:** `POST /api/admin/user_chat/call/token`
+- **Body:**
+  - `channel_name`: اسم القناة المستلمة في إشعار الرنين اللحظي.
+  - `user_id`: معرّف العميل.
+
+### 3. إنهاء أو رفض المكالمة (End / Reject Call)
+- **Endpoint:** `POST /api/admin/user_chat/call/end`
+- **Body:**
+  - `channel_name`: اسم القناة.
+  - `reason`: `"ended"` أو `"rejected"` أو `"busy"` أو `"cancelled"`.
+  - `user_id`: معرّف العميل.
+
+### 4. أحداث المكالمات اللحظية في لوحة التحكم (`user_call_event`)
+تستمع لوحة التحكم للقناتين `admin-user-chat` و `user-chat.{user_id}`:
+- **مكالمة واردة من عميل (`action: "incoming"`):**
+  - تظهر نافذة منبثقة (Popup / Modal) في لوحة التحكم بها نغمة رنين واسم العميل وزرّي "قبول" و "رفض".
+- **العميل قبل المكالمة (`action: "accepted"`):**
+  - يبدأ تدفق الصوت/الفيديو فوراً.
+- **انتهاء أو رفض المكالمة (`action: "ended"` / `"rejected"`):**
+  - إغلاق نافذة المكالمة فوراً وإيقاف الصوت.
+

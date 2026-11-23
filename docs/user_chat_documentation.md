@@ -345,3 +345,67 @@ echo.channel(`user-chat.${currentUserId}`)
         });
     });
 ```
+
+---
+
+## 📞 خاصية المكالمات الصوتية والمرئية (Agora.io Voice & Video Calling)
+
+تتيح هذه الخاصية للمستخدم إجراء مكالمة صوتية أو فيديو مباشرة مع الدعم/الأدمن، أو استقبال المكالمات الواردة منهم عبر خدمة **Agora.io** ذات الـ 10,000 دقيقة مجانية شهرياً.
+
+### 1. بدء المكالمة من جانب العميل (Start Call)
+- **Endpoint:** `POST /api/user/user_chat/call/start`
+- **Body:**
+  - `call_type`: `"voice"` أو `"video"` (اختياري - الافتراضي: `"voice"`).
+- **الرد (200 OK):**
+  ```json
+  {
+    "status": true,
+    "channel_name": "call_u42_1700000000_123",
+    "token": "006970ca35de60c4464a8038a14ec10882dIAB...",
+    "app_id": "YOUR_AGORA_APP_ID",
+    "uid": 42,
+    "call_type": "voice"
+  }
+  ```
+  *يقوم التطبيق بالانضمام لقناة Agora فوراً باستخدام `channel_name` و `token` و `uid`، ويتم إطلاق إشعار رنين لحظي للأدمن.*
+
+### 2. قبول مكالمة واردة وتوليد التوكن (Accept Incoming Call)
+- **Endpoint:** `POST /api/user/user_chat/call/token`
+- **Body:**
+  - `channel_name`: اسم القناة المستلمة في إشعار الرنين اللحظي.
+- **الرد (200 OK):**
+  ```json
+  {
+    "status": true,
+    "token": "006970ca35de60c4464a8038a14ec10882dIAB...",
+    "app_id": "YOUR_AGORA_APP_ID",
+    "channel_name": "call_u42_1700000000_123",
+    "uid": 42
+  }
+  ```
+  *ينضم العميل للقناة مباشرة وتتحول المكالمة إلى جارية.*
+
+### 3. إنهاء أو رفض المكالمة (End / Reject Call)
+- **Endpoint:** `POST /api/user/user_chat/call/end`
+- **Body:**
+  - `channel_name`: اسم القناة.
+  - `reason`: `"ended"` أو `"rejected"` أو `"missed"` أو `"busy"` أو `"cancelled"`.
+
+### 4. أحداث المكالمات اللحظية عبر Pusher (`user_call_event`)
+يستمع العميل لنفس القناة `user-chat.{user_id}` للحدث `user_call_event`:
+- **عند وجود مكالمة واردة من الأدمن (`action: "incoming"`):**
+  ```json
+  {
+    "action": "incoming",
+    "user_id": 42,
+    "channel_name": "call_u42_1700000000_123",
+    "call_type": "voice",
+    "caller_id": 1,
+    "caller_name": "الدعم الفني",
+    "caller_role": "admin"
+  }
+  ```
+  *يعرض التطبيق شاشة الرنين فورا مع زر قبول ورفض.*
+- **عند قبول المكالمة (`action: "accepted"`):** يتم فتح الاتصال.
+- **عند انتهاء/رفض المكالمة (`action: "ended"` / `"rejected"`):** يتم إغلاق شاشة المكالمة والخروج من Agora.
+

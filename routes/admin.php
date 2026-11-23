@@ -17,6 +17,9 @@ Route::get('user_chat/messages/{user_id}', 'UserChatController@admin_messages');
 Route::post('user_chat/send_message', 'UserChatController@admin_send_msg');
 Route::post('user_chat/read_all/{user_id?}', 'UserChatController@make_admin_read');
 Route::get('user_chat/read_all/{user_id?}', 'UserChatController@make_admin_read');
+Route::post('user_chat/call/start', 'UserChatController@startCall');
+Route::post('user_chat/call/token', 'UserChatController@getCallToken');
+Route::post('user_chat/call/end', 'UserChatController@endCall');
 
 Route::get('profile', 'ProfileController@profile');
 Route::post('update_profile', 'ProfileController@update_profile');

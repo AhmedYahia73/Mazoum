@@ -27,6 +27,7 @@
         "predis/predis": "^3.4",
         "pusher/pusher-php-server": "^7.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "taylanunutmaz/agora-token-builder": "*",
         "ultramsg/whatsapp-php-sdk": "^2.0"
     },
     "require-dev": {

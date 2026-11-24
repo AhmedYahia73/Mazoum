@@ -12,6 +12,7 @@ use App\Traits\imageTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -572,5 +573,36 @@ class UserChatController extends Controller
             'status'  => true,
             'message' => "Call {$reason} successfully",
         ], 200);
+    }
+
+    /**
+     * Authenticate private/presence Pusher channels for API clients
+     * using either custom "token" header or "Authorization: Bearer" token.
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function broadcastAuth(Request $request)
+    {
+        $actor = $this->resolveActor($request);
+        if (!$actor) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'channel_name' => ['required', 'string'],
+            'socket_id'    => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        Auth::setUser($actor);
+        $request->setUserResolver(function () use ($actor) {
+            return $actor;
+        });
+
+        return Broadcast::auth($request);
     }
 }

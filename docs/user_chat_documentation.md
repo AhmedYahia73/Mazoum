@@ -190,24 +190,27 @@
 ### 1. إعدادات الاتصال (Connection Credentials)
 
 - **Broadcaster:** `pusher`
+- **App Key:** `239duDE3289768hggdorkxsmFS234521` (أو من متغير `PUSHER_APP_KEY`)
 - **Cluster:** `mt1`
-- **WSS Port / TLS:** `443` (useTLS: `true`)
-- **App Key:** يتم جلبه من إعدادات الـ Environment (`PUSHER_APP_KEY`).
+- **wsHost:** `mazoom.online`
+- **wsPort / wssPort:** `443` (`forceTLS: true`)
+- **Auth Endpoint (للقناة الخاصة):** `POST https://mazoom.online/api/broadcasting/auth`
+  - يقبل الهيدر `token: <user_token>` أو `Authorization: Bearer <token>`
 
 ---
 
 ### 2. القنوات والأحداث (Channels & Events)
 
 #### القناة المخصصة للمستخدم (Channel Name):
-اسم القناة خاص بالمستخدم وتعتمد على `user_id` الخاص به:
+اسم القناة الخاصة بالمستخدم (Pusher SDK) وتعتمد على `user_id` الخاص به:
 ```
-user-chat.{user_id}
+private-user-chat.{user_id}
 ```
-*مثال:* إذا كان معرّف المستخدم هو `42`، تكون القناة:
+*مثال:* إذا كان معرّف المستخدم هو `42`، تكون القناة الخاصة:
 ```
-user-chat.42
+private-user-chat.42
 ```
-> تدعم هذه القناة الاشتراك العام (`Channel`) والاشتراك الخاص الموثّق (`PrivateChannel`).
+*(في `Laravel Echo` استخدم `Echo.private('user-chat.42')` — ويُتاح أيضاً الاشتراك في القناة العامة `user-chat.42`).*
 
 ---
 

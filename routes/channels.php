@@ -21,7 +21,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 Broadcast::channel('user-chat.{userId}', function ($user, $userId) {
     // 1. If user is the conversation owner
-    if ((int) $user->id === (int) $userId) {
+    if (!($user instanceof \App\Models\Admin) && (int) $user->id === (int) $userId) {
         return true;
     }
 

@@ -183,6 +183,8 @@ Route::controller('UserChatController')->prefix('user_chat')->group(function () 
     Route::post('/call/token', 'getCallToken');
     Route::post('/call/end', 'endCall');
 });
+
+Route::post('broadcasting/auth', 'UserChatController@broadcastAuth');
   
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

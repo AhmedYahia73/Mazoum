@@ -249,9 +249,11 @@
 ### 1. إعدادات Pusher / Echo
 
 - **Broadcaster:** `pusher`
+- **Key:** `239duDE3289768hggdorkxsmFS234521` (مأخوذ من متغيرات البيئة `PUSHER_APP_KEY`).
 - **Cluster:** `mt1`
-- **WSS Port / TLS:** `443` (useTLS: `true`)
-- **Key:** مأخوذ من متغيرات البيئة (`PUSHER_APP_KEY`).
+- **wsHost:** `mazoom.online`
+- **wsPort / wssPort:** `443` (`forceTLS: true`)
+- **Auth Endpoint:** `POST https://mazoom.online/api/broadcasting/auth` (يقبل `Authorization: Bearer` أو `token`)
 
 ---
 
@@ -343,7 +345,7 @@ const echo = new Echo({
     key: 'YOUR_PUSHER_APP_KEY',
     cluster: 'mt1',
     forceTLS: true,
-    authEndpoint: '/broadcasting/auth',
+    authEndpoint: '/api/broadcasting/auth',
     auth: {
         headers: {
             Authorization: `Bearer ${adminAuthToken}`

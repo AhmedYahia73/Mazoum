@@ -3,10 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Events;
-use App\Models\EventUsers;
-use App\Models\NewSetting;
-use App\Models\Setting;
-use App\Models\WattsChat as WattsChatModel;
+use App\Services\EventReminderService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -21,6 +18,7 @@ class RemindTomorrowEvents extends Command
      */
     protected $signature = 'events:remind-tomorrow
                             {--date= : تاريخ الفعاليات (افتراضياً غداً)}
+                            {--target=all : الفئة المستهدفة: all (الطرفين - افتراضي), confirmed (المؤكدين), unconfirmed (غير المؤكدين)}
                             {--initial-delay=0 : ثواني الانتظار قبل بدء أول دفعة}
                             {--delay=2 : ثواني الانتظار بين كل رسالة}
                             {--batch-delay=300 : ثواني الانتظار بعد كل 20 رسالة}';
@@ -47,13 +45,16 @@ class RemindTomorrowEvents extends Command
             URL::forceScheme('https');
         }
 
-        $targetDate   = $this->option('date') ?: Carbon::tomorrow()->toDateString();
-        $initialDelay = (int) ($this->option('initial-delay') ?? 0);
-        $delayPerMsg  = (int) ($this->option('delay') ?? 2);        // ثانيتان بين كل رسالة
-        $batchDelay   = (int) ($this->option('batch-delay') ?? 300); // 5 دقائق بعد كل 20 رسالة
+        set_time_limit(0);
 
-        Log::info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
-        $this->info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate}");
+        $targetDate     = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $targetAudience = $this->option('target') ?: 'all';
+        $initialDelay   = (int) ($this->option('initial-delay') ?? 0);
+        $delayPerMsg    = (int) ($this->option('delay') ?? 2);        // ثانيتان بين كل رسالة
+        $batchDelay     = (int) ($this->option('batch-delay') ?? 300); // 5 دقائق بعد كل 20 رسالة
+
+        Log::info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate} | الفئة المستهدفة: {$targetAudience}");
+        $this->info("RemindTomorrowEvents: بدء البحث عن أحداث التاريخ: {$targetDate} | الفئة المستهدفة: {$targetAudience}");
 
         // جلب الأحداث بدون Global Scope (الكرون يعمل بدون مستخدم مسجّل)
         $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
@@ -73,221 +74,43 @@ class RemindTomorrowEvents extends Command
             sleep($initialDelay);
         }
 
-        // أسماء الأيام بالعربي
-        $arabicDays = [
-            'Sunday'    => 'الأحد',
-            'Monday'    => 'الاثنين',
-            'Tuesday'   => 'الثلاثاء',
-            'Wednesday' => 'الأربعاء',
-            'Thursday'  => 'الخميس',
-            'Friday'    => 'الجمعة',
-            'Saturday'  => 'السبت',
-        ];
-
         foreach ($events as $event) {
-
             Log::info("RemindTomorrowEvents: معالجة الحدث: {$event->name} (ID: {$event->id})");
             $this->info("معالجة الحدث: {$event->name} (ID: {$event->id})");
 
-            // جلب المستخدمين الذين أكدوا الحضور فقط ولم يتم تذكيرهم بنجاح بعد (accept_count > 0 و remember != 1)
-            $eventUsers = EventUsers::where('event_id', $event->id)
-                ->where('accept_count', '>', 0)
-                ->where(function ($q) {
-                    $q->whereNull('remember')->orWhere('remember', 0);
-                })
-                ->get();
+            // استعلام جلب المدعوين للتذكير بناءً على الفئة المستهدفة (--target: all / confirmed / unconfirmed)
+            $eventUsers = EventReminderService::eligibleForReminderQuery($event->id, $targetAudience)->get();
 
             if ($eventUsers->isEmpty()) {
-                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين بحاجة للتذكير (accept_count > 0 و remember = 0) في الحدث ID: {$event->id}");
-                $this->warn("لا يوجد مستخدمين بحاجة للتذكير في الحدث ID: {$event->id}");
+                Log::info("RemindTomorrowEvents: لا يوجد مستخدمين بحاجة للتذكير (الفئة: {$targetAudience}) في الحدث ID: {$event->id}");
+                $this->warn("لا يوجد مستخدمين بحاجة للتذكير (الفئة: {$targetAudience}) في الحدث ID: {$event->id}");
                 continue;
             }
 
-            Log::info("RemindTomorrowEvents: عدد المستخدمين: {$eventUsers->count()} في الحدث ID: {$event->id}");
-            $this->info("عدد المستخدمين: {$eventUsers->count()} في الحدث ID: {$event->id}");
+            Log::info("RemindTomorrowEvents: عدد المستخدمين ({$targetAudience}): {$eventUsers->count()} في الحدث ID: {$event->id}");
+            $this->info("عدد المستخدمين ({$targetAudience}): {$eventUsers->count()} في الحدث ID: {$event->id}");
 
-            // تحديد اسم اليوم بالعربي
-            $dayNameEnglish = Carbon::parse($event->date)->format('l');
-            $dayNameArabic  = $arabicDays[$dayNameEnglish] ?? $dayNameEnglish;
-            $dateWithDay    = $dayNameArabic . ' ' . $event->date;
-
-            // تنسيق الوقت إلى نظام 12 ساعة مع AM / PM
-            $formattedTime = $event->time;
-            if (!empty($event->time)) {
-                try {
-                    $formattedTime = Carbon::parse($event->time)->format('g:i A');
-                } catch (\Throwable $e) {
-                    $formattedTime = $event->time;
-                }
-            }
-
-            // إعداد بيانات الإرسال (مطابقة تماماً لـ remember_users_to_event)
-            $whatsSetting   = get_whats_setting($event);
-            $token          = $whatsSetting['token'];
-            $phone_numer_id = $this->getPhoneId($event->phone_setting_id, $whatsSetting['phone_numer_id'] ?? null);
-            $url_image      = \App\Services\WhatsApp\WhatsAppMediaOptimizerService::getOptimizedEventHeaderImage($event);
-            $url_button     = '?q=' . ($event->lat ?? '0') . ',' . ($event->long ?? '0');
-            $template_name  = 'car_msg3_';
-            $language       = 'ar';
-
-            Log::info("RemindTomorrowEvents: إعدادات الإرسال للحدث ID: {$event->id}", [
-                'phone_setting_id' => $event->phone_setting_id,
-                'phone_numer_id'   => $phone_numer_id,
-                'country_code'     => $event->country_code,
-                'url_image'        => $url_image,
-                'url_button'       => $url_button,
-                'date_param'       => $dateWithDay,
-                'time_param'       => $formattedTime,
-            ]);
-
-            $sentCount = 0;
-            $totalUsersInEvent = $eventUsers->count();
-
-            foreach ($eventUsers as $eventUser) {
-
-                $mobile = $eventUser->mobile;
-                if (empty($mobile)) {
-                    Log::warning("RemindTomorrowEvents: رقم موبايل فارغ - EventUser ID: {$eventUser->id}");
-                    continue;
-                }
-
-                $to       = str_replace('+', '', trim($mobile));
-                $sendType = ($eventUser->send_type === 'meta') ? 'old_send' : 'new_send';
-
-                if ($sendType === 'old_send') {
-
-                    // إرسال عبر Meta Cloud API
-                    try {
-                        $response = SendCarMsgTemplate(
-                            $to,
-                            $template_name,
-                            $language,
-                            $url_image,
-                            $event->name,    // {{1}} اسم المناسبة
-                            $formattedTime,  // {{2}} الوقت بنظام 12 ساعة AM / PM
-                            $dateWithDay,    // {{3}} التاريخ + اليوم
-                            $phone_numer_id,
-                            $token,
-                            $url_button
-                        );
-
-                        $statusCode = $response ? $response->getStatusCode() : null;
-                        $bodyRaw    = $response ? (string) $response->getBody() : '';
-                        $bodyData   = json_decode($bodyRaw, true);
-
-                        if ($statusCode == 200) {
-                            $sentMessageId = $bodyData['messages'][0]['id'] ?? null;
-
-                            // حفظ message_id فقط بدون وضع remember = 1
-                            // استجابة 200 تعني فقط قبول ميتا للطلب في طابور الإرسال (وليس التسليم)
-                            // إذا كان العميل عاملاً بلوك ستصل حالة failed عبر الـ Webhook
-                            // بينما سيتم تعيين remember = 1 تلقائياً عبر الـ Webhook عند تأكيد الوصول الفعلي (delivered أو read)
-                            $updateData = [];
-                            if ($sentMessageId) {
-                                $updateData['message_id'] = $sentMessageId;
-                            }
-                            if (!empty($updateData)) {
-                                $eventUser->update($updateData);
-                            }
-
-                            WattsChatModel::create([
-                                'phone'          => $to,
-                                'name'           => 'Admin',
-                                'message'        => $template_name,
-                                'is_sent_by_me'  => true,
-                                'message_id'     => $sentMessageId ?? 0,
-                                'from'           => 'Admin',
-                                'template_name'  => $template_name,
-                                'event_user_id'  => $eventUser->id,
-                                'event_id'       => $event->id,
-                                'phone_numer_id' => $phone_numer_id,
-                            ]);
-
-                            Log::info("RemindTomorrowEvents: 📤 تم قبول التذكير من ميتا بنجاح (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | Message ID: {$sentMessageId} (بانتظار تأكيد التسليم remember=1 عبر الـ Webhook)");
-                            $this->info("📤 [{$eventUser->id}] تم قبول الطلب من ميتا للرقم {$to} (Message ID: {$sentMessageId}) - بانتظار تأكيد التسليم عبر الـ Webhook");
-                        } else {
-                            $errorMsg = $bodyData['error']['message'] ?? $bodyRaw;
-                            $errorDetails = $bodyData['error']['error_data']['details'] ?? '';
-                            $eventUser->update(['status' => 'failed-v2', 'remember' => 0]);
-                            Log::error("RemindTomorrowEvents: ❌ فشل إرسال الرسالة من ميتا (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | HTTP {$statusCode} | المشكلة: {$errorMsg} | التفاصيل: {$errorDetails}");
-                            $this->error("❌ [{$eventUser->id}] فشل الإرسال إلى {$to}: {$errorMsg}");
-                        }
-
-                    } catch (\Exception $e) {
-                        Log::error("RemindTomorrowEvents: ❌ استثناء أثناء الإرسال (old_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$e->getMessage()}");
-                        $this->error("❌ [{$eventUser->id}] خطأ: {$e->getMessage()}");
-                        $eventUser->update(['status' => 'failed-v2', 'remember' => 0]);
-                    }
-
-                } else {
-
-                    // إرسال عبر UltraMsg (new_send)
-                    $ultramsg_token = "7ye6ifujyug0u46g";
-                    $instance_id    = "instance109805";
-                    $client         = new \UltraMsg\WhatsAppApi($ultramsg_token, $instance_id);
-
-                    $caption = "ضيفتنـا الغاليـة , ننتظـرك يوم " . $dateWithDay
-                        . " في تمــام الساعة " . $formattedTime
-                        . "  تشرفينــا لحضور " . $event->name . ' 🌺🌺 ';
-
-                    try {
-                        $api  = $client->sendImageMessage($to, $url_image, $caption, 0, "SDK", true);
-                        $api2 = $client->sendLocationMessage($to, $event->address, $event->lat, $event->long, 0, "SDK");
-
-                        if (!empty($api) && isset($api['sent']) && $api['sent'] == 'true'
-                            && isset($api['message']) && $api['message'] == 'ok') {
-                            $eventUser->update(['remember' => 1]);
-                            Log::info("RemindTomorrowEvents: ✅ تم وصول الرسالة بنجاح عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to}");
-                            $this->info("✅ [{$eventUser->id}] تم الإرسال (UltraMsg) إلى {$to}");
-                        } else {
-                            $errResp = json_encode($api, JSON_UNESCAPED_UNICODE);
-                            Log::error("RemindTomorrowEvents: ❌ فشل الإرسال عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$errResp}");
-                            $this->error("❌ [{$eventUser->id}] فشل الإرسال (UltraMsg) إلى {$to}: {$errResp}");
-                        }
-
-                    } catch (\Exception $e) {
-                        Log::error("RemindTomorrowEvents: ❌ خطأ في الإرسال عبر UltraMsg (new_send) - EventUser ID: {$eventUser->id} | الرقم: {$to} | المشكلة: {$e->getMessage()}");
-                        $this->error("❌ [{$eventUser->id}] خطأ (UltraMsg): {$e->getMessage()}");
+            EventReminderService::sendRemindersForEvent(
+                $event,
+                $eventUsers,
+                $delayPerMsg,
+                $batchDelay,
+                'RemindTomorrowEvents',
+                function (string $level, string $message): void {
+                    if ($level === 'error') {
+                        $this->error($message);
+                    } elseif ($level === 'warning') {
+                        $this->warn($message);
+                    } else {
+                        $this->info($message);
                     }
                 }
-
-                $sentCount++;
-
-                // بعد كل 20 رسالة انتظر 5 دقائق (إلا لو كانت آخر رسالة في الحدث)
-                if ($sentCount % 20 === 0 && $sentCount < $totalUsersInEvent) {
-                    Log::info("RemindTomorrowEvents: تم إرسال {$sentCount} من {$totalUsersInEvent} رسالة - انتظار {$batchDelay} ثانية (5 دقائق) قبل الدفعة التالية...");
-                    $this->info("⏳ تم إرسال {$sentCount} رسالة - انتظار {$batchDelay} ثانية قبل الدفعة التالية...");
-                    sleep($batchDelay);
-                } elseif ($delayPerMsg > 0 && $sentCount < $totalUsersInEvent) {
-                    sleep($delayPerMsg);
-                }
-            }
-
-            Log::info("RemindTomorrowEvents: اكتمل إرسال الحدث ID: {$event->id} - إجمالي المُرسل: {$sentCount}");
+            );
         }
 
         Log::info("RemindTomorrowEvents: ✅ اكتمل إرسال جميع التذكيرات.");
         $this->info("✅ اكتمل إرسال جميع التذكيرات.");
 
         return 0;
-    }
-
-    /**
-     * جلب phone_numer_id من NewSetting أو من إعدادات الدولة في Setting
-     */
-    private function getPhoneId($id, $fallbackPhoneId = null)
-    {
-        if (!empty($id)) {
-            $data = NewSetting::where('id', $id)->first();
-            if (!empty($data) && !empty($data->phone_numer_id)) {
-                return $data->phone_numer_id;
-            }
-        }
-
-        if (!empty($fallbackPhoneId)) {
-            return $fallbackPhoneId;
-        }
-
-        return Setting::first()?->phone_numer_id ?? null;
     }
 }

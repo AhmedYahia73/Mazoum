@@ -4,33 +4,39 @@ namespace App\Console\Commands;
 
 use App\Models\Events;
 use App\Models\EventUsers;
+use App\Services\EventReminderService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class TestRemindTomorrowEvents extends Command
 {
-    protected $signature = 'events:test-remind-tomorrow {--dry-run : عرض البيانات فقط بدون إرسال} {--date= : تاريخ الحدث (افتراضياً غداً)}';
+    protected $signature = 'events:test-remind-tomorrow
+                            {--dry-run : عرض البيانات فقط بدون إرسال}
+                            {--date= : تاريخ الحدث (افتراضياً غداً)}
+                            {--target=all : الفئة المستهدفة: all (الطرفين - افتراضي), confirmed (المؤكدين), unconfirmed (غير المؤكدين)}';
 
     protected $description = 'تيست: عرض الأحداث والمستخدمين اللي هيتبعتلهم تذكير بكرة';
 
     public function handle()
     {
-        $targetDate = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $targetDate     = $this->option('date') ?: Carbon::tomorrow()->toDateString();
+        $targetAudience = $this->option('target') ?: 'all';
 
         $this->info("========================================");
         $this->info("📅 التاريخ المستهدف: {$targetDate}");
+        $this->info("🎯 الفئة المستهدفة: {$targetAudience}");
         $this->info("========================================");
 
         // جلب أحداث التاريخ المحدد
         $events = Events::withoutGlobalScopes()->where('date', $targetDate)->get();
 
         if ($events->isEmpty()) {
-            $this->warn("❌ لا توجد أحداث غداً ({$tomorrow})");
+            $this->warn("❌ لا توجد أحداث بتاريخ ({$targetDate})");
             $this->info("");
             $this->info("💡 للتيست: ممكن تعدل تاريخ حدث موجود لبكرة، أو استخدم:");
             $this->info("   php artisan tinker");
-            $this->info("   >>> App\\Models\\Events::withoutGlobalScopes()->latest()->first()->update(['date' => '" . $tomorrow . "']);");
+            $this->info("   >>> App\\Models\\Events::withoutGlobalScopes()->latest()->first()->update(['date' => '" . $targetDate . "']);");
             return 0;
         }
 
@@ -62,12 +68,10 @@ class TestRemindTomorrowEvents extends Command
             $this->info("   📱 phone_setting_id: {$event->phone_setting_id}");
             $this->info("");
 
-            $eventUsers = EventUsers::where('event_id', $event->id)
-                ->where('accept_count', '>', 0)
-                ->get();
+            $eventUsers = EventReminderService::eligibleForReminderQuery($event->id, $targetAudience)->get();
 
             if ($eventUsers->isEmpty()) {
-                $this->warn("   ⚠️ لا يوجد مستخدمين مؤكدين الحضور (accept_count > 0) في هذا الحدث");
+                $this->warn("   ⚠️ لا يوجد مستخدمين بحاجة للتذكير (الفئة: {$targetAudience}) في هذا الحدث");
                 continue;
             }
 

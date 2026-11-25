@@ -18,6 +18,7 @@ use App\Models\NewSetting;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\WattsChat as WattsChatModel;
+use App\Services\EventReminderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Testing\File;
 use Illuminate\Support\Facades\Http;
@@ -853,10 +854,8 @@ class EventsController extends Controller
         where('event_id',$Item->id)
         ->where("remember", 1)
         ->sum('users_count');
-        $not_remember = EventUsers::
-        where('event_id',$Item->id)
-        ->where("remember", 0)
-        ->sum('users_count');
+        $not_remember = EventReminderService::eligibleForReminderQuery($Item->id, 'all')
+            ->sum('users_count');
         $not_confirm = EventUsers::
         where('event_id', $Item->id)
         ->where("accept_count", 0) 

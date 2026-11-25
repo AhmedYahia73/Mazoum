@@ -21,6 +21,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Models\WattsChat as WattsChatModel;
 use App\Services\EventInvitationService;
+use App\Services\EventReminderService;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
@@ -177,8 +178,7 @@ class EventUersController extends Controller
   
         $event_id = $id;
 
-        $not_remember_users = EventUsers::where('event_id', $event_id)
-            ->where('remember', 0)
+        $not_remember_users = EventReminderService::eligibleForReminderQuery((int) $event_id, 'all')
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
@@ -193,6 +193,38 @@ class EventUersController extends Controller
             'not_remember_users' => $not_remember_users, 
         ]);
 
+    }
+
+    /**
+     * تحديد موعد التذكير (remeber_at) لمجموعة من المدعوين
+     */
+    public function set_remeber_at(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'event_users_ids'   => 'required|array|min:1',
+            'event_users_ids.*' => 'required|exists:event_users,id',
+            'remeber_at'        => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        $remeberAt = Carbon::parse($request->remeber_at)->toDateString();
+
+        $updatedCount = EventUsers::whereIn('id', $request->event_users_ids)
+            ->update([
+                'remeber_at' => $remeberAt,
+            ]);
+
+        return response()->json([
+            'status'        => true,
+            'message'       => 'تم تحديد موعد التذكير بنجاح',
+            'remeber_at'    => $remeberAt,
+            'updated_count' => $updatedCount,
+        ], 200);
     }
 
     // new-send-event-invitation

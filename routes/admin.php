@@ -307,6 +307,7 @@ Route::post('sendMessageFashalTemplate', 'EventUersController@sendMessageFashalT
 Route::post('user_save_event_users', 'EventUersController@user_save_event_users');
 
 Route::get('not_remeber_users/{id}', 'EventUersController@not_remeber_users');
+Route::match(['post', 'put'], 'set_remeber_at', 'EventUersController@set_remeber_at');
 Route::get('faild_users/{id}', 'EventUersController@faild_users');
 Route::post('send_invite_utility_msg', 'EventUersController@send_invite_utility_msg');
 

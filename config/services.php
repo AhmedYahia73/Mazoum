@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'ultramsg' => [
+        'token' => env('ULTRAMSG_TOKEN'),
+        'instance_id' => env('ULTRAMSG_INSTANCE_ID'),
+    ],
+
 ];

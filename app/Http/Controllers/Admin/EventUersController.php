@@ -212,12 +212,16 @@ class EventUersController extends Controller
             ], 400);
         }
 
-        $remeberAt = Carbon::parse($request->remeber_at)->toDateString();
+        $remeberAt = Carbon::parse($request->remeber_at)->toDateTimeString();
 
         $updatedCount = EventUsers::whereIn('id', $request->event_users_ids)
             ->update([
                 'remeber_at' => $remeberAt,
             ]);
+
+        foreach ($request->event_users_ids as $userId) {
+            \Illuminate\Support\Facades\Cache::forget('remind_scheduled_attempted_' . $userId . '_' . $remeberAt);
+        }
 
         return response()->json([
             'status'        => true,

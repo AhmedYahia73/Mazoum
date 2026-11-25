@@ -36,10 +36,9 @@ class Kernel extends ConsoleKernel
             ->timezone('Africa/Cairo')
             ->appendOutputTo(storage_path('logs/cron.log'));
 
-        // تذكير المستخدمين المجدول لهم موعد remeber_at اليوم - يعمل يومياً الساعة 4 عصراً (بتوقيت القاهرة)
+        // تذكير المستخدمين المجدول لهم موعد remeber_at عند حلول التاريخ والوقت - يفحص كل دقيقة بدون تداخل
         $schedule->command('events:remind-scheduled')
-            ->dailyAt('16:00')
-            ->timezone('Africa/Cairo')
+            ->everyMinute()
             ->withoutOverlapping()
             ->runInBackground()
             ->appendOutputTo(storage_path('logs/cron.log'));

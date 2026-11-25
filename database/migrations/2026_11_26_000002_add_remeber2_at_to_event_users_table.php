@@ -14,7 +14,7 @@ class AddRemeberAtToEventUsersTable extends Migration
     public function up()
     {
         Schema::table('event_users', function (Blueprint $table) {
-            $table->date('remeber_at')->nullable()->after('remember');
+            $table->dateTime('remeber_at')->nullable()->after('remember');
         });
     }
 

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Events\UserCallEvent;
-use App\Models\Admin;
-use App\Models\User;
+use App\Http\Controllers\Concerns\ResolvesChatActor;
 use App\Services\Agora\AgoraService;
+use App\Services\UserChat\UserChatFormatter;
 use App\Services\UserChatService;
 use App\Traits\GeneralTrait;
 use App\Traits\imageTrait;
@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class UserChatController extends Controller
 {
-    use GeneralTrait, imageTrait;
+    use GeneralTrait, imageTrait, ResolvesChatActor;
 
     protected $chatService;
     protected $agoraService;
@@ -27,54 +27,6 @@ class UserChatController extends Controller
     {
         $this->chatService = $chatService;
         $this->agoraService = $agoraService;
-    }
-
-    /**
-     * Resolve authenticated actor from any active guard/token.
-     *
-     * @param Request $request
-     * @return mixed
-     */
-    protected function resolveActor(Request $request)
-    {
-        // 1. Sanctum token or default Auth
-        $actor = auth('sanctum')->user() ?? auth('api')->user() ?? auth('admin')->user() ?? Auth::user();
-        if ($actor) {
-            return $actor;
-        }
-
-        // 2. Token header (Mazoum custom token authentication)
-        $token = $request->header('token') ?? $request->bearerToken();
-        if ($token) {
-            $user = User::withoutGlobalScopes()->where('token', $token)->first();
-            if ($user) {
-                Auth::setUser($user);
-                return $user;
-            }
-
-            $admin = Admin::where('remember_token', $token)->first();
-            if ($admin) {
-                Auth::setUser($admin);
-                return $admin;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if actor is an Admin or Employee.
-     *
-     * @param mixed $actor
-     * @return bool
-     */
-    protected function isAdminOrEmployee($actor): bool
-    {
-        if (!$actor) {
-            return false;
-        }
-        $role = $actor->role ?? ($actor->user_type ?? 'user');
-        return in_array($role, ['admin', 'employee']);
     }
 
     /*
@@ -98,9 +50,11 @@ class UserChatController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'msg'   => ['nullable', 'string'],
-            'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:20480'],
-            'voice' => ['nullable', 'file', 'max:51200'],
+            'client_msg_id' => ['nullable', 'string', 'max:64'],
+            'reply_to_id'   => ['nullable', 'integer'],
+            'msg'           => ['nullable', 'string'],
+            'image'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:20480'],
+            'voice'         => ['nullable', 'file', 'max:51200'],
         ]);
 
         if ($validator->fails()) {
@@ -116,12 +70,18 @@ class UserChatController extends Controller
 
         try {
             $chat = $this->chatService->sendMessage($request, $actor);
+            $identity = UserChatFormatter::resolveActorIdentity($actor);
 
             return response()->json([
                 'status'  => true,
                 'message' => 'تم إرسال الرسالة بنجاح',
-                'data'    => $chat,
+                'data'    => UserChatFormatter::formatMessage($chat, $identity['type'], $identity['id']),
             ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false,
@@ -144,7 +104,8 @@ class UserChatController extends Controller
         }
 
         $perPage = (int) $request->input('per_page', 50);
-        $data = $this->chatService->getConversationMessages($actor->id, $actor, $perPage);
+        $aroundId = $request->filled('around_id') ? (int) $request->input('around_id') : null;
+        $data = $this->chatService->getConversationMessages($actor->id, $actor, $perPage, $aroundId);
 
         return response()->json([
             'status' => true,
@@ -216,10 +177,12 @@ class UserChatController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'user_id' => ['required', 'exists:users,id'],
-            'msg'     => ['nullable', 'string'],
-            'image'   => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:20480'],
-            'voice'   => ['nullable', 'file', 'max:51200'],
+            'user_id'       => ['required', 'exists:users,id'],
+            'client_msg_id' => ['nullable', 'string', 'max:64'],
+            'reply_to_id'   => ['nullable', 'integer'],
+            'msg'           => ['nullable', 'string'],
+            'image'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:20480'],
+            'voice'         => ['nullable', 'file', 'max:51200'],
         ]);
 
         if ($validator->fails()) {
@@ -246,12 +209,18 @@ class UserChatController extends Controller
 
         try {
             $chat = $this->chatService->sendMessage($request, $actor, $targetUserId);
+            $identity = UserChatFormatter::resolveActorIdentity($actor);
 
             return response()->json([
                 'status'  => true,
                 'message' => 'تم إرسال الرسالة بنجاح',
-                'data'    => $chat,
+                'data'    => UserChatFormatter::formatMessage($chat, $identity['type'], $identity['id']),
             ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false,
@@ -286,7 +255,8 @@ class UserChatController extends Controller
         }
 
         $perPage = (int) $request->input('per_page', 50);
-        $data = $this->chatService->getConversationMessages($targetUserId, $actor, $perPage);
+        $aroundId = $request->filled('around_id') ? (int) $request->input('around_id') : null;
+        $data = $this->chatService->getConversationMessages($targetUserId, $actor, $perPage, $aroundId);
 
         return response()->json([
             'status' => true,

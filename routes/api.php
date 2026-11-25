@@ -184,6 +184,20 @@ Route::controller('UserChatController')->prefix('user_chat')->group(function () 
     Route::post('/call/end', 'endCall');
 });
 
+Route::controller('UserChatActionController')->prefix('user_chat')->group(function () {
+    Route::post('/delivered', 'markDelivered');
+    Route::post('/messages/{id}/react', 'react');
+    Route::put('/messages/{id}', 'edit');
+    Route::delete('/messages/{id}', 'delete');
+    Route::post('/messages/{id}/forward', 'forward');
+    Route::post('/messages/{id}/pin', 'togglePin');
+    Route::get('/pinned', 'pinnedMessages');
+    Route::post('/messages/{id}/favorite', 'toggleFavorite');
+    Route::get('/favorites', 'favoriteMessages');
+    Route::post('/disappearing', 'updateDisappearingSettings');
+    Route::post('/typing', 'typing');
+});
+
 Route::post('broadcasting/auth', 'UserChatController@broadcastAuth');
   
 Route::middleware('auth:api')->get('/user', function (Request $request) {

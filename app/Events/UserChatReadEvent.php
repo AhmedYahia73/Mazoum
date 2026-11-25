@@ -2,9 +2,8 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
+use App\Events\Concerns\BroadcastsToUserChat;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -12,61 +11,38 @@ use Illuminate\Support\Facades\Log;
 
 class UserChatReadEvent implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, BroadcastsToUserChat;
 
     public $userId;
     public $reader;
     public $updatedCount;
+    public $readAt;
 
-    /**
-     * Create a new event instance.
-     *
-     * @param int|string $userId
-     * @param string $reader 'user' or 'admin'
-     * @param int $updatedCount
-     */
-    public function __construct($userId, string $reader, int $updatedCount = 0)
+    public function __construct($userId, string $reader, int $updatedCount = 0, ?string $readAt = null)
     {
-        $this->userId = $userId;
+        $this->userId = (int) $userId;
         $this->reader = $reader;
         $this->updatedCount = $updatedCount;
+        $this->readAt = $readAt ?? now()->toIso8601String();
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array
-     */
     public function broadcastOn()
     {
-        return [
-            new Channel('user-chat.' . $this->userId),
-            new Channel('admin-user-chat'),
-            new PrivateChannel('user-chat.' . $this->userId),
-        ];
+        return $this->userChatChannels($this->userId);
     }
 
-    /**
-     * The event's broadcast name.
-     *
-     * @return string
-     */
     public function broadcastAs()
     {
         return 'user_chat_read_event';
     }
 
-    /**
-     * Get the data to broadcast.
-     *
-     * @return array
-     */
     public function broadcastWith(): array
     {
         $data = [
-            'user_id'       => (int) $this->userId,
+            'user_id'       => $this->userId,
             'reader'        => $this->reader,
             'updated_count' => (int) $this->updatedCount,
+            'read_at'       => $this->readAt,
             'date'          => now()->format('Y-m-d'),
             'time'          => now()->format('h:i:s A'),
         ];

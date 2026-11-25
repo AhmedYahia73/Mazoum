@@ -12,33 +12,59 @@ class UserChat extends Model
     protected $table = 'user_chats';
 
     protected $fillable = [
+        'client_msg_id',
         'user_id',
         'admin_id',
+        'reply_to_id',
+        'is_forwarded',
+        'forwarded_from_id',
         'is_admin',
         'msg',
+        'is_edited',
+        'edited_at',
+        'is_delivered',
+        'delivered_at',
         'is_admin_read',
+        'admin_read_at',
         'is_user_read',
+        'user_read_at',
+        'deleted_for_user',
+        'deleted_for_admin',
+        'deleted_for_everyone_at',
+        'deleted_by_type',
+        'deleted_by_id',
+        'is_pinned',
+        'pinned_at',
+        'pinned_by_type',
+        'pinned_by_id',
+        'expires_at',
         'image',
         'voice',
     ];
 
     protected $casts = [
-        'is_admin'      => 'boolean',
-        'is_admin_read' => 'boolean',
-        'is_user_read'  => 'boolean',
-        'created_at'    => 'datetime',
-        'updated_at'    => 'datetime',
-    ];
-
-    protected $appends = [
-        'image_url',
-        'voice_url',
-        'date',
-        'time',
+        'is_admin'                => 'boolean',
+        'is_forwarded'            => 'boolean',
+        'is_edited'               => 'boolean',
+        'is_delivered'            => 'boolean',
+        'is_admin_read'           => 'boolean',
+        'is_user_read'            => 'boolean',
+        'deleted_for_user'        => 'boolean',
+        'deleted_for_admin'       => 'boolean',
+        'is_pinned'               => 'boolean',
+        'edited_at'               => 'datetime',
+        'delivered_at'            => 'datetime',
+        'admin_read_at'           => 'datetime',
+        'user_read_at'            => 'datetime',
+        'deleted_for_everyone_at' => 'datetime',
+        'pinned_at'               => 'datetime',
+        'expires_at'              => 'datetime',
+        'created_at'              => 'datetime',
+        'updated_at'              => 'datetime',
     ];
 
     /**
-     * Relationship: target/owner user of the chat.
+     * Target/owner user of the chat.
      */
     public function user()
     {
@@ -46,7 +72,7 @@ class UserChat extends Model
     }
 
     /**
-     * Relationship: admin/employee who sent or replied to the message.
+     * Admin/employee who sent or replied to the message.
      */
     public function admin()
     {
@@ -54,51 +80,63 @@ class UserChat extends Model
     }
 
     /**
-     * Accessor: Full URL for uploaded image.
+     * Quoted/replied-to message.
      */
-    public function getImageUrlAttribute()
+    public function replyTo()
     {
-        if (empty($this->image)) {
+        return $this->belongsTo(self::class, 'reply_to_id');
+    }
+
+    /**
+     * Original message if forwarded.
+     */
+    public function forwardedFrom()
+    {
+        return $this->belongsTo(self::class, 'forwarded_from_id');
+    }
+
+    /**
+     * Emoji reactions on this message.
+     */
+    public function reactions()
+    {
+        return $this->hasMany(UserChatReaction::class, 'user_chat_id');
+    }
+
+    /**
+     * Favorites on this message.
+     */
+    public function favorites()
+    {
+        return $this->hasMany(UserChatFavorite::class, 'user_chat_id');
+    }
+
+    /**
+     * Resolve full storage URL for a stored relative path.
+     */
+    public function resolveMediaUrl(?string $path): ?string
+    {
+        if (empty($path)) {
             return null;
         }
 
-        if (filter_var($this->image, FILTER_VALIDATE_URL)) {
-            return $this->image;
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
         }
 
-        return url('storage/' . ltrim($this->image, '/'));
+        return url('storage/' . ltrim($path, '/'));
     }
 
     /**
-     * Accessor: Full URL for uploaded voice file.
+     * Scope: messages visible to the requesting side (not deleted for them, not expired).
      */
-    public function getVoiceUrlAttribute()
+    public function scopeVisibleFor($query, bool $isAdminSide)
     {
-        if (empty($this->voice)) {
-            return null;
-        }
+        $query->where($isAdminSide ? 'deleted_for_admin' : 'deleted_for_user', false);
 
-        if (filter_var($this->voice, FILTER_VALIDATE_URL)) {
-            return $this->voice;
-        }
-
-        return url('storage/' . ltrim($this->voice, '/'));
-    }
-
-    /**
-     * Accessor: formatted date.
-     */
-    public function getDateAttribute()
-    {
-        return $this->created_at ? $this->created_at->format('Y-m-d') : null;
-    }
-
-    /**
-     * Accessor: formatted time.
-     */
-    public function getTimeAttribute()
-    {
-        return $this->created_at ? $this->created_at->format('h:i:s A') : null;
+        return $query->where(function ($q) {
+            $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        });
     }
 
     /**
@@ -106,7 +144,10 @@ class UserChat extends Model
      */
     public function scopeUnreadForAdmin($query)
     {
-        return $query->where('is_admin', false)->where('is_admin_read', false);
+        return $query->where('is_admin', false)
+            ->where('is_admin_read', false)
+            ->where('deleted_for_admin', false)
+            ->whereNull('deleted_for_everyone_at');
     }
 
     /**
@@ -114,6 +155,9 @@ class UserChat extends Model
      */
     public function scopeUnreadForUser($query)
     {
-        return $query->where('is_admin', true)->where('is_user_read', false);
+        return $query->where('is_admin', true)
+            ->where('is_user_read', false)
+            ->where('deleted_for_user', false)
+            ->whereNull('deleted_for_everyone_at');
     }
 }

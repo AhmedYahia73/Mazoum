@@ -7,6 +7,8 @@ use App\Events\UserChatReadEvent;
 use App\Models\Events;
 use App\Models\User;
 use App\Models\UserChat;
+use App\Models\UserChatSetting;
+use App\Services\UserChat\UserChatFormatter;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -139,6 +141,15 @@ class UserChatService
     }
 
     /**
+     * Resolve disappearing expiration timestamp for a conversation.
+     */
+    public function resolveExpiresAt($conversationUserId)
+    {
+        $seconds = UserChatSetting::where('user_id', $conversationUserId)->value('disappearing_seconds');
+        return $seconds ? now()->addSeconds((int) $seconds) : null;
+    }
+
+    /**
      * Store and broadcast a chat message.
      *
      * @param Request $request
@@ -149,10 +160,9 @@ class UserChatService
      */
     public function sendMessage(Request $request, $actor, $targetUserId = null): UserChat
     {
-        $role = $actor->role ?? ($actor->user_type ?? 'user');
-        $isAdminOrEmployee = in_array($role, ['admin', 'employee']);
+        $identity = UserChatFormatter::resolveActorIdentity($actor);
+        $isAdminOrEmployee = $identity['is_admin_side'];
 
-        // Determine conversation user_id
         if ($isAdminOrEmployee) {
             $conversationUserId = $targetUserId ?? $request->input('user_id');
             if (empty($conversationUserId)) {
@@ -161,24 +171,44 @@ class UserChatService
                 ]);
             }
 
-            // Check permission for employee
-            if ($role === 'employee' && !$this->employeeCanAccessUser($actor->id, $conversationUserId)) {
+            if ($identity['role'] === 'employee' && !$this->employeeCanAccessUser($identity['id'], $conversationUserId)) {
                 abort(403, 'غير مصرح لك بمراسلة هذا المستخدم / You are not authorized to message this user.');
             }
 
             $isAdmin = true;
-            $adminId = $actor->id;
-            $isAdminRead = true;
-            $isUserRead = false;
+            $adminId = $identity['id'];
         } else {
-            $conversationUserId = $actor->id;
+            $conversationUserId = $identity['id'];
             $isAdmin = false;
             $adminId = null;
-            $isAdminRead = false;
-            $isUserRead = true;
         }
 
-        // Validate presence of content
+        // Idempotency guard for client retry
+        $clientMsgId = $request->input('client_msg_id');
+        if (!empty($clientMsgId)) {
+            $existing = UserChat::where('user_id', $conversationUserId)
+                ->where('client_msg_id', $clientMsgId)
+                ->with(['replyTo', 'reactions', 'favorites'])
+                ->first();
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        // Validate reply_to_id belongs to the same conversation
+        $replyToId = $request->input('reply_to_id');
+        if (!empty($replyToId)) {
+            $replyTargetExists = UserChat::where('id', $replyToId)
+                ->where('user_id', $conversationUserId)
+                ->visibleFor($isAdminOrEmployee)
+                ->exists();
+            if (!$replyTargetExists) {
+                throw ValidationException::withMessages([
+                    'reply_to_id' => ['الرسالة المراد الرد عليها غير موجودة في هذه المحادثة.']
+                ]);
+            }
+        }
+
         $msg = $request->input('msg');
         $hasImage = $request->hasFile('image');
         $hasVoice = $request->hasFile('voice');
@@ -189,13 +219,8 @@ class UserChatService
             ]);
         }
 
-        // Handle Image upload
-        $imagePath = null;
-        if ($hasImage) {
-            $imagePath = $this->upload($request, 'image', 'user_chats/images');
-        }
+        $imagePath = $hasImage ? $this->upload($request, 'image', 'user_chats/images') : null;
 
-        // Handle Voice upload
         $voicePath = null;
         if ($hasVoice) {
             $voiceFile = $request->file('voice');
@@ -204,19 +229,25 @@ class UserChatService
             }
         }
 
-        // Create message record
+        $now = now();
         $chat = UserChat::create([
+            'client_msg_id' => $clientMsgId,
             'user_id'       => $conversationUserId,
             'admin_id'      => $adminId,
+            'reply_to_id'   => $replyToId ?: null,
             'is_admin'      => $isAdmin,
             'msg'           => $msg,
-            'is_admin_read' => $isAdminRead,
-            'is_user_read'  => $isUserRead,
+            'is_admin_read' => $isAdmin,
+            'admin_read_at' => $isAdmin ? $now : null,
+            'is_user_read'  => !$isAdmin,
+            'user_read_at'  => !$isAdmin ? $now : null,
             'image'         => $imagePath,
             'voice'         => $voicePath,
+            'expires_at'    => $this->resolveExpiresAt($conversationUserId),
         ]);
 
-        // Dispatch realtime event
+        $chat->load(['replyTo', 'reactions', 'favorites']);
+
         UserChatEvent::dispatch($chat);
 
         return $chat;
@@ -231,35 +262,46 @@ class UserChatService
      */
     public function markAllAsRead($conversationUserId, $actor): array
     {
-        $role = $actor->role ?? ($actor->user_type ?? 'user');
-        $isAdminOrEmployee = in_array($role, ['admin', 'employee']);
+        $identity = UserChatFormatter::resolveActorIdentity($actor);
+        $isAdminOrEmployee = $identity['is_admin_side'];
+        $now = now();
 
         if ($isAdminOrEmployee) {
-            if ($role === 'employee' && !$this->employeeCanAccessUser($actor->id, $conversationUserId)) {
+            if ($identity['role'] === 'employee' && !$this->employeeCanAccessUser($identity['id'], $conversationUserId)) {
                 abort(403, 'غير مصرح لك بالوصول لمحادثة هذا المستخدم.');
             }
 
-            // Admin/Employee reads messages sent by user (is_admin = false)
             $updated = UserChat::where('user_id', $conversationUserId)
                 ->where('is_admin', false)
                 ->where('is_admin_read', false)
-                ->update(['is_admin_read' => true]);
+                ->visibleFor(true)
+                ->update([
+                    'is_admin_read' => true,
+                    'admin_read_at' => $now,
+                    'is_delivered'  => true,
+                    'delivered_at'  => DB::raw('COALESCE(delivered_at, NOW())'),
+                ]);
 
             $reader = 'admin';
         } else {
-            // User reads messages sent by admin/employee (is_admin = true)
-            $conversationUserId = $actor->id;
+            $conversationUserId = $identity['id'];
 
             $updated = UserChat::where('user_id', $conversationUserId)
                 ->where('is_admin', true)
                 ->where('is_user_read', false)
-                ->update(['is_user_read' => true]);
+                ->visibleFor(false)
+                ->update([
+                    'is_user_read' => true,
+                    'user_read_at' => $now,
+                    'is_delivered' => true,
+                    'delivered_at' => DB::raw('COALESCE(delivered_at, NOW())'),
+                ]);
 
             $reader = 'user';
         }
 
         if ($updated > 0) {
-            UserChatReadEvent::dispatch($conversationUserId, $reader, $updated);
+            UserChatReadEvent::dispatch($conversationUserId, $reader, $updated, $now->toIso8601String());
         }
 
         return [
@@ -267,38 +309,59 @@ class UserChatService
             'user_id'       => (int) $conversationUserId,
             'reader'        => $reader,
             'updated_count' => $updated,
+            'read_at'       => $now->toIso8601String(),
             'message'       => 'تم تحديث حالة القراءة بنجاح / Conversation marked as read successfully',
         ];
     }
 
     /**
-     * Get paginated messages for a conversation.
+     * Get paginated messages for a conversation (page=1 is oldest).
+     * Supports optional $aroundId to jump straight to the page containing a quoted message.
      *
      * @param int|string $conversationUserId
      * @param mixed $actor
      * @param int $perPage
+     * @param int|null $aroundId
      * @return array
      */
-    public function getConversationMessages($conversationUserId, $actor, int $perPage = 50): array
+    public function getConversationMessages($conversationUserId, $actor, int $perPage = 50, ?int $aroundId = null): array
     {
         if (!$this->checkPermission($actor, $conversationUserId)) {
             abort(403, 'غير مصرح لك بعرض هذه المحادثة.');
         }
 
+        $identity = UserChatFormatter::resolveActorIdentity($actor);
         $user = User::withoutGlobalScopes()->find($conversationUserId);
 
-        $messages = UserChat::where('user_id', $conversationUserId)
+        $baseQuery = UserChat::where('user_id', $conversationUserId)
+            ->visibleFor($identity['is_admin_side']);
+
+        $page = null;
+        if (!empty($aroundId)) {
+            $targetExists = (clone $baseQuery)->where('id', $aroundId)->exists();
+            if ($targetExists) {
+                $position = (clone $baseQuery)->where('id', '<=', $aroundId)->count();
+                $page = max(1, (int) ceil($position / max(1, $perPage)));
+            }
+        }
+
+        $messages = $baseQuery
+            ->with(['replyTo', 'reactions', 'favorites'])
             ->orderBy('id', 'asc')
-            ->paginate($perPage);
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn (UserChat $m) => UserChatFormatter::formatMessage($m, $identity['type'], $identity['id']));
+
+        $disappearingSeconds = UserChatSetting::where('user_id', $conversationUserId)->value('disappearing_seconds');
 
         return [
-            'user'     => $user ? [
+            'user' => $user ? [
                 'id'     => $user->id,
                 'name'   => $user->name,
                 'mobile' => $user->mobile,
                 'email'  => $user->email,
             ] : null,
-            'messages' => $messages,
+            'disappearing_seconds' => $disappearingSeconds !== null ? (int) $disappearingSeconds : null,
+            'messages'             => $messages,
         ];
     }
 
@@ -312,23 +375,32 @@ class UserChatService
      */
     public function getAdminConversationsList($actor, $search = null, int $perPage = 30)
     {
-        $role = $actor->role ?? ($actor->user_type ?? 'user');
+        $identity = UserChatFormatter::resolveActorIdentity($actor);
 
         $query = User::withoutGlobalScopes()
-            ->whereHas('user_chats')
+            ->whereHas('user_chats', function ($q) {
+                $q->where('deleted_for_admin', false)
+                  ->where(function ($exp) {
+                      $exp->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                  });
+            })
             ->withCount([
                 'user_chats as unread_count' => function ($q) {
-                    $q->where('is_admin', false)->where('is_admin_read', false);
+                    $q->where('is_admin', false)
+                      ->where('is_admin_read', false)
+                      ->where('deleted_for_admin', false)
+                      ->whereNull('deleted_for_everyone_at')
+                      ->where(function ($exp) {
+                          $exp->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                      });
                 }
             ]);
 
-        // Restrict employee to allowed users
-        if ($role === 'employee') {
-            $allowedIds = $this->getAllowedUserIdsForEmployee($actor->id);
+        if ($identity['role'] === 'employee') {
+            $allowedIds = $this->getAllowedUserIdsForEmployee($identity['id']);
             $query->whereIn('id', $allowedIds);
         }
 
-        // Search by user name or mobile if supplied
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -338,7 +410,24 @@ class UserChatService
         }
 
         return $query->paginate($perPage)->through(function ($u) {
-            $latestChat = UserChat::where('user_id', $u->id)->latest('id')->first();
+            $latestChat = UserChat::where('user_id', $u->id)
+                ->visibleFor(true)
+                ->latest('id')
+                ->first();
+
+            $isDeleted = $latestChat && !is_null($latestChat->deleted_for_everyone_at);
+            $preview = '';
+            if ($latestChat) {
+                if ($isDeleted) {
+                    $preview = 'تم حذف هذه الرسالة';
+                } elseif (!empty($latestChat->msg)) {
+                    $preview = $latestChat->msg;
+                } elseif (!empty($latestChat->image)) {
+                    $preview = '[Image]';
+                } elseif (!empty($latestChat->voice)) {
+                    $preview = '[Voice]';
+                }
+            }
 
             return [
                 'user_id'            => $u->id,
@@ -346,11 +435,11 @@ class UserChatService
                 'mobile'             => $u->mobile,
                 'email'              => $u->email,
                 'unread_count'       => $u->unread_count,
-                'last_message'       => $latestChat?->msg ?? ($latestChat?->image ? '[Image]' : ($latestChat?->voice ? '[Voice]' : '')),
-                'last_message_voice' => $latestChat?->voice_url,
-                'last_message_image' => $latestChat?->image_url,
-                'last_message_date'  => $latestChat?->date,
-                'last_message_time'  => $latestChat?->time,
+                'last_message'       => $preview,
+                'last_message_voice' => ($latestChat && !$isDeleted) ? $latestChat->resolveMediaUrl($latestChat->voice) : null,
+                'last_message_image' => ($latestChat && !$isDeleted) ? $latestChat->resolveMediaUrl($latestChat->image) : null,
+                'last_message_date'  => $latestChat?->created_at?->format('Y-m-d'),
+                'last_message_time'  => $latestChat?->created_at?->format('h:i:s A'),
                 'last_sender'        => $latestChat ? ($latestChat->is_admin ? 'admin' : 'user') : null,
             ];
         });

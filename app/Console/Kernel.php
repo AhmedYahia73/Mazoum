@@ -48,6 +48,12 @@ class Kernel extends ConsoleKernel
             ->dailyAt('08:00')
             ->timezone('Africa/Cairo')
             ->appendOutputTo(storage_path('logs/cron.log'));
+
+        // حذف رسائل الشات المؤقتة المنتهية الصلاحية كل 5 دقائق
+        $schedule->command('user-chat:cleanup-expired')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/cron.log'));
     }
 
     /**

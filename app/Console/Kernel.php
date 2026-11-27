@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
 
         // تذكير المستخدمين بأحداث الغد - يعمل يومياً الساعة 4 عصراً (بتوقيت القاهرة والخليج)
         $schedule->command('events:remind-tomorrow')
-            ->dailyAt('15:00')
+            ->dailyAt('10:00')
             ->timezone('Africa/Cairo')
             ->appendOutputTo(storage_path('logs/cron.log'));
 
